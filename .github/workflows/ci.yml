@@ -1,0 +1,43 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Lint, Typecheck, Test & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit Tests
+        run: npm run test
+
+      - name: Production Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
+          AUTH_SECRET: "ci_secret_mock_32_characters_minimum"
+          ADMIN_EMAIL: "admin@example.com"
+          ADMIN_PASSWORD_HASH: "$2a$12$e80yvEa3Rk97o8Q/65ZqeeP1kC8gO1i8w5M4gE0V8c0.Z/1z6Vq4G"
+          MONGODB_URI: "mongodb://localhost:27017/ci"
+          MONGODB_DB: "devden"
