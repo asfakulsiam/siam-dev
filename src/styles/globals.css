@@ -1,0 +1,142 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-focus: var(--focus);
+
+  --color-success: var(--success);
+  --color-success-ink: var(--success-ink);
+  --color-warning: var(--warning);
+  --color-warning-ink: var(--warning-ink);
+  --color-danger: var(--danger);
+  --color-danger-ink: var(--danger-ink);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-pill: var(--r-pill);
+
+  --font-sans:
+    var(--font-bricolage), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* ==========================================================================
+   Base resets & typography defaults
+   ========================================================================== */
+
+html {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family:
+    var(--font-bricolage),
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  min-height: 100svh;
+  overflow-x: hidden;
+  transition:
+    background-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo);
+}
+
+/* Custom ::selection */
+::selection {
+  background-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Focus indicator discipline (≥ 3:1 against background) */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: var(--r-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-muted);
+}
+
+/* Text balance on headings & pretty on paragraphs */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+}
+
+p {
+  text-wrap: pretty;
+  max-width: 62ch;
+}
+
+/* Tabular numerals for numbers, stats & dates */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.5rem 1rem;
+  z-index: 9999;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-weight: 500;
+  transition: top var(--duration-fast) var(--ease-out-expo);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* prefers-reduced-motion: kill animations and set instant transitions */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -66,17 +66,17 @@ Every theme provides the exact same semantic tokens:
 
 ## 4. Motion Inventory Status
 
-| ID  | Name                               | Tool                             | Status              |
-| --- | ---------------------------------- | -------------------------------- | ------------------- |
-| M1  | Global smooth scroll               | Lenis + ScrollTrigger            | Planned (Phase 1/3) |
-| M2  | Enter-only page transition         | CSS/GSAP                         | Planned (Phase 1)   |
-| M3  | Hero variable-axis load & compress | GSAP + SplitText + ScrollTrigger | Planned (Phase 3)   |
-| M4  | Featured work pinned stack         | ScrollTrigger pin/scrub          | Planned (Phase 3)   |
-| M5  | Scrubbed philosophy statement      | ScrollTrigger scrub              | Planned (Phase 3)   |
-| M6  | Experience timeline draw           | ScrollTrigger scrub              | Planned (Phase 3)   |
-| M7  | Footer wordmark clip-reveal        | ScrollTrigger                    | Planned (Phase 3)   |
-| M8  | Fluid pointer cursor ring          | GSAP quickTo                     | Planned (Phase 3)   |
-| M9  | UI Mount/Exit & Dialogs            | Motion (`LazyMotion`)            | Planned (Phase 1)   |
-| M10 | Contact meme state machine         | CSS + Motion                     | Planned (Phase 7)   |
-| M11 | Theme transition reveal            | View Transitions API             | Planned (Phase 1)   |
-| M12 | Micro-interactions (hover, focus)  | CSS                              | Planned (Phase 1)   |
+| ID  | Name                               | Tool                      | Status             |
+| --- | ---------------------------------- | ------------------------- | ------------------ |
+| M1  | Global smooth scroll               | Lenis + ScrollTrigger     | Active (Phase 3)   |
+| M2  | Enter-only page transition         | Motion (`LazyMotion`)     | Active (Phase 3)   |
+| M3  | Hero variable-axis load & compress | GSAP + ScrollTrigger      | Active (Phase 3)   |
+| M4  | Featured work pinned stack         | ScrollTrigger (lg+)       | Active (Phase 3)   |
+| M5  | Scrubbed philosophy statement      | ScrollTrigger scrub       | Active (Phase 3)   |
+| M6  | Experience timeline draw           | ScrollTrigger scrub       | Active (Phase 3)   |
+| M7  | Footer wordmark clip-reveal        | ScrollTrigger clipPath    | Active (Phase 3)   |
+| M8  | Fluid pointer cursor ring          | GSAP quickTo              | Active (Phase 3)   |
+| M9  | UI Mount/Exit & Dialogs            | Motion (`LazyMotion`)     | Active (Phase 1/3) |
+| M10 | Contact meme state machine         | CSS + Motion              | Planned (Phase 7)  |
+| M11 | Theme transition reveal            | View Transitions / Tokens | Active (Phase 1)   |
+| M12 | Micro-interactions (hover, focus)  | CSS                       | Active (Phase 1)   |

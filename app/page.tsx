@@ -1,45 +1,207 @@
 import Link from "next/link";
+import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { Container, Section } from "@/components/ui/Container";
+import { Heading, Text } from "@/components/ui/Heading";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { getFeaturedProjects } from "@/features/projects/queries";
+import { getPrinciples } from "@/features/experience/queries";
+import { getProfile } from "@/features/profile/queries";
+import { NowCard } from "@/features/about/components/NowCard";
+import { HeroMotion } from "@/components/motion/HeroMotion";
+import { PinnedWorkStack } from "@/components/motion/PinnedWorkStack";
+import { ScrubbedStatement } from "@/components/motion/ScrubbedStatement";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [featuredProjects, profile, principles] = await Promise.all([
+    getFeaturedProjects(),
+    getProfile(),
+    getPrinciples(),
+  ]);
+
   return (
-    <main className="min-h-screen flex flex-col justify-between p-8 sm:p-16 max-w-6xl mx-auto font-sans">
-      <header className="flex items-center justify-between py-4 border-b border-neutral-200 dark:border-neutral-800">
-        <span className="font-semibold tracking-tight text-lg">Asfakul</span>
-        <span className="text-xs uppercase tracking-widest text-neutral-500 font-mono">
-          Phase 0 · Foundation
-        </span>
-      </header>
+    <main id="main-content" className="flex-1 flex flex-col">
+      {/* 1. Hero Section (100svh) */}
+      <section className="min-h-[100svh] flex flex-col justify-between pt-24 pb-12 relative overflow-hidden">
+        <Container className="flex-1 flex flex-col justify-end space-y-8 pb-8">
+          {/* Status Row */}
+          <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[var(--ink-muted)]">
+            <div className="flex items-center gap-2">
+              <span
+                className="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse"
+                aria-hidden="true"
+              />
+              <span className="text-[var(--ink)] font-medium">Available for Q4 2026</span>
+            </div>
+            <span className="text-[var(--line)]">/</span>
+            <span>Dhaka, Bangladesh</span>
+            <span className="text-[var(--line)]">/</span>
+            <span>Full-Stack & Design Systems</span>
+          </div>
 
-      <section className="my-auto py-16 space-y-6 max-w-2xl">
-        <div className="text-xs font-mono text-neutral-400 tracking-wider uppercase">
-          Dev Den // Portfolio Foundation
-        </div>
-        <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 text-balance">
-          I design and build websites that feel considered.
-        </h1>
-        <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 text-pretty">
-          Web designer and full-stack developer in Bangladesh. Precision, typography, and robust
-          engineering.
-        </p>
-        <div className="pt-4 flex items-center gap-4">
-          <Link
-            href="#explore"
-            className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 rounded-md transition-colors hover:opacity-90"
-          >
-            Explore System
-          </Link>
-          <span className="text-xs text-neutral-500 font-mono">
-            Dhaka · Ready for Phase 1 Design System
-          </span>
-        </div>
+          {/* Signature Headline (M3: Variable Font Load & Compress) */}
+          <HeroMotion
+            headline={profile.headline}
+            subheadline={profile.subheadline}
+            bio={profile.bio}
+          />
+
+          {/* Action Row */}
+          <div className="flex flex-wrap items-center gap-4 pt-4">
+            <Link href="/work">
+              <Button size="lg" variant="primary" data-cursor-text="View">
+                <span>Explore Work</span>
+                <ArrowUpRight className="w-4 h-4 ml-1 opacity-70" aria-hidden="true" />
+              </Button>
+            </Link>
+            <Link href="/contact">
+              <Button size="lg" variant="outline" data-cursor-text="Say Hi">
+                Get in Touch
+              </Button>
+            </Link>
+            <Link href="/about">
+              <Button size="lg" variant="ghost">
+                About & Experience
+              </Button>
+            </Link>
+          </div>
+        </Container>
+
+        {/* Scroll Cue */}
+        <Container className="pt-8 border-t border-[var(--line)] flex items-center justify-between text-xs text-[var(--ink-muted)]">
+          <div className="flex items-center gap-2 font-mono">
+            <ArrowDown
+              className="w-3.5 h-3.5 animate-bounce text-[var(--accent)]"
+              aria-hidden="true"
+            />
+            <span>Scroll for selected projects</span>
+          </div>
+          <span className="font-mono text-[var(--ink-muted)]">Asia/Dhaka</span>
+        </Container>
       </section>
 
-      <footer className="pt-8 border-t border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">
-        <span>© {new Date().getFullYear()} Asfakul · Dev Den</span>
-        <span className="font-mono">
-          Quality Gates: Strict Types · ESLint · Vitest · Playwright
-        </span>
-      </footer>
+      {/* 2. Featured Projects Section */}
+      <Section spacing="default" className="border-t border-[var(--line)] bg-[var(--surface)]">
+        <Container className="space-y-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-[var(--line)] pb-8">
+            <div className="space-y-2">
+              <Badge variant="outline">Selected Work</Badge>
+              <Heading as="h2" size="3xl">
+                Featured Case Studies
+              </Heading>
+            </div>
+            <div className="flex items-center gap-4">
+              <Text size="sm" variant="muted" className="max-w-md">
+                Detailed breakdowns of problems, design decisions, token architecture, and
+                measurable impact.
+              </Text>
+              <Link href="/work" className="shrink-0">
+                <Button variant="outline" size="sm">
+                  View All ({featuredProjects.length + 2})
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Featured Work Pinned Stack (M4) */}
+          <PinnedWorkStack projects={featuredProjects} />
+        </Container>
+      </Section>
+
+      {/* 3. Principles of Craft */}
+      <Section spacing="default" className="border-t border-[var(--line)]">
+        <Container className="space-y-12">
+          <div className="space-y-3 max-w-2xl">
+            <Badge variant="outline">Philosophy</Badge>
+            <Heading as="h2" size="3xl">
+              Principles of Craft
+            </Heading>
+            <Text size="lg" variant="muted">
+              Rules and design tenets developed across six years of engineering production web
+              applications.
+            </Text>
+          </div>
+
+          {/* Scrubbed Philosophy Statement (M5) */}
+          <div className="p-8 sm:p-12 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)]">
+            <div className="text-xs font-mono uppercase text-[var(--accent)] tracking-wider mb-4">
+              Core Design Tenet
+            </div>
+            <ScrubbedStatement
+              text="Craft is the feature. In an ecosystem inundated with generic AI templates, meticulous typographic rhythm, token discipline, and uncompromising performance are the definitive proof of engineering excellence."
+              statementClassName="text-2xl sm:text-3xl font-extrabold text-[var(--ink)] leading-snug tracking-tight"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {principles.map((principle) => (
+              <div
+                key={principle.title}
+                className="p-8 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-4 hover:border-[var(--ink-muted)] transition-colors"
+              >
+                <h3 className="text-xl font-bold text-[var(--ink)]">{principle.title}</h3>
+                <p className="text-sm font-semibold text-[var(--accent)]">{principle.statement}</p>
+                <p className="text-sm text-[var(--ink-muted)] leading-relaxed">
+                  {principle.details}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </Section>
+
+      {/* 4. Currently / Now & Availability */}
+      <Section spacing="default" className="border-t border-[var(--line)] bg-[var(--surface)]">
+        <Container className="space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="space-y-2">
+              <Badge variant="outline">Status & Exploration</Badge>
+              <Heading as="h2" size="2xl">
+                Active Focus
+              </Heading>
+            </div>
+            <Link href="/about">
+              <Button variant="ghost" size="sm">
+                Full Profile & Toolbox
+              </Button>
+            </Link>
+          </div>
+
+          <NowCard now={profile.now} location={profile.location} />
+        </Container>
+      </Section>
+
+      {/* 5. Contact Callout Banner */}
+      <Section spacing="default" className="border-t border-[var(--line)]">
+        <Container>
+          <div className="p-8 sm:p-12 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="space-y-3 max-w-xl">
+              <span className="text-xs font-mono uppercase text-[var(--accent)] tracking-wider">
+                Collaboration
+              </span>
+              <Heading as="h2" size="2xl">
+                Let&apos;s build something considered.
+              </Heading>
+              <Text size="base" variant="muted">
+                Available for full-stack engineering contracts, design system architecture, and
+                performance audits.
+              </Text>
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <Link href="/contact">
+                <Button size="lg" variant="primary">
+                  Get in Touch
+                </Button>
+              </Link>
+              <a href={`mailto:${profile.email}`}>
+                <Button size="lg" variant="outline">
+                  {profile.email}
+                </Button>
+              </a>
+            </div>
+          </div>
+        </Container>
+      </Section>
     </main>
   );
 }

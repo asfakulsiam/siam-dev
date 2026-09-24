@@ -11,6 +11,8 @@ Operational reference for deployment, database maintenance, credentials rotation
 - `npm run typecheck`: Run strict TypeScript compiler verification without emitting files.
 - `npm run test`: Run unit and component test suites with Vitest.
 - `npm run test:e2e`: Run full Playwright test suite against production build.
+- `npm run seed`: Idempotently initialize indexes and upsert baseline projects, profile, and experience.
+- `npm run export-content`: Generate a complete JSON snapshot of all live or static content.
 - `npm run build`: Compile production Next.js build.
 - `npm run format`: Check formatting with Prettier.
 
