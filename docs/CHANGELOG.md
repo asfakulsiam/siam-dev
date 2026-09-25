@@ -5,6 +5,30 @@ Format based on Keep a Changelog.
 
 ---
 
+## [Phase J] - Test Suite Integrity, CI MongoDB Service & Loud Failures (2026-09-25)
+
+### Added & Fixed
+
+- **Continuous Integration Live MongoDB Service (`.github/workflows/ci.yml`)**:
+  - Provisioned official `mongo:7` service container with container health probes in the GitHub Actions CI pipeline.
+  - Added pre-E2E database seeding step (`pnpm run seed`) to guarantee real collections and indexes before running Playwright tests.
+  - Added `/api/health` monitoring endpoint returning 200 on active connection and 503 on database disruption.
+- **Admin CRUD End-to-End Suite (`tests/e2e/admin-crud.spec.ts`)**:
+  - Completely replaced 15-line placeholder with real round-trip tests covering all administrative mutations:
+    - Project creation, publishing toggle, and deletion.
+    - Profile bio and resume link updates reflected on public `/about` with idempotent restoration.
+    - Experience milestone addition, verification, and deletion.
+    - Testimonial creation, publishing, verification on the homepage, and deletion.
+    - Meme reaction customization in `/admin/appearance` and reset.
+    - Identity photo activation and verification.
+  - Added `TEST_ADMIN_PASSWORD` in environment and schema to decouple credentials from repository code.
+- **Direct Action & Route Authorization (`tests/unit/actions.test.ts`, `tests/e2e/auth.spec.ts`)**:
+  - Added direct Server Action integration tests proving unauthorized rejection across Projects, Profile, Photos, Experience, Testimonials, Appearance/Settings, and Contact.
+  - Added Playwright test asserting unauthenticated requests to `/api/admin/cloudinary-sign` return 401.
+  - Added `/admin/testimonials` to `protectedAdminRoutes` redirect test suite.
+- **Loud Database Failure for Testimonials (`src/features/testimonials/queries.ts`)**:
+  - Removed silent fallback pattern in `getTestimonials` to surface database connection errors loudly, preventing false-green test runs when MongoDB is down.
+
 ## [Phase I] - Testimonials & Endorsements Section (2026-09-25)
 
 ### Added

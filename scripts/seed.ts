@@ -26,6 +26,10 @@ async function runSeed() {
     await db.collection("messages").createIndex({ ipHash: 1 });
     await db.collection("rate_limits").createIndex({ key: 1 }, { unique: true });
     await db.collection("rate_limits").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+    await db.collection("testimonials").createIndex({ id: 1 }, { unique: true });
+    await db.collection("testimonials").createIndex({ order: 1, createdAt: -1 });
+    await db.collection("testimonials").createIndex({ published: 1 });
+    await db.collection("settings").createIndex({ defaultTheme: 1 });
 
     // 2. Upsert Projects
     console.log(`🚀 Seeding ${staticProjects.length} projects...`);

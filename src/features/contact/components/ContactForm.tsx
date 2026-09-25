@@ -24,6 +24,7 @@ interface ContactFormProps {
 export function ContactForm({ memes }: ContactFormProps) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [messageLength, setMessageLength] = useState<number>(0);
 
   const memeAssets = {
     waiting: memes?.waiting || {
@@ -52,6 +53,7 @@ export function ContactForm({ memes }: ContactFormProps) {
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors },
   } = useForm<ContactFormInput>({
     resolver: zodResolver(contactFormSchema),
@@ -84,9 +86,19 @@ export function ContactForm({ memes }: ContactFormProps) {
         reset();
       } else {
         setStatus("error");
+        if (res.errors) {
+          Object.entries(res.errors).forEach(([field, messages]) => {
+            if (messages && messages.length > 0) {
+              setError(field as keyof ContactFormInput, {
+                type: "server",
+                message: messages[0],
+              });
+            }
+          });
+        }
         setErrorMessage(
           res.error ||
-            "Something went wrong while sending your note. Please email hello@asfakul.com directly.",
+            "Please check the highlighted fields below and try again.",
         );
       }
     } catch {
@@ -100,6 +112,7 @@ export function ContactForm({ memes }: ContactFormProps) {
   const handleReset = () => {
     setStatus("idle");
     setErrorMessage("");
+    setMessageLength(0);
     reset();
   };
 
@@ -183,10 +196,10 @@ export function ContactForm({ memes }: ContactFormProps) {
           <div
             role="alert"
             aria-live="assertive"
-            className="p-4 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-xs text-[var(--ink)] flex items-start gap-3"
+            className="p-4 rounded-[var(--r-sm)] border border-[var(--danger)] bg-[var(--danger)]/10 text-xs text-[var(--ink)] flex items-start gap-3"
           >
-            <AlertCircle className="w-4 h-4 text-[var(--accent)] shrink-0 mt-0.5" />
-            <span>{errorMessage}</span>
+            <AlertCircle className="w-4 h-4 text-[var(--danger)] shrink-0 mt-0.5" aria-hidden="true" />
+            <span className="font-medium leading-relaxed">{errorMessage}</span>
           </div>
         )}
 
@@ -194,7 +207,7 @@ export function ContactForm({ memes }: ContactFormProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label htmlFor="contact-name" className="text-xs font-medium text-[var(--ink)] block">
-              Your Name <span className="text-[var(--accent)]">*</span>
+              Your Name <span className="text-[var(--accent)]" aria-hidden="true">*</span>
             </label>
             <Input
               id="contact-name"
@@ -202,21 +215,22 @@ export function ContactForm({ memes }: ContactFormProps) {
               placeholder="Jane Doe"
               error={!!errors.name}
               aria-invalid={!!errors.name}
+              aria-required="true"
               aria-describedby={errors.name ? "name-error" : undefined}
-              required
               autoComplete="name"
               {...register("name")}
             />
             {errors.name && (
-              <p id="name-error" className="text-xs text-[var(--accent)] font-medium">
-                {errors.name.message}
+              <p id="name-error" role="alert" className="text-xs text-[var(--danger)] font-medium flex items-center gap-1 mt-1">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <span>{errors.name.message}</span>
               </p>
             )}
           </div>
 
           <div className="space-y-2">
             <label htmlFor="contact-email" className="text-xs font-medium text-[var(--ink)] block">
-              Email Address <span className="text-[var(--accent)]">*</span>
+              Email Address <span className="text-[var(--accent)]" aria-hidden="true">*</span>
             </label>
             <Input
               id="contact-email"
@@ -224,14 +238,15 @@ export function ContactForm({ memes }: ContactFormProps) {
               placeholder="jane@example.com"
               error={!!errors.email}
               aria-invalid={!!errors.email}
+              aria-required="true"
               aria-describedby={errors.email ? "email-error" : undefined}
-              required
               autoComplete="email"
               {...register("email")}
             />
             {errors.email && (
-              <p id="email-error" className="text-xs text-[var(--accent)] font-medium">
-                {errors.email.message}
+              <p id="email-error" role="alert" className="text-xs text-[var(--danger)] font-medium flex items-center gap-1 mt-1">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <span>{errors.email.message}</span>
               </p>
             )}
           </div>
@@ -246,7 +261,7 @@ export function ContactForm({ memes }: ContactFormProps) {
             <select
               id="contact-type"
               {...register("projectType")}
-              className="w-full h-11 px-3.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--bg)] text-xs sm:text-sm text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] transition-colors"
+              className="w-full h-10 px-3.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-xs sm:text-sm text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-[var(--focus)] focus-visible:outline-offset-1 transition-colors hover:border-[var(--ink-muted)]"
             >
               <option value="Full-Stack Web App">Full-Stack Web App</option>
               <option value="Design System">Design System</option>
@@ -254,6 +269,11 @@ export function ContactForm({ memes }: ContactFormProps) {
               <option value="Consulting / Audit">Consulting / Technical Audit</option>
               <option value="Other">Other / General Inquiry</option>
             </select>
+            {errors.projectType && (
+              <p id="project-type-error" role="alert" className="text-xs text-[var(--danger)] font-medium">
+                {errors.projectType.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -263,7 +283,7 @@ export function ContactForm({ memes }: ContactFormProps) {
             <select
               id="contact-timeline"
               {...register("timeline")}
-              className="w-full h-11 px-3.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--bg)] text-xs sm:text-sm text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] transition-colors"
+              className="w-full h-10 px-3.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-xs sm:text-sm text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-[var(--focus)] focus-visible:outline-offset-1 transition-colors hover:border-[var(--ink-muted)]"
             >
               <option value="Immediately (within 2 weeks)">Immediately (within 2 weeks)</option>
               <option value="1–3 months">1–3 months</option>
@@ -275,22 +295,37 @@ export function ContactForm({ memes }: ContactFormProps) {
 
         {/* Message */}
         <div className="space-y-2">
-          <label htmlFor="contact-message" className="text-xs font-medium text-[var(--ink)] block">
-            Project Details & Context <span className="text-[var(--accent)]">*</span>
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="contact-message" className="text-xs font-medium text-[var(--ink)] block">
+              Project Details & Context <span className="text-[var(--accent)]" aria-hidden="true">*</span>
+            </label>
+            <span
+              className={`text-[11px] font-mono ${
+                messageLength > 3000
+                  ? "text-[var(--danger)] font-semibold"
+                  : "text-[var(--ink-muted)]"
+              }`}
+              aria-live="polite"
+            >
+              {messageLength}/3,000 chars
+            </span>
+          </div>
           <Textarea
             id="contact-message"
             rows={5}
-            placeholder="Tell me about your product goals, architectural constraints, and desired outcomes..."
+            placeholder="Tell me about your product goals, architectural constraints, and desired outcomes (min 10 characters)..."
             error={!!errors.message}
             aria-invalid={!!errors.message}
+            aria-required="true"
             aria-describedby={errors.message ? "message-error" : undefined}
-            required
-            {...register("message")}
+            {...register("message", {
+              onChange: (e) => setMessageLength(e.target.value.length),
+            })}
           />
           {errors.message && (
-            <p id="message-error" className="text-xs text-[var(--accent)] font-medium">
-              {errors.message.message}
+            <p id="message-error" role="alert" className="text-xs text-[var(--danger)] font-medium flex items-center gap-1 mt-1">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              <span>{errors.message.message}</span>
             </p>
           )}
         </div>

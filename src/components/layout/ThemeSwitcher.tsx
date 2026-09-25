@@ -3,7 +3,13 @@
 import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { Palette, Check } from "lucide-react";
 
-export type ThemeId = "day-shift" | "night-coder" | "night-coder-charcoal" | "blueprint" | "mono";
+export type ThemeId =
+  | "day-shift"
+  | "charcoal"
+  | "night-coder-charcoal"
+  | "night-coder"
+  | "blueprint"
+  | "mono";
 
 interface ThemeOption {
   id: ThemeId;
@@ -13,8 +19,8 @@ interface ThemeOption {
 
 const THEMES: ThemeOption[] = [
   { id: "day-shift", label: "Day Shift", dotColor: "#2F4BFF" },
-  { id: "night-coder", label: "Night Coder (Navy)", dotColor: "#8AA2FF" },
-  { id: "night-coder-charcoal", label: "Night Coder (Charcoal)", dotColor: "#151517" },
+  { id: "charcoal", label: "Charcoal Dark", dotColor: "#151517" },
+  { id: "night-coder", label: "Night Coder (Navy)", dotColor: "#0A0F1A" },
   { id: "blueprint", label: "Blueprint", dotColor: "#FFE14D" },
   { id: "mono", label: "Mono", dotColor: "#000000" },
 ];

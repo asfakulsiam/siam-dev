@@ -5,12 +5,23 @@ import {
   deleteProjectAction,
   togglePublishAction,
 } from "@/features/projects/actions";
-import { updateProfileAction, updateNowAction } from "@/features/profile/actions";
+import {
+  updateProfileAction,
+  updateNowAction,
+} from "@/features/profile/actions";
 import {
   createExperienceAction,
   updateExperienceAction,
   deleteExperienceAction,
 } from "@/features/experience/actions";
+import {
+  createTestimonialAction,
+  updateTestimonialAction,
+  deleteTestimonialAction,
+} from "@/features/testimonials/actions";
+import {
+  updateSettingsAction,
+} from "@/features/appearance/actions";
 import { submitContactAction } from "@/features/contact/actions";
 
 // Mock next/headers
@@ -87,6 +98,28 @@ describe("Phase 4: Server Actions & Authorization Guards", () => {
 
       const resDelete = await deleteExperienceAction("exp-1");
       expect(resDelete.ok).toBe(false);
+    });
+
+    it("rejects unauthenticated testimonial mutations", async () => {
+      const resCreate = await createTestimonialAction({
+        quote: "Unauthenticated quote injection",
+        authorName: "Attacker",
+      });
+      expect(resCreate.ok).toBe(false);
+
+      const resUpdate = await updateTestimonialAction("tst-1", { quote: "Hacked" });
+      expect(resUpdate.ok).toBe(false);
+
+      const resDelete = await deleteTestimonialAction("tst-1");
+      expect(resDelete.ok).toBe(false);
+    });
+
+    it("rejects unauthenticated appearance & settings mutations", async () => {
+      const resSettings = await updateSettingsAction({ defaultTheme: "mono", memes: {} as never });
+      expect(resSettings.ok).toBe(false);
+      if (!resSettings.ok) {
+        expect(resSettings.error).toContain("Unauthorized");
+      }
     });
   });
 

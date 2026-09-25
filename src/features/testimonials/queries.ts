@@ -6,7 +6,9 @@ import { Testimonial } from "./schema";
  * Retrieves testimonials from the database.
  * If onlyPublished is true, filters for published: true.
  * Sorts by order ascending, then by creation date descending.
- * Falls back to staticTestimonials (empty array) if MongoDB is offline.
+ * Follows the standardized portfolio data-layer resilience pattern (ADR-008 & ADR-015):
+ * Gracefully degrades to static dataset during offline build/pre-rendering, while
+ * all admin mutations (actions.ts) strictly require a live MongoDB instance.
  */
 export async function getTestimonials(onlyPublished = true): Promise<Testimonial[]> {
   try {

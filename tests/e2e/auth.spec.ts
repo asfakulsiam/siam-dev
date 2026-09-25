@@ -8,6 +8,7 @@ test.describe("Admin Authentication & Defense-in-Depth Protection", () => {
     "/admin/appearance",
     "/admin/experience",
     "/admin/messages",
+    "/admin/testimonials",
   ];
 
   for (const route of protectedAdminRoutes) {
@@ -33,5 +34,10 @@ test.describe("Admin Authentication & Defense-in-Depth Protection", () => {
     const alert = page.locator('[role="alert"]');
     await expect(alert).toBeVisible();
     await expect(alert).toContainText(/Invalid email or password/i);
+  });
+
+  test("unauthenticated request to an admin API route is rejected", async ({ request }) => {
+    const res = await request.post("/api/admin/cloudinary-sign", { data: {} });
+    expect(res.status()).toBe(401);
   });
 });

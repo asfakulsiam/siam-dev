@@ -130,5 +130,25 @@ This log documents all architectural and technical decisions made for the Dev De
   - End-to-End Testing (Playwright + `@axe-core/playwright`): Automated test specs verifying public navigation, 4-theme switching & persistence, viewport responsiveness (360px–1920px), `prefers-reduced-motion: reduce` compliance, contact validation & honeypot spam containment, admin route protection, and WCAG 2.2 AA audits.
 - **Rationale**: Guarantees zero regressions, strict compliance with `AGENTS.md`, and deterministic deployment confidence.
 
+### ADR-015: Test Suite Integrity, CI MongoDB Service & Loud Database Failure (Phase J)
+- **Date**: 2026-09-25
+- **Decision**: Harden test and continuous integration infrastructure to guarantee test integrity (addressing Findings J1–J5):
+  - **Live CI MongoDB Service (J1 / `.github/workflows/ci.yml`)**: Added `mongo:7` service container with container health probes in CI workflow; execute `pnpm run seed` before E2E testing to populate baseline data; added `/api/health` health-check route verifying real Mongo connectivity.
+  - **Comprehensive Admin CRUD E2E Roundtrips (J2, J4 / `tests/e2e/admin-crud.spec.ts`)**: Replaced 15-line placeholder with real round-trip tests covering Project creation/publishing/deletion, Profile bio/resume updates reflected publicly, Experience additions and removals, Testimonial creation/publishing/homepage appearance/unpublishing, Meme reaction customization/reset, and Identity Photo management. All tests enforce teardown cleanup.
+  - **Decoupled Test Credentials (J2 / `src/lib/env.ts`)**: Introduced `TEST_ADMIN_PASSWORD` in CI environment and schema defaults matching standard bcrypt cost-10 hash `ADMIN_PASSWORD_HASH`, eliminating hardcoded secrets while enabling isolated test automation.
+  - **Direct Server Action & API Route Protection (J3, J4 / `tests/unit/actions.test.ts`, `tests/e2e/auth.spec.ts`)**: Added integration tests directly calling Server Actions without session context across all feature domains (Projects, Profile, Photos, Experience, Testimonials, Appearance/Settings, Contact) asserting unauthorized rejection; added Playwright direct API check rejecting unauthenticated `/api/admin/cloudinary-sign`. Added `/admin/testimonials` to `protectedAdminRoutes`.
+  - **Loud Database Failure for Testimonials (J5 / `src/features/testimonials/queries.ts`)**: Removed silent try/catch fallback to empty array from `getTestimonials`. If MongoDB is offline, `getTestimonials` throws an error, failing loudly and preventing false-green CI runs.
+- **Rationale**: Eliminates false positives, ensures every mutation is verified against real document storage, and fulfills the core directive of `AGENTS.md` §14.3.
+
+### ADR-016: Charcoal as Default Dark Theme & Comprehensive Deployment Guide
+- **Date**: 2026-09-25
+- **Decision**: 
+  - Standardized **Night Coder (Charcoal)** (`#151517` canvas, `#1c1c1f` surface, `#232326` secondary surface, `#ecebe9` ink, `#8aa2ff` accent) as the primary dark theme specification in `tokens.css`, `ThemeSwitcher.tsx`, `AppearanceManager.tsx`, and `app/colophon/page.tsx`.
+  - Maintained complete backward compatibility for `night-coder-charcoal` aliases.
+  - Published comprehensive production deployment documentation (`docs/DEPLOYMENT.md`) and enriched `.env.example` detailing configuration parameters, key generation scripts, and verification checklists across Vercel, Docker, and Cloud platforms.
+- **Rationale**: Elevates visual warmth and contrast fidelity across OLED displays while providing crystal-clear DevOps workflows.
+
+
+
 
 

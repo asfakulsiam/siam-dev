@@ -1,6 +1,6 @@
 /* ==========================================================================
    Dev Den Design Tokens — Hand-Tuned Color Themes & Fluid Scales
-   WCAG 2.2 AA Contrast Verified in all 4 themes
+   WCAG 2.2 AA Contrast Verified in all themes
    ========================================================================== */
 
 :root,
@@ -28,32 +28,10 @@
   color-scheme: light;
 }
 
-[data-theme="night-coder"] {
-  /* Night Coder: Deep ink-navy with soft periwinkle accent */
-  --bg: #0a0f1a;
-  --surface: #121a2a;
-  --surface-2: #1a2438;
-  --ink: #e8edf7;
-  --ink-muted: #9aa6bd;
-  --line: #24304a;
-  --accent: #8aa2ff;
-  --accent-ink: #0a0f1a;
-  --focus: #8aa2ff;
-
-  --success: #34d399;
-  --success-ink: #0a0f1a;
-  --warning: #fbbf24;
-  --warning-ink: #0a0f1a;
-  --danger: #f87171;
-  --danger-ink: #0a0f1a;
-
-  --shadow-floating: 0 16px 36px -12px rgba(0, 0, 0, 0.5);
-  --header-bg: rgba(10, 15, 26, 0.85);
-  color-scheme: dark;
-}
-
-[data-theme="night-coder-charcoal"] {
-  /* Night Coder Charcoal Alternative (Phase H comparison candidate) */
+[data-theme="charcoal"],
+[data-theme="night-coder-charcoal"],
+[data-theme="charcoal-dark"] {
+  /* Charcoal (Dark Theme): Neutral dark charcoal canvas (#151517) with refined dark zinc surfaces (#1c1c1f) and periwinkle focus ring */
   --bg: #151517;
   --surface: #1c1c1f;
   --surface-2: #232326;
@@ -73,6 +51,30 @@
 
   --shadow-floating: 0 16px 36px -12px rgba(0, 0, 0, 0.6);
   --header-bg: rgba(21, 21, 23, 0.85);
+  color-scheme: dark;
+}
+
+[data-theme="night-coder"] {
+  /* Night Coder (Navy Theme): Deep ink-navy (#0a0f1a) with midnight slate surface (#121a2a) and periwinkle accent (#8aa2ff) */
+  --bg: #0a0f1a;
+  --surface: #121a2a;
+  --surface-2: #1a2438;
+  --ink: #e8edf7;
+  --ink-muted: #9aa6bd;
+  --line: #24304a;
+  --accent: #8aa2ff;
+  --accent-ink: #0a0f1a;
+  --focus: #8aa2ff;
+
+  --success: #34d399;
+  --success-ink: #0a0f1a;
+  --warning: #fbbf24;
+  --warning-ink: #0a0f1a;
+  --danger: #f87171;
+  --danger-ink: #0a0f1a;
+
+  --shadow-floating: 0 16px 36px -12px rgba(0, 0, 0, 0.5);
+  --header-bg: rgba(10, 15, 26, 0.85);
   color-scheme: dark;
 }
 

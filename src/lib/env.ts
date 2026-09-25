@@ -15,7 +15,11 @@ const envSchema = z.object({
   ADMIN_PASSWORD_HASH: z
     .string()
     .min(10)
-    .default("$2a$12$e80yvEa3Rk97o8Q/65ZqeeP1kC8gO1i8w5M4gE0V8c0.Z/1z6Vq4G"),
+    .default("$2b$10$ID9Nz3EliuQr3LspBB5Qiu21z/FdV5v0DBvodnp7N2qmyV9U68.5W"),
+  TEST_ADMIN_PASSWORD: z
+    .string()
+    .optional()
+    .default("test-admin-ci-password-1234"),
 
   // Resend Email
   RESEND_API_KEY: z.string().optional().default("re_placeholder"),

@@ -10,6 +10,17 @@ jobs:
   validate:
     name: Lint, Typecheck, Test, Build & E2E
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,13 +51,21 @@ jobs:
       - name: Unit Tests
         run: pnpm run test
 
+      - name: Seed Database
+        run: pnpm run seed
+        env:
+          MONGODB_URI: "mongodb://localhost:27017/ci"
+          MONGODB_DB: "devden"
+          AUTH_SECRET: "ci_secret_mock_32_characters_minimum_length"
+
       - name: Production Build
         run: pnpm run build
         env:
           NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
           AUTH_SECRET: "ci_secret_mock_32_characters_minimum_length"
           ADMIN_EMAIL: "admin@example.com"
-          ADMIN_PASSWORD_HASH: "$2a$12$e80yvEa3Rk97o8Q/65ZqeeP1kC8gO1i8w5M4gE0V8c0.Z/1z6Vq4G"
+          ADMIN_PASSWORD_HASH: "$2b$10$ID9Nz3EliuQr3LspBB5Qiu21z/FdV5v0DBvodnp7N2qmyV9U68.5W"
+          TEST_ADMIN_PASSWORD: "test-admin-ci-password-1234"
           MONGODB_URI: "mongodb://localhost:27017/ci"
           MONGODB_DB: "devden"
 
@@ -59,7 +78,8 @@ jobs:
           NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
           AUTH_SECRET: "ci_secret_mock_32_characters_minimum_length"
           ADMIN_EMAIL: "admin@example.com"
-          ADMIN_PASSWORD_HASH: "$2a$12$e80yvEa3Rk97o8Q/65ZqeeP1kC8gO1i8w5M4gE0V8c0.Z/1z6Vq4G"
+          ADMIN_PASSWORD_HASH: "$2b$10$ID9Nz3EliuQr3LspBB5Qiu21z/FdV5v0DBvodnp7N2qmyV9U68.5W"
+          TEST_ADMIN_PASSWORD: "test-admin-ci-password-1234"
           MONGODB_URI: "mongodb://localhost:27017/ci"
           MONGODB_DB: "devden"
 

@@ -35,41 +35,41 @@ const THEME_OPTIONS: { id: Theme; name: string; icon: typeof Sun; description: s
     id: "day-shift",
     name: "Day Shift",
     icon: Sun,
-    description: "Paper light warmth with deep ink and punchy orange accent.",
-    bg: "#fbfbfd",
-    accent: "#ff5722",
+    description: "Paper light warmth with deep ink and punchy cobalt accent.",
+    bg: "#f4f6fa",
+    accent: "#2f4bff",
+  },
+  {
+    id: "charcoal",
+    name: "Charcoal (Dark)",
+    icon: Moon,
+    description: "Neutral dark charcoal canvas (#151517) with periwinkle accent (#8aa2ff) and dark zinc surfaces.",
+    bg: "#151517",
+    accent: "#8aa2ff",
   },
   {
     id: "night-coder",
     name: "Night Coder (Navy)",
     icon: Moon,
-    description: "Deep ink-navy canvas with soft periwinkle accent.",
+    description: "Deep ink-navy canvas (#0a0f1a) with midnight slate surface (#121a2a) and soft periwinkle accent.",
     bg: "#0a0f1a",
-    accent: "#8aa2ff",
-  },
-  {
-    id: "night-coder-charcoal",
-    name: "Night Coder (Charcoal)",
-    icon: Moon,
-    description: "Neutral charcoal dark canvas (#151517) with periwinkle accent (#8aa2ff).",
-    bg: "#151517",
     accent: "#8aa2ff",
   },
   {
     id: "blueprint",
     name: "Blueprint",
     icon: Compass,
-    description: "Cadet blueprint indigo background with electric cyan precision.",
-    bg: "#0b1329",
-    accent: "#38bdf8",
+    description: "Cadet blueprint indigo background with crisp yellow focus.",
+    bg: "#1f33e6",
+    accent: "#ffe14d",
   },
   {
     id: "mono",
     name: "Mono (High Contrast)",
     icon: Contrast,
     description: "Stark black-and-white editorial aesthetic with maximum legibility.",
-    bg: "#000000",
-    accent: "#ffffff",
+    bg: "#ffffff",
+    accent: "#0033ff",
   },
 ];
 
@@ -123,12 +123,14 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
     message: string;
   }>({ type: null, message: "" });
 
+  const [currentTheme, setCurrentTheme] = useState<Theme>(initialSettings.defaultTheme);
+  const [currentMemes, setCurrentMemes] = useState(initialSettings.memes);
+
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isSubmitting },
   } = useForm<SettingsInput>({
     resolver: zodResolver(settingsInputSchema),
     defaultValues: {
@@ -136,9 +138,6 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
       memes: initialSettings.memes,
     },
   });
-
-  const currentTheme = watch("defaultTheme");
-  const currentMemes = watch("memes");
 
   const onSubmit = async (data: SettingsInput) => {
     setFeedback({ type: null, message: "" });
@@ -169,6 +168,14 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
       shouldDirty: true,
       shouldValidate: true,
     });
+    setCurrentMemes((prev) => ({
+      ...prev,
+      [slotKey]: {
+        ...prev[slotKey],
+        type: "image",
+        publicId: defaultMemeSVGs[slotKey],
+      },
+    }));
   };
 
   return (
@@ -253,7 +260,9 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
                 <input
                   type="radio"
                   value={theme.id}
-                  {...register("defaultTheme")}
+                  {...register("defaultTheme", {
+                    onChange: (e) => setCurrentTheme(e.target.value as Theme),
+                  })}
                   className="sr-only"
                 />
                 <div className="flex items-center justify-between mb-3">
@@ -364,7 +373,7 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
                     </div>
 
                     {/* Video Poster (if type === 'video') */}
-                    {watch(`memes.${slot.key}.type`) === "video" && (
+                    {slotData?.type === "video" && (
                       <div>
                         <label className="block text-xs font-medium text-[var(--ink)] mb-1">
                           Poster Frame Public ID / URL
@@ -406,14 +415,12 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
                     </span>
                     <MemeState
                       asset={{
-                        type: watch(`memes.${slot.key}.type`) || "image",
+                        type: slotData?.type || "image",
                         publicId:
-                          watch(`memes.${slot.key}.publicId`) ||
+                          slotData?.publicId ||
                           defaultMemeSVGs[slot.key],
-                        alt: watch(`memes.${slot.key}.alt`) || "Preview asset",
-                        posterPublicId: watch(
-                          `memes.${slot.key}.posterPublicId`,
-                        ),
+                        alt: slotData?.alt || "Preview asset",
+                        posterPublicId: slotData?.posterPublicId,
                       }}
                       className="w-full"
                     />

@@ -94,15 +94,16 @@ describe("Phase I: Testimonials Schema & Data Model", () => {
   });
 });
 
-describe("Phase I: Zero-Invented-Content Rule & Query Fallbacks", () => {
+describe("Phase I: Zero-Invented-Content Rule & Query Integrity", () => {
   it("ships with strictly zero seeded static testimonials", () => {
     expect(staticTestimonials).toEqual([]);
     expect(staticTestimonials.length).toBe(0);
   });
 
-  it("returns an empty array when database is offline and no testimonials exist", async () => {
+  it("returns static empty array when database is offline during build/pre-rendering", async () => {
     const res = await getTestimonials(true);
     expect(Array.isArray(res)).toBe(true);
+    expect(res).toEqual([]);
   });
 });
 
