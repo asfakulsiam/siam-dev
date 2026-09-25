@@ -6,6 +6,7 @@ import { Cursor } from "@/components/motion/Cursor";
 import { LenisProvider } from "@/components/motion/LenisProvider";
 import { siteConfig } from "@/config/site";
 import { generatePersonJsonLd, generateWebSiteJsonLd, JsonLd } from "@/lib/json-ld";
+import { getSettings } from "@/features/appearance/queries";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -87,23 +88,24 @@ export const metadata: Metadata = {
   },
 };
 
-// Blocking script to prevent theme flash before initial paint
-const themeScript = `(function() {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getSettings();
+  const fallbackTheme = settings.defaultTheme || "day-shift";
+  const personJsonLd = generatePersonJsonLd();
+  const websiteJsonLd = generateWebSiteJsonLd();
+
+  const dynamicThemeScript = `(function() {
   try {
     var stored = localStorage.getItem('devden-theme');
     var theme = stored;
     if (!theme) {
-      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night-coder' : 'day-shift';
+      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night-coder' : '${fallbackTheme}';
     }
     document.documentElement.setAttribute('data-theme', theme);
   } catch (e) {
-    document.documentElement.setAttribute('data-theme', 'day-shift');
+    document.documentElement.setAttribute('data-theme', '${fallbackTheme}');
   }
 })();`;
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const personJsonLd = generatePersonJsonLd();
-  const websiteJsonLd = generateWebSiteJsonLd();
 
   return (
     <html
@@ -112,7 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${bricolage.variable} ${geistMono.variable}`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: dynamicThemeScript }} />
         <JsonLd data={personJsonLd as unknown as Record<string, unknown>} />
         <JsonLd data={websiteJsonLd as unknown as Record<string, unknown>} />
       </head>

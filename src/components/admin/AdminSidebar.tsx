@@ -8,6 +8,7 @@ import {
   UserCog,
   Briefcase,
   Mail,
+  Palette,
   ExternalLink,
   PlusCircle,
 } from "lucide-react";
@@ -48,6 +49,12 @@ export function AdminSidebar({
       label: "Experience",
       href: "/admin/experience",
       icon: Briefcase,
+      exact: false,
+    },
+    {
+      label: "Appearance & Memes",
+      href: "/admin/appearance",
+      icon: Palette,
       exact: false,
     },
     {

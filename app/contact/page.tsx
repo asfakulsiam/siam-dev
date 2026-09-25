@@ -4,6 +4,7 @@ import { Heading, Text } from "@/components/ui/Heading";
 import { Badge } from "@/components/ui/Badge";
 import { ContactForm } from "@/features/contact/components/ContactForm";
 import { DirectContactCard } from "@/features/contact/components/DirectContactCard";
+import { getSettings } from "@/features/appearance/queries";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -39,7 +40,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSettings();
+
   return (
     <main id="main-content" className="min-h-screen pt-24 pb-20">
       <Section spacing="compact">
@@ -79,7 +82,7 @@ export default function ContactPage() {
                 </Text>
               </div>
 
-              <ContactForm />
+              <ContactForm memes={settings.memes} />
             </div>
           </div>
         </Container>

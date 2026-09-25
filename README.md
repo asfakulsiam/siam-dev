@@ -132,13 +132,13 @@ The interface uses semantic CSS variables mapped to `data-theme` attributes on `
 
 ### Prerequisites
 - Node.js 20+ (LTS) or Node.js 22+
-- npm or pnpm
+- pnpm (recommended) or npm
 
 ### 1. Clone & Install
 ```bash
 git clone https://github.com/your-username/dev-den.git
 cd dev-den
-npm install
+pnpm install
 ```
 
 ### 2. Configure Environment
@@ -161,7 +161,7 @@ Paste these values into `.env.local`.
 
 ### 4. Run Development Server
 ```bash
-npm run dev
+pnpm dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
@@ -173,19 +173,19 @@ The codebase enforces strict quality checks across all levels of the testing pyr
 
 ```bash
 # Run ESLint validation
-npm run lint
+pnpm lint
 
 # Run strict TypeScript compiler checks without emitting JS
-npm run typecheck
+pnpm typecheck
 
 # Run Vitest unit & component test suites (69 tests)
-npm run test
+pnpm test
 
 # Run Playwright end-to-end tests against a production build
-npm run test:e2e
+pnpm test:e2e
 
 # Compile production Next.js build
-npm run build
+pnpm build
 ```
 
 ---
@@ -211,7 +211,7 @@ For complete, detailed instructions on deploying to **Vercel**, **Docker**, or *
 3. Add all production environment variables from `.env.example`.
 4. Run database seed once deployed:
    ```bash
-   npm run seed
+   pnpm seed
    ```
 5. Set custom domain under **Vercel Project Settings** $\to$ **Domains**.
 

@@ -1,19 +1,31 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
-import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { gsap } from "@/lib/gsap";
+import { cldUrl } from "@/lib/cloudinary";
 
 interface HeroMotionProps {
+  name?: string;
   headline: string;
   subheadline?: string;
   bio?: string;
+  photoUrl?: string;
 }
 
-export function HeroMotion({ headline, subheadline, bio }: HeroMotionProps) {
+export function HeroMotion({
+  name = "Asfakul",
+  headline,
+  subheadline,
+  bio,
+  photoUrl,
+}: HeroMotionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
+  const [revealed, setRevealed] = useState(false);
+
+  const resolvedPhotoUrl = photoUrl ? cldUrl(photoUrl) : undefined;
 
   useGSAP(
     () => {
@@ -21,7 +33,6 @@ export function HeroMotion({ headline, subheadline, bio }: HeroMotionProps) {
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         // Variable font load animation (M3)
-        // Transition weight and width smoothly using variable font axes
         const fontProxy = { wght: 300, wdth: 80, opacity: 0, y: 16 };
 
         gsap.to(fontProxy, {
@@ -63,23 +74,55 @@ export function HeroMotion({ headline, subheadline, bio }: HeroMotionProps) {
             ease: "none",
           });
         }
+
+        // Touch device reveal animation (triggers on scroll entrance for touch screens)
+        if (headlineRef.current && window.matchMedia("(pointer: coarse)").matches && resolvedPhotoUrl) {
+          gsap.timeline({
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: "top 80%",
+              once: true,
+            },
+          })
+            .to(headlineRef.current, {
+              onStart: () => setRevealed(true),
+              duration: 1.2,
+            })
+            .to(headlineRef.current, {
+              onComplete: () => setRevealed(false),
+              duration: 0.8,
+              delay: 2.0,
+            });
+        }
       });
     },
     { scope: containerRef },
   );
 
   return (
-    <div ref={containerRef} className="space-y-6 max-w-4xl">
+    <div ref={containerRef} className="space-y-6 max-w-4xl select-none">
       <h1
         ref={headlineRef}
-        className="text-[var(--text-display)] font-extrabold tracking-tight text-[var(--ink)] leading-[0.92] text-balance"
-        style={{
-          fontVariationSettings: "'wght' 800, 'wdth' 100",
-          willChange: "transform, opacity",
-        }}
+        aria-label={`${name} — ${headline}`}
+        data-revealed={revealed}
+        className={`text-[var(--text-display)] font-extrabold tracking-tight text-[var(--ink)] leading-[0.92] text-balance cursor-pointer transition-colors duration-[var(--duration-base)] ${
+          resolvedPhotoUrl ? "identity-mask" : ""
+        }`}
+        style={
+          {
+            fontVariationSettings: "'wght' 800, 'wdth' 100",
+            willChange: "transform, opacity",
+            ...(resolvedPhotoUrl
+              ? ({ "--identity-photo-url": `url("${resolvedPhotoUrl}")` } as React.CSSProperties)
+              : {}),
+          } as React.CSSProperties
+        }
+        onMouseEnter={() => setRevealed(true)}
+        onMouseLeave={() => setRevealed(false)}
       >
         {headline}
       </h1>
+
       {(subheadline || bio) && (
         <p
           ref={textRef}

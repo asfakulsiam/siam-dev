@@ -107,6 +107,54 @@ export function getOptimizedCloudinaryUrl(
 }
 
 /**
+ * Generates a consistent duotone / grayscale Cloudinary URL for identity and backdrop presentation.
+ * Applies e_grayscale, e_tint:60:<accent> when hosted on Cloudinary, or returns optimized URL.
+ */
+export function getDuotonePhotoUrl(
+  publicIdOrUrl?: string,
+  tintHex: string = "2f4bff",
+  options: CloudinaryTransformOptions = {},
+): string {
+  if (!publicIdOrUrl) return "";
+  const cleanTint = tintHex.replace("#", "");
+
+  if (publicIdOrUrl.startsWith("data:")) {
+    return publicIdOrUrl;
+  }
+
+  if (isCloudinaryUrl(publicIdOrUrl)) {
+    const uploadIndex = publicIdOrUrl.indexOf("/upload/");
+    if (uploadIndex !== -1) {
+      const before = publicIdOrUrl.substring(0, uploadIndex + "/upload/".length);
+      const after = publicIdOrUrl.substring(uploadIndex + "/upload/".length);
+      const transformed = `${before}e_grayscale,e_tint:60:${cleanTint}/${after}`;
+      return getOptimizedCloudinaryUrl(transformed, options);
+    }
+  }
+
+  if (!publicIdOrUrl.startsWith("http://") && !publicIdOrUrl.startsWith("https://")) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "devden";
+    const duotoneUrl = `https://res.cloudinary.com/${cloudName}/image/upload/e_grayscale,e_tint:60:${cleanTint}/${publicIdOrUrl}`;
+    return getOptimizedCloudinaryUrl(duotoneUrl, options);
+  }
+
+  return cldUrl(publicIdOrUrl, options);
+}
+
+/**
+ * Builds a direct delivery URL from a Cloudinary publicId or returns the URL as-is
+ */
+export function cldUrl(publicIdOrUrl?: string, options: CloudinaryTransformOptions = {}): string {
+  if (!publicIdOrUrl) return "";
+  if (publicIdOrUrl.startsWith("http://") || publicIdOrUrl.startsWith("https://") || publicIdOrUrl.startsWith("data:")) {
+    return getOptimizedCloudinaryUrl(publicIdOrUrl, options);
+  }
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "devden";
+  const rawUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${publicIdOrUrl}`;
+  return getOptimizedCloudinaryUrl(rawUrl, options);
+}
+
+/**
  * Generates a lightweight base64 blur placeholder (LQIP) for Next.js image loading
  */
 export function getBlurPlaceholderUrl(url: string): string {

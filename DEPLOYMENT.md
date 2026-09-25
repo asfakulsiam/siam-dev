@@ -29,7 +29,7 @@ This guide walks you through the entire lifecycle: local setup, third-party prov
 ## 1. Prerequisites & Stack Overview
 
 - **Node.js**: `v20.x` or `v22.x` (LTS)
-- **Package Manager**: `npm` or `pnpm`
+- **Package Manager**: `pnpm` (preferred)
 - **Framework**: Next.js 15+ (App Router)
 - **Database**: MongoDB Atlas
 - **Storage/CDN**: Cloudinary
@@ -48,7 +48,7 @@ This guide walks you through the entire lifecycle: local setup, third-party prov
 
 2. **Install dependencies**:
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Create local environment file**:
@@ -58,7 +58,7 @@ This guide walks you through the entire lifecycle: local setup, third-party prov
 
 4. **Start the development server**:
    ```bash
-   npm run dev
+   pnpm dev
    ```
    Open [http://localhost:3000](http://localhost:3000) to view the application.
 
@@ -142,13 +142,13 @@ Once `MONGODB_URI` is configured in your `.env.local`:
 
 1. **Seed the database with baseline schema and content**:
    ```bash
-   npm run seed
+   pnpm seed
    ```
    This script creates MongoDB indexes (unique `slug`, query indexes) and idempotently upserts the initial projects, profile, experience milestones, and craft principles.
 
 2. **Verify content export capability**:
    ```bash
-   npm run export-content
+   pnpm export-content
    ```
    This generates a timestamped snapshot in `scripts/content-export.json`.
 
@@ -160,16 +160,16 @@ Run all quality checks locally before deploying:
 
 ```bash
 # 1. ESLint verification
-npm run lint
+pnpm lint
 
 # 2. Strict TypeScript type check
-npm run typecheck
+pnpm typecheck
 
 # 3. Unit and integration tests (69 tests)
-npm run test
+pnpm test
 
 # 4. Production compilation test
-npm run build
+pnpm build
 ```
 
 ---
@@ -195,10 +195,11 @@ npm run build
    # Dockerfile
    FROM node:20-alpine AS builder
    WORKDIR /app
-   COPY package*.json ./
-   RUN npm ci
+   RUN npm install -g pnpm
+   COPY package.json pnpm-lock.yaml ./
+   RUN pnpm install --frozen-lockfile
    COPY . .
-   RUN npm run build
+   RUN pnpm build
 
    FROM node:20-alpine AS runner
    WORKDIR /app
@@ -246,7 +247,7 @@ npm run build
 
 ### 1. Database Backups
 - In MongoDB Atlas, enable **Continuous Cloud Backups** (point-in-time recovery).
-- Run `npm run export-content` weekly to keep off-site version-controlled content snapshots.
+- Run `pnpm export-content` weekly to keep off-site version-controlled content snapshots.
 
 ### 2. Password & Secret Rotation
 - To rotate passwords: generate a new bcrypt hash (Step 3A) and update `ADMIN_PASSWORD_HASH`.

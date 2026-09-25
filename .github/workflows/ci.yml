@@ -14,29 +14,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
+
+      - name: Format Check
+        run: pnpm run format
 
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Typecheck
-        run: npm run typecheck
+        run: pnpm run typecheck
 
       - name: Unit Tests
-        run: npm run test
+        run: pnpm run test
 
       - name: Production Build
-        run: npm run build
+        run: pnpm run build
         env:
           NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
-          AUTH_SECRET: "ci_secret_mock_32_characters_minimum"
+          AUTH_SECRET: "ci_secret_mock_32_characters_minimum_length"
           ADMIN_EMAIL: "admin@example.com"
           ADMIN_PASSWORD_HASH: "$2a$12$e80yvEa3Rk97o8Q/65ZqeeP1kC8gO1i8w5M4gE0V8c0.Z/1z6Vq4G"
           MONGODB_URI: "mongodb://localhost:27017/ci"

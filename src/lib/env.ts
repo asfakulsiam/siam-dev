@@ -1,16 +1,15 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  // Gemini & Platform
-  GEMINI_API_KEY: z.string().optional(),
-  APP_URL: z.string().url().optional(),
-
   // Database
   MONGODB_URI: z.string().min(1).default("mongodb://localhost:27017/devden"),
   MONGODB_DB: z.string().min(1).default("devden"),
 
   // Auth
-  AUTH_SECRET: z.string().min(16).default("temporary_secret_at_least_16_characters_long"),
+  AUTH_SECRET: z
+    .string()
+    .min(32, "AUTH_SECRET must be at least 32 characters long")
+    .default("temporary_secret_at_least_32_characters_long_for_security"),
   AUTH_URL: z.string().url().default("http://localhost:3000"),
   ADMIN_EMAIL: z.string().email().default("admin@example.com"),
   ADMIN_PASSWORD_HASH: z
@@ -50,6 +49,8 @@ export const env = parsedEnv.success
       ...process.env,
       MONGODB_URI: process.env.MONGODB_URI || "mongodb://localhost:27017/devden",
       MONGODB_DB: process.env.MONGODB_DB || "devden",
-      AUTH_SECRET: process.env.AUTH_SECRET || "temporary_secret_at_least_16_characters_long",
+      AUTH_SECRET:
+        process.env.AUTH_SECRET ||
+        "temporary_secret_at_least_32_characters_long_for_security",
       ADMIN_EMAIL: process.env.ADMIN_EMAIL || "admin@example.com",
     });

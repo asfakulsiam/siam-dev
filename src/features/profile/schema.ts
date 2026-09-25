@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const socialLinkSchema = z.object({
   label: z.string().min(1, "Label is required"),
-  url: z.string().url("Must be a valid URL"),
+  url: z.string().min(1, "URL or route is required"),
 });
 
 export const toolboxGroupSchema = z.object({
@@ -15,6 +15,12 @@ export const nowSchema = z.object({
   body: z.string().min(5, "Now body is required"),
   links: z.array(socialLinkSchema).optional(),
   updatedAt: z.string().min(1, "Updated date is required"),
+});
+
+export const photoSchema = z.object({
+  publicId: z.string().min(1, "Photo public ID or URL is required"),
+  alt: z.string().min(1, "Photo alt text is required for accessibility"),
+  mood: z.string().optional(),
 });
 
 export const profileSchema = z.object({
@@ -38,6 +44,8 @@ export const profileSchema = z.object({
   }),
   now: nowSchema,
   toolbox: z.array(toolboxGroupSchema).default([]),
+  photos: z.array(photoSchema).default([]),
+  activePhotoId: z.string().optional(),
   updatedAt: z.string().optional(),
 });
 
@@ -46,5 +54,6 @@ export const profileInputSchema = profileSchema.omit({
   updatedAt: true,
 });
 
+export type Photo = z.infer<typeof photoSchema>;
 export type ProfileDocument = z.infer<typeof profileSchema>;
 export type ProfileInput = z.infer<typeof profileInputSchema>;

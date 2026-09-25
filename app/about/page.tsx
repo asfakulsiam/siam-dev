@@ -10,6 +10,7 @@ import { getExperience, getPrinciples } from "@/features/experience/queries";
 import { ExperienceTimeline } from "@/features/about/components/ExperienceTimeline";
 import { ToolboxGrid } from "@/features/about/components/ToolboxGrid";
 import { NowCard } from "@/features/about/components/NowCard";
+import { DuotoneBackdrop } from "@/components/motion/DuotoneBackdrop";
 import { siteConfig } from "@/config/site";
 import { generateProfilePageJsonLd, JsonLd } from "@/lib/json-ld";
 
@@ -60,10 +61,11 @@ export default async function AboutPage() {
       {/* Schema.org ProfilePage Structured Data */}
       <JsonLd data={profileJsonLd as unknown as Record<string, unknown>} />
 
-      {/* 1. Profile Header */}
-      <Section spacing="compact">
-        <Container size="narrow" className="space-y-8">
-          <div className="space-y-4 border-b border-[var(--line)] pb-8">
+      {/* 1. Profile Header with subtle ambient duotone identity backdrop */}
+      <Section spacing="compact" className="relative">
+        <DuotoneBackdrop photoUrl={profile.activePhotoId} />
+        <Container size="narrow" className="space-y-8 relative z-10">
+          <div className="space-y-4 border-b border-[var(--line)] pb-8 bg-[var(--surface)]/90 backdrop-blur-xs p-6 sm:p-8 rounded-[var(--r-md)] border border-[var(--line)]">
             <div className="flex flex-wrap items-center gap-3">
               <Badge variant="outline">Profile & Craft</Badge>
               <span className="text-xs text-[var(--ink-muted)] font-mono">{profile.location}</span>

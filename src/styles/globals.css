@@ -129,8 +129,33 @@ p {
   top: 1rem;
 }
 
+/* Identity Text Mask (Phase C Signature Effect) */
+.identity-mask {
+  background-image: var(--identity-photo-url);
+  background-size: cover;
+  background-position: center;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: var(--ink); /* fallback color if the mask isn't supported */
+  transition: opacity var(--duration-base) var(--ease-out-expo), color var(--duration-base) var(--ease-out-expo);
+}
+
+.identity-mask[data-revealed="false"] {
+  background-image: none;
+  color: var(--ink);
+}
+
+.identity-mask[data-revealed="true"] {
+  color: transparent;
+}
+
 /* prefers-reduced-motion: kill animations and set instant transitions */
 @media (prefers-reduced-motion: reduce) {
+  .identity-mask {
+    background-image: none !important;
+    color: var(--ink) !important;
+  }
+
   *,
   *::before,
   *::after {

@@ -39,11 +39,13 @@ export default async function HomePage() {
             <span>Full-Stack & Design Systems</span>
           </div>
 
-          {/* Signature Headline (M3: Variable Font Load & Compress) */}
+          {/* Signature Headline (M3: Variable Font Load & Compress + Phase C Text-Mask Reveal) */}
           <HeroMotion
+            name={profile.name}
             headline={profile.headline}
             subheadline={profile.subheadline}
             bio={profile.bio}
+            photoUrl={profile.activePhotoId}
           />
 
           {/* Action Row */}

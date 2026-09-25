@@ -92,3 +92,43 @@ This log documents all architectural and technical decisions made for the Dev De
   - **Programmatic Discovery Engine (`app/sitemap.ts`, `app/robots.ts`, `app/feed.xml/route.ts`)**: Dynamic XML sitemap indexing published projects, crawler robots with admin disallow rules, and valid RSS 2.0 feed for news aggregators.
   - **Schema.org Structured Data (`src/lib/json-ld.tsx`)**: Comprehensive `Person`, `WebSite`, `ProfilePage`, and `CreativeWork` schemas enabling rich snippets.
 - **Rationale**: Maximizes SEO discoverability, page speed, social share aesthetics, and accessibility while guaranteeing zero layout shift.
+
+### ADR-011: Authentication Architecture — Hardened Custom HMAC-SHA256 Session (Phase A Stabilization)
+- **Date**: 2026-09-25
+- **Decision**: Adopt Option 2 (Keep, harden, and own the custom HMAC-SHA256 session engine in `src/lib/auth.ts`) rather than pulling in external auth frameworks like Auth.js/NextAuth:
+  - **Single-Admin Context**: The application is a single-administrator portfolio with credentials validated against `ADMIN_EMAIL` and `ADMIN_PASSWORD_HASH` (bcrypt). There is no multi-tenancy, OAuth, or public user registration.
+  - **Zero Dependency & Edge Compatibility**: Implemented with standard Node `crypto` using HMAC-SHA256 signatures, avoiding version churn, breaking changes across Next.js canary/major updates, or peer dependency conflicts.
+  - **Strict Cryptographic Guarantees**:
+    - `AUTH_SECRET` length strictly enforced to ≥ 32 characters via Zod in `src/lib/env.ts`.
+    - Tamper detection: any payload or signature modification immediately fails validation and destroys the cookie.
+    - Expiration enforcement: sessions expire after a strict 7-day lifetime.
+    - HttpOnly, SameSite=Lax, Secure cookie attributes prevent XSS and CSRF token interception.
+    - Defense-in-depth: every admin server action, route handler, and layout calls `requireAdmin()`.
+  - **Verification**: Unit tests in `tests/unit/admin-auth.test.ts` and `tests/unit/admin.test.tsx` thoroughly prove token tampering, expiration, and unauthorized access rejection.
+- **Rationale**: Eliminates bloated dependencies while providing higher security guarantees and predictable, transparent code maintenance.
+
+### ADR-012: Meme Reaction Engine & Appearance System (Phase B)
+- **Date**: 2026-09-25
+- **Decision**: Implemented an appearance management system supporting 4 contrast-verified themes and 6 reactive meme states (`waiting`, `sending`, `success`, `error`, `notFound`, `loading`):
+  - Zero-broken-link architecture: Default SVG vector data URIs embedded in `src/features/appearance/data.ts` ensure rich visual presentation prior to custom media upload.
+  - Motion control: Built `MemeState.tsx` component with a 3-loop ceiling (`maxLoops = 3`) that gracefully rests on poster/still and respects `prefers-reduced-motion: reduce`.
+  - Admin controls: Built full Appearance & Theme CMS in `/admin/appearance` for administrators to select first-paint default themes and upload reactive memes with mandatory accessibility `alt` text.
+- **Rationale**: Replaces dry loading/error states with memorable brand reactions while preserving 100% WCAG 2.2 AA accessibility and loop limits.
+
+### ADR-013: Identity Text-Mask Photo Reveal & Duotone Ambient Backdrop (Phase C)
+- **Date**: 2026-09-25
+- **Decision**: Implemented a disciplined identity presentation system:
+  - Signature Hero Effect: Interactive text-mask photo reveal (`.identity-mask`) using `-webkit-background-clip: text` on the headline with hover and touch-entrance scroll triggers.
+  - Subtle Duotone Backdrop (`DuotoneBackdrop.tsx`): Cloudinary `e_grayscale,e_tint:60:<accent>` transformation applied at request time behind the About page with subtle GSAP `ScrollTrigger.scrub` transform scaling (1.0 → 1.06) and solid `--surface` content containers to guarantee $\ge 4.5:1$ text contrast.
+  - Admin Photo Manager: Integrated photo management tab into `/admin/profile` with mandatory accessibility alt text verification.
+- **Rationale**: Delivers human identity and craft in exactly one bold hero moment and one quiet background layer, strictly avoiding scattered avatars across the public shell.
+
+### ADR-014: Automated Testing Architecture & Playwright E2E Verification (Phase D)
+- **Date**: 2026-09-25
+- **Decision**: Built comprehensive 2-tier testing pyramid:
+  - Unit & Integration Testing (Vitest): 17 test suites covering Zod schemas, server queries with offline fallbacks, rate limiting, HMAC session security, server actions, and motion components.
+  - End-to-End Testing (Playwright + `@axe-core/playwright`): Automated test specs verifying public navigation, 4-theme switching & persistence, viewport responsiveness (360px–1920px), `prefers-reduced-motion: reduce` compliance, contact validation & honeypot spam containment, admin route protection, and WCAG 2.2 AA audits.
+- **Rationale**: Guarantees zero regressions, strict compliance with `AGENTS.md`, and deterministic deployment confidence.
+
+
+

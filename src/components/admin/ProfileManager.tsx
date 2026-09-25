@@ -12,9 +12,14 @@ import {
   User,
   Plus,
   Trash2,
+  Camera,
+  Check,
+  Sparkles,
 } from "lucide-react";
-import { ProfileDocument } from "@/features/profile/schema";
+import { ProfileDocument, Photo } from "@/features/profile/schema";
+import { defaultIdentityPhotoSVG } from "@/features/profile/data";
 import { updateProfileAction, updateNowAction } from "@/features/profile/actions";
+import { cldUrl, getDuotonePhotoUrl } from "@/lib/cloudinary";
 
 interface ProfileManagerProps {
   initialProfile: ProfileDocument;
@@ -26,7 +31,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
   const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   // Tab
-  const [activeTab, setActiveTab] = useState<"profile" | "now" | "toolbox">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "photos" | "now" | "toolbox">("profile");
 
   // Profile fields
   const [name, setName] = useState(initialProfile.name || "Asfakul");
@@ -41,6 +46,22 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
   const [availabilityOpen, setAvailabilityOpen] = useState(initialProfile.availability?.open ?? true);
   const [availabilityText, setAvailabilityText] = useState(
     initialProfile.availability?.text || "Available for Select Q2 2026 Engagements",
+  );
+
+  // Identity Photos
+  const [photos, setPhotos] = useState<Photo[]>(
+    initialProfile.photos && initialProfile.photos.length > 0
+      ? initialProfile.photos
+      : [
+          {
+            publicId: defaultIdentityPhotoSVG,
+            alt: "Asfakul in studio lighting with architectural silhouette",
+            mood: "working",
+          },
+        ],
+  );
+  const [activePhotoId, setActivePhotoId] = useState<string>(
+    initialProfile.activePhotoId || initialProfile.photos?.[0]?.publicId || defaultIdentityPhotoSVG,
   );
 
   // "Now" fields
@@ -77,8 +98,51 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
     setToolbox((prev) => prev.filter((_, idx) => idx !== groupIndex));
   };
 
+  const handleAddPhoto = () => {
+    const newPhoto: Photo = {
+      publicId: "",
+      alt: "Asfakul portfolio portrait",
+      mood: "candid",
+    };
+    setPhotos((prev) => [...prev, newPhoto]);
+  };
+
+  const handleRemovePhoto = (idx: number) => {
+    const photoToRemove = photos[idx];
+    const newPhotos = photos.filter((_, i) => i !== idx);
+    setPhotos(newPhotos);
+    const firstPhoto = newPhotos[0];
+    if (photoToRemove && activePhotoId === photoToRemove.publicId && firstPhoto) {
+      setActivePhotoId(firstPhoto.publicId);
+    }
+  };
+
+  const handleUpdatePhoto = (idx: number, field: keyof Photo, val: string) => {
+    setPhotos((prev) =>
+      prev.map((p, i) => (i === idx ? { ...p, [field]: val } : p)),
+    );
+  };
+
   const handleSaveProfile = () => {
     setNotification(null);
+
+    // Validation check for photos
+    for (const photo of photos) {
+      if (!photo.publicId.trim()) {
+        setNotification({
+          message: "Every photo must have a valid public ID or image URL.",
+          type: "error",
+        });
+        return;
+      }
+      if (!photo.alt.trim()) {
+        setNotification({
+          message: "Alt text is mandatory for every photo to maintain WCAG accessibility.",
+          type: "error",
+        });
+        return;
+      }
+    }
 
     const payload = {
       name: name.trim(),
@@ -106,6 +170,8 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         updatedAt: nowUpdated.trim(),
       },
       toolbox,
+      photos,
+      activePhotoId: activePhotoId || photos[0]?.publicId,
     };
 
     startTransition(async () => {
@@ -113,7 +179,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         const res = await updateProfileAction(payload);
         if (res.ok) {
           setNotification({
-            message: "Profile and settings updated successfully.",
+            message: "Profile, identity photos, and settings saved successfully.",
             type: "success",
           });
           router.refresh();
@@ -175,10 +241,10 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[var(--line)]">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--ink)]">
-            Profile &amp; &ldquo;Now&rdquo; Focus
+            Profile &amp; Identity Manager
           </h1>
           <p className="text-xs text-[var(--ink-muted)] mt-1">
-            Manage your biography, contact links, availability status, and current exploration.
+            Manage your biography, identity portraits, contact links, availability, and &ldquo;Now&rdquo; exploration.
           </p>
         </div>
 
@@ -227,7 +293,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       )}
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-[var(--line)] pb-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--line)] pb-2 text-xs">
         <button
           type="button"
           onClick={() => setActiveTab("profile")}
@@ -239,6 +305,19 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         >
           <User className="w-3.5 h-3.5" aria-hidden="true" />
           <span>General Profile</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("photos")}
+          className={`px-3 py-1.5 rounded-[var(--r-sm)] font-semibold transition-colors flex items-center gap-1.5 ${
+            activeTab === "photos"
+              ? "bg-[var(--surface-2)] text-[var(--ink)] border border-[var(--line)]"
+              : "text-[var(--ink-muted)] hover:text-[var(--ink)]"
+          }`}
+        >
+          <Camera className="w-3.5 h-3.5" aria-hidden="true" />
+          <span>Identity &amp; Photos ({photos.length})</span>
         </button>
 
         <button
@@ -439,7 +518,158 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         </div>
       )}
 
-      {/* Tab 2: "Now" Section */}
+      {/* Tab 2: Identity & Photos (Phase C) */}
+      {activeTab === "photos" && (
+        <div className="bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-md)] p-5 sm:p-6 space-y-6 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--line)]">
+            <div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[var(--accent)]" />
+                <h2 className="text-sm font-bold text-[var(--ink)]">
+                  Identity Portraits &amp; Hero Mask Reveal
+                </h2>
+              </div>
+              <p className="text-xs text-[var(--ink-muted)] mt-1">
+                Upload portraits, set the active hero mask photo, and maintain WCAG 2.2 AA compliant alt text.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddPhoto}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:bg-[var(--surface)] transition-colors shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Portrait Photo</span>
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {photos.map((photo, pIdx) => {
+              const isActive = (activePhotoId || photos[0]?.publicId) === photo.publicId;
+              const photoDeliveryUrl = cldUrl(photo.publicId);
+              const duotoneUrl = getDuotonePhotoUrl(photo.publicId);
+
+              return (
+                <div
+                  key={pIdx}
+                  className={`p-5 rounded-[var(--r-md)] border space-y-4 transition-all ${
+                    isActive
+                      ? "border-[var(--accent)] bg-[var(--surface-2)]/60 ring-2 ring-[var(--accent)]/20"
+                      : "border-[var(--line)] bg-[var(--bg)]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs text-[var(--ink)]">
+                        Portrait #{pIdx + 1}
+                      </span>
+                      {isActive && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold">
+                          <Check className="w-3 h-3" /> ACTIVE HERO PHOTO
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {!isActive && (
+                        <button
+                          type="button"
+                          onClick={() => setActivePhotoId(photo.publicId)}
+                          disabled={!photo.publicId}
+                          className="text-[11px] font-mono text-[var(--accent)] hover:underline disabled:opacity-30"
+                        >
+                          Set as Active
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePhoto(pIdx)}
+                        disabled={photos.length <= 1}
+                        className="p-1 text-[var(--ink-muted)] hover:text-[var(--danger)] transition-colors disabled:opacity-30"
+                        title="Remove photo"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                    <div className="sm:col-span-2 space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-[var(--ink)] mb-1">
+                          Cloudinary Public ID or Image URL *
+                        </label>
+                        <input
+                          type="text"
+                          value={photo.publicId}
+                          onChange={(e) => handleUpdatePhoto(pIdx, "publicId", e.target.value)}
+                          placeholder="e.g. devden/portraits/asfakul-working or https://..."
+                          required
+                          className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-[var(--ink)] mb-1">
+                          Accessibility Alt Text * (Mandatory)
+                        </label>
+                        <input
+                          type="text"
+                          value={photo.alt}
+                          onChange={(e) => handleUpdatePhoto(pIdx, "alt", e.target.value)}
+                          placeholder="Describe the portrait clearly (e.g. Asfakul in studio lighting)"
+                          required
+                          className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
+                          Mood / Setting (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={photo.mood || ""}
+                          onChange={(e) => handleUpdatePhoto(pIdx, "mood", e.target.value)}
+                          placeholder="e.g. working, candid, formal"
+                          className="w-full px-3 py-1.5 text-xs bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Previews Column */}
+                    <div className="flex flex-col items-center justify-center p-3 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] space-y-2">
+                      <span className="text-[10px] font-mono text-[var(--ink-muted)]">
+                        LIVE PREVIEW
+                      </span>
+                      {photo.publicId ? (
+                        <div className="relative w-28 h-36 rounded-[var(--r-sm)] overflow-hidden border border-[var(--line)]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photoDeliveryUrl}
+                            alt={photo.alt || "Portrait preview"}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-28 h-36 rounded-[var(--r-sm)] border border-dashed border-[var(--line)] flex items-center justify-center text-[10px] text-[var(--ink-muted)]">
+                          No URL
+                        </div>
+                      )}
+                      <span className="text-[9px] font-mono text-[var(--ink-muted)]">
+                        Duotone Transform Applied
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: "Now" Section */}
       {activeTab === "now" && (
         <div className="bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-md)] p-5 sm:p-6 space-y-6 shadow-xs">
           <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
@@ -506,7 +736,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         </div>
       )}
 
-      {/* Tab 3: Toolbox & Skills */}
+      {/* Tab 4: Toolbox & Skills */}
       {activeTab === "toolbox" && (
         <div className="bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-md)] p-5 sm:p-6 space-y-6 shadow-xs">
           <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">

@@ -3,12 +3,20 @@ import { ArrowLeft } from "lucide-react";
 import { Container, Section } from "@/components/ui/Container";
 import { Heading, Text } from "@/components/ui/Heading";
 import { Button } from "@/components/ui/Button";
+import { getMeme } from "@/features/appearance/queries";
+import { MemeState } from "@/components/motion/MemeState";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const notFoundMeme = await getMeme("notFound");
+
   return (
     <main id="main-content" className="min-h-screen flex flex-col justify-center pt-24 pb-20">
       <Section spacing="compact">
         <Container size="narrow" className="text-center space-y-6">
+          <div className="flex justify-center">
+            <MemeState asset={notFoundMeme} maxLoops={3} />
+          </div>
+
           <div className="text-xs font-mono uppercase text-[var(--accent)] tracking-widest">
             Error 404
           </div>

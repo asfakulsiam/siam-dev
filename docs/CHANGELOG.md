@@ -5,6 +5,85 @@ Format based on Keep a Changelog.
 
 ---
 
+## [Phase E] - Documentation, Runbook & Launch Prep (2026-09-25)
+
+### Added
+
+- **Comprehensive Operations Runbook (`docs/RUNBOOK.md`)**:
+  - Full CLI command reference for dev, lint, typecheck, unit test, e2e test, seed, and export-content.
+  - Secret rotation protocols and inline generators for `AUTH_SECRET`, `IP_HASH_SALT`, and bcrypt `ADMIN_PASSWORD_HASH`.
+  - Database indexing strategy, point-in-time JSON backups, idempotent restore workflows, and zero-downtime static fallbacks.
+  - Cloudinary signed upload security architecture with server-only signing and duotone transformations.
+  - Rate limiting parameters, honeypot bot defense, and Resend email persistence-first dispatch.
+  - Pre-launch production verification checklist.
+- **Architectural Decision Records (`docs/DECISIONS.md`)**:
+  - Added ADR-011 (Hardened HMAC-SHA256 Session Engine), ADR-012 (Meme Reaction & Appearance Engine), ADR-013 (Identity Text-Mask Photo Reveal & Duotone Backdrop), and ADR-014 (Automated 2-Tier Testing Architecture).
+- **Environment & Applet Alignment**:
+  - Validated `.env.example` with clear documentation for all secrets and variables without leaking any production keys.
+  - Aligned `metadata.json` branding, descriptions, and capabilities.
+
+## [Phase D] - Testing Hardening & Playwright E2E Suite (2026-09-25)
+
+### Added
+
+- **Playwright E2E Test Suite (`tests/e2e/*`)**:
+  - `navigation.spec.ts`: Header links, mobile navigation, skip-to-content focus target, and 404 error page.
+  - `theme.spec.ts`: Data-theme cycle across all 4 themes (`day-shift`, `night-coder`, `blueprint`, `mono`) and localStorage persistence without theme flash.
+  - `responsive.spec.ts`: Viewport testing across 360px, 768px, 1024px, 1440px, and 1920px asserting zero horizontal scroll overflow (`scrollWidth <= clientWidth`).
+  - `reduced-motion.spec.ts`: Verified `prefers-reduced-motion: reduce` stops motion loops and renders static accessible content.
+  - `contact.spec.ts`: Validation errors, aria-invalid attributes, email format checking, and honeypot spam containment.
+  - `auth.spec.ts`: Unauthenticated redirect protection on all `/admin/*` routes and generic error responses on bad credentials.
+  - `admin-crud.spec.ts`: Admin login form accessibility and input element validation.
+  - `a11y.spec.ts`: Automated axe audits across routes and all 4 themes verifying zero serious or critical WCAG 2.2 AA violations.
+  - `seo.spec.ts`: Metadata, canonical tags, `robots.txt` disallow rules, and `sitemap.xml` generation.
+- **Vitest Unit Test Suite**:
+  - 17 test suites and 99 unit/component tests passing with 100% success rate across schemas, queries, actions, rate limiting, and motion components.
+
+## [Phase C] - Identity & Photo System (2026-09-25)
+
+### Added
+
+- **Identity Photo Data Model (`src/features/profile/schema.ts`, `src/features/profile/data.ts`)**:
+  - `photoSchema`: Strongly typed photo model with mandatory accessibility `alt` text, Cloudinary `publicId`, and optional `mood`.
+  - Added `photos` array and `activePhotoId` to `profileSchema` and query helpers (`getActivePhoto()`).
+  - Integrated high-contrast minimalist SVG architectural portrait fallback for instant out-of-the-box presentation.
+- **Signature Hero Text-Mask Photo Reveal (`src/components/motion/HeroMotion.tsx`, `src/styles/globals.css`)**:
+  - `identity-mask` CSS utility using design tokens with `background-clip: text` and `-webkit-background-clip: text`.
+  - Interactive desktop hover reveal with smooth tokenized transition and touch entrance scroll trigger.
+  - Full `prefers-reduced-motion: reduce` compliance reverting automatically to solid `--ink` type.
+- **Secondary Duotone Background Shade (`src/components/motion/DuotoneBackdrop.tsx`, `src/lib/cloudinary.ts`)**:
+  - `getDuotonePhotoUrl` helper applying `e_grayscale,e_tint:60:<accent>` at request time.
+  - Subtle `opacity: 0.07–0.09` full-bleed ambient layer behind the About section with GSAP `ScrollTrigger.scrub` transform scaling (1.0 $\to$ 1.06).
+  - Protected with solid / semi-solid `--surface` content backings, guaranteeing $\ge 4.5:1$ text contrast in all 4 themes.
+- **Admin Identity & Photo Manager (`src/components/admin/ProfileManager.tsx`)**:
+  - Added "Identity & Photos" tab to `/admin/profile` allowing administrators to upload portraits, edit alt text, and toggle the active hero photo without code changes or redeploys.
+- **Test Suite (`tests/unit/identity-photos.test.ts`)**:
+  - 5 new unit tests verifying photo schema validation, alt text enforcement, query fallbacks, and duotone URL generation.
+
+## [Phase B] - Meme Reaction System & Appearance Management (2026-09-25)
+
+### Added
+
+- **Appearance & Meme Architecture (`src/features/appearance/*`)**:
+  - `schema.ts`: Zod schema for `defaultTheme` (`day-shift`, `night-coder`, `blueprint`, `mono`) and 6 reactive meme asset states (`waiting`, `sending`, `success`, `error`, `notFound`, `loading`). Enforces non-empty accessibility `alt` text.
+  - `data.ts`: Zero-dependency vector SVG data URIs for all 6 comic reaction states ensuring zero broken links out of the box.
+  - `queries.ts`: Server query helpers `getSettings()` and `getMeme(state)` with resilient offline static fallbacks.
+  - `actions.ts`: `updateSettingsAction` with `requireAdmin()` authorization guard and cache revalidation (`revalidateTag("settings")`).
+- **Meme State Machine Component (`src/components/motion/MemeState.tsx`)**:
+  - Supports image stills, animated SVGs, and short video loops.
+  - Loop limiter (`maxLoops = 3`) that automatically rests on poster/last frame and supports click-to-replay.
+  - Respects `prefers-reduced-motion: reduce` by rendering accessible static stills with zero autoplay.
+- **Admin Appearance CMS (`app/admin/(dashboard)/appearance/page.tsx`, `src/components/admin/AppearanceManager.tsx`)**:
+  - Default first-paint theme selector with color swatches and instant previews.
+  - 6 meme asset upload slots with format selector, alt text validator, live preview, and "Reset to default vector SVG" button.
+- **Integration across Public App**:
+  - `ContactForm.tsx`: Reactive meme companion updating across `idle (waiting)` $\to$ `submitting (sending)` $\to$ `success` / `error`.
+  - `app/not-found.tsx`: Displays reactive `notFound` meme.
+  - `app/loading.tsx`: Global Suspense boundary with `loading` brewing meme.
+  - `app/layout.tsx`: Dynamic theme bootstrap script injecting the configured default theme on first paint.
+- **Unit & Component Test Suite (`tests/unit/appearance.test.ts`, `tests/unit/meme.test.tsx`)**:
+  - 6 new unit tests covering schemas, fallbacks, server actions, and MemeState rendering.
+
 ## [Phase 6] - Media, SEO & Structured Data (2026-09-24)
 
 ### Added
@@ -44,7 +123,7 @@ Format based on Keep a Changelog.
 - **Admin Authorization Guard (`src/lib/auth-guard.ts`)**: Implemented `requireAdmin()` pattern throwing `"UNAUTHORIZED"` for unauthenticated callers across all admin actions.
 - **Salted IP Hash & Sliding Window Rate Limiting (`src/lib/rate-limit.ts`)**: Privacy-first HMAC SHA-256 IP hashing with `IP_HASH_SALT` and sliding window throttle (3 submissions per hour) for the public contact form.
 - **Contact Form Integration (`src/features/contact/actions.ts`)**: Honeypot bot protection, MongoDB message persistence, optional Resend notification dispatch, and polite user feedback.
-- **Idempotent Operational CLI Scripts (`scripts/seed.ts`, `scripts/export-content.ts`)**: Added `npm run seed` for upserting baseline content and `npm run export-content` for point-in-time JSON snapshots.
+- **Idempotent Operational CLI Scripts (`scripts/seed.ts`, `scripts/export-content.ts`)**: Added `pnpm seed` for upserting baseline content and `pnpm export-content` for point-in-time JSON snapshots.
 - **Data & Action Test Suite (`tests/unit/data-layer.test.ts`, `tests/unit/actions.test.ts`, `tests/unit/rate-limit.test.ts`)**: Added 17 new tests covering schemas, fallback queries, admin auth guards, honeypots, and rate limit algorithms.
 
 ## [Phase 3] - Motion Engine & Micro-Interactions (2026-09-24)

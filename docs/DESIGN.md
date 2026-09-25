@@ -77,6 +77,8 @@ Every theme provides the exact same semantic tokens:
 | M7  | Footer wordmark clip-reveal        | ScrollTrigger clipPath    | Active (Phase 3)   |
 | M8  | Fluid pointer cursor ring          | GSAP quickTo              | Active (Phase 3)   |
 | M9  | UI Mount/Exit & Dialogs            | Motion (`LazyMotion`)     | Active (Phase 1/3) |
-| M10 | Contact meme state machine         | CSS + Motion              | Planned (Phase 7)  |
+| M10 | Contact meme state machine         | CSS + Video Loop Controls | Active (Phase B)   |
 | M11 | Theme transition reveal            | View Transitions / Tokens | Active (Phase 1)   |
 | M12 | Micro-interactions (hover, focus)  | CSS                       | Active (Phase 1)   |
+| M13 | Identity Text-Mask Photo Reveal    | CSS mask-clip + GSAP      | Active (Phase C)   |
+| M14 | Subtle Duotone Section Backdrop    | GSAP ScrollTrigger scrub  | Active (Phase C)   |
