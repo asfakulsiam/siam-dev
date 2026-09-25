@@ -97,7 +97,7 @@ export default async function AdminOverviewPage() {
         {/* Projects Card */}
         <div className="p-5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] relative overflow-hidden group">
           <div className="flex items-center justify-between text-[var(--muted)] mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider">Projects</span>
+            <span className="text-xs font-medium text-[var(--muted)]">Projects</span>
             <FolderKanban className="w-4 h-4 text-[var(--accent)]" />
           </div>
           <div className="text-3xl font-bold text-[var(--ink)] mb-2 font-mono">
@@ -119,7 +119,7 @@ export default async function AdminOverviewPage() {
         {/* Messages Card */}
         <div className="p-5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] relative overflow-hidden group">
           <div className="flex items-center justify-between text-[var(--muted)] mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider">Messages</span>
+            <span className="text-xs font-medium text-[var(--muted)]">Messages</span>
             <Mail className="w-4 h-4 text-[var(--accent)]" />
           </div>
           <div className="text-3xl font-bold text-[var(--ink)] mb-2 font-mono">
@@ -145,7 +145,7 @@ export default async function AdminOverviewPage() {
         {/* Experience Milestones Card */}
         <div className="p-5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] relative overflow-hidden group">
           <div className="flex items-center justify-between text-[var(--muted)] mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider">Experience</span>
+            <span className="text-xs font-medium text-[var(--muted)]">Experience</span>
             <Briefcase className="w-4 h-4 text-[var(--accent)]" />
           </div>
           <div className="text-3xl font-bold text-[var(--ink)] mb-2 font-mono">
@@ -165,7 +165,7 @@ export default async function AdminOverviewPage() {
         {/* System & Availability Card */}
         <div className="p-5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] relative overflow-hidden group">
           <div className="flex items-center justify-between text-[var(--muted)] mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider">Availability</span>
+            <span className="text-xs font-medium text-[var(--muted)]">Availability</span>
             <Sparkles className="w-4 h-4 text-[var(--accent)]" />
           </div>
           <div className="text-base font-semibold text-[var(--ink)] mb-2 truncate">

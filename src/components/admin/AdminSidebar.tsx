@@ -11,6 +11,7 @@ import {
   Palette,
   ExternalLink,
   PlusCircle,
+  MessageSquareQuote,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -49,6 +50,12 @@ export function AdminSidebar({
       label: "Experience",
       href: "/admin/experience",
       icon: Briefcase,
+      exact: false,
+    },
+    {
+      label: "Testimonials",
+      href: "/admin/testimonials",
+      icon: MessageSquareQuote,
       exact: false,
     },
     {

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { Palette, Check } from "lucide-react";
 
-export type ThemeId = "day-shift" | "night-coder" | "blueprint" | "mono";
+export type ThemeId = "day-shift" | "night-coder" | "night-coder-charcoal" | "blueprint" | "mono";
 
 interface ThemeOption {
   id: ThemeId;
@@ -13,7 +13,8 @@ interface ThemeOption {
 
 const THEMES: ThemeOption[] = [
   { id: "day-shift", label: "Day Shift", dotColor: "#2F4BFF" },
-  { id: "night-coder", label: "Night Coder", dotColor: "#8AA2FF" },
+  { id: "night-coder", label: "Night Coder (Navy)", dotColor: "#8AA2FF" },
+  { id: "night-coder-charcoal", label: "Night Coder (Charcoal)", dotColor: "#151517" },
   { id: "blueprint", label: "Blueprint", dotColor: "#FFE14D" },
   { id: "mono", label: "Mono", dotColor: "#000000" },
 ];
@@ -125,8 +126,8 @@ export function ThemeSwitcher() {
           aria-label="Theme options"
           className="absolute right-0 mt-2 w-44 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-[var(--shadow-floating)] z-50 animate-in fade-in zoom-in-95 duration-150"
         >
-          <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-[var(--ink-muted)]">
-            Select Theme
+          <div className="px-2 py-1 text-xs font-semibold text-[var(--ink-muted)]">
+            Select theme
           </div>
           {THEMES.map((theme) => {
             const isActive = currentTheme === theme.id;

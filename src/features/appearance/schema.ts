@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const themeEnum = z.enum(["day-shift", "night-coder", "blueprint", "mono"]);
+export const themeEnum = z.enum(["day-shift", "night-coder", "night-coder-charcoal", "blueprint", "mono"]);
 export type Theme = z.infer<typeof themeEnum>;
 
 export const memeAssetSchema = z.object({

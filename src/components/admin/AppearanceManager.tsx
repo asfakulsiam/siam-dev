@@ -41,11 +41,19 @@ const THEME_OPTIONS: { id: Theme; name: string; icon: typeof Sun; description: s
   },
   {
     id: "night-coder",
-    name: "Night Coder",
+    name: "Night Coder (Navy)",
     icon: Moon,
-    description: "Deep obsidian canvas with luminous amber neon focus.",
-    bg: "#090a0f",
-    accent: "#f59e0b",
+    description: "Deep ink-navy canvas with soft periwinkle accent.",
+    bg: "#0a0f1a",
+    accent: "#8aa2ff",
+  },
+  {
+    id: "night-coder-charcoal",
+    name: "Night Coder (Charcoal)",
+    icon: Moon,
+    description: "Neutral charcoal dark canvas (#151517) with periwinkle accent (#8aa2ff).",
+    bg: "#151517",
+    accent: "#8aa2ff",
   },
   {
     id: "blueprint",

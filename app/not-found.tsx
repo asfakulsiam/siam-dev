@@ -17,11 +17,8 @@ export default async function NotFound() {
             <MemeState asset={notFoundMeme} maxLoops={3} />
           </div>
 
-          <div className="text-xs font-mono uppercase text-[var(--accent)] tracking-widest">
-            Error 404
-          </div>
           <Heading as="h1" size="4xl">
-            Page Not Found
+            Page not found
           </Heading>
           <Text size="lg" variant="muted" className="max-w-md mx-auto text-pretty">
             The page or project you requested could not be located. It may have been moved or

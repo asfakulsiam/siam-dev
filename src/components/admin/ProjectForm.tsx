@@ -382,7 +382,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="p-title" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-title" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Project Title *
             </label>
             <input
@@ -397,7 +397,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           </div>
 
           <div>
-            <label htmlFor="p-slug" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-slug" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               URL Slug * <span className="text-[10px] lowercase text-[var(--ink-muted)]/60">(/work/[slug])</span>
             </label>
             <input
@@ -414,7 +414,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </div>
 
         <div>
-          <label htmlFor="p-tagline" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+          <label htmlFor="p-tagline" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
             Tagline / Subtitle *
           </label>
           <input
@@ -430,7 +430,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="p-category" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-category" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Category *
             </label>
             <select
@@ -447,7 +447,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           </div>
 
           <div>
-            <label htmlFor="p-year" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-year" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Year *
             </label>
             <input
@@ -461,7 +461,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           </div>
 
           <div>
-            <label htmlFor="p-timeline" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-timeline" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Timeline *
             </label>
             <input
@@ -478,7 +478,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="p-role" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-role" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Role *
             </label>
             <input
@@ -493,7 +493,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           </div>
 
           <div>
-            <label htmlFor="p-client" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-client" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Client / Organization *
             </label>
             <input
@@ -541,7 +541,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label htmlFor="p-cover-src" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+              <label htmlFor="p-cover-src" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                 Image URL *
               </label>
               <input
@@ -556,7 +556,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             </div>
 
             <div>
-              <label htmlFor="p-cover-alt" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+              <label htmlFor="p-cover-alt" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                 Image Alt Text * (WCAG 2.2 Requirement)
               </label>
               <input
@@ -598,7 +598,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
           {/* Live Preview */}
           <div className="flex flex-col items-center justify-center p-3 rounded-[var(--r-sm)] bg-[var(--surface-2)] border border-[var(--line)]">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-2">
+            <span className="text-[10px] font-semibold text-[var(--ink-muted)] mb-2">
               Cover Preview
             </span>
             <div className="w-full aspect-video rounded-[var(--r-sm)] overflow-hidden bg-[var(--surface)] border border-[var(--line)] relative">
@@ -628,7 +628,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </h2>
 
         <div>
-          <label htmlFor="p-summary" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+          <label htmlFor="p-summary" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
             Executive Summary *
           </label>
           <textarea
@@ -644,7 +644,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="p-problem" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-problem" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               The Problem *
             </label>
             <textarea
@@ -659,7 +659,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           </div>
 
           <div>
-            <label htmlFor="p-solution" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-solution" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               The Solution *
             </label>
             <textarea
@@ -682,7 +682,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </h2>
 
         <div>
-          <label htmlFor="p-stack" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+          <label htmlFor="p-stack" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
             Technology Stack * <span className="text-[10px] lowercase text-[var(--ink-muted)]/60">(comma-separated)</span>
           </label>
           <input
@@ -696,7 +696,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </div>
 
         <div>
-          <label htmlFor="p-tags" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+          <label htmlFor="p-tags" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
             Tags &amp; Skills * <span className="text-[10px] lowercase text-[var(--ink-muted)]/60">(comma-separated)</span>
           </label>
           <input
@@ -712,7 +712,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         {/* Decisions Array */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)]">
+            <span className="text-xs font-semibold text-[var(--ink-muted)]">
               Architecture Decisions
             </span>
             <button
@@ -750,7 +750,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         {/* Measurable Metrics */}
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)]">
+            <span className="text-xs font-semibold text-[var(--ink-muted)]">
               Measurable Metrics
             </span>
             <button
@@ -809,7 +809,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="p-live" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-live" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Live Product URL <span className="text-[10px] lowercase text-[var(--ink-muted)]/60">(optional)</span>
             </label>
             <input
@@ -823,7 +823,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           </div>
 
           <div>
-            <label htmlFor="p-github" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="p-github" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               GitHub Repository URL <span className="text-[10px] lowercase text-[var(--ink-muted)]/60">(optional)</span>
             </label>
             <input

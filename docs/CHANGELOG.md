@@ -5,6 +5,66 @@ Format based on Keep a Changelog.
 
 ---
 
+## [Phase I] - Testimonials & Endorsements Section (2026-09-25)
+
+### Added
+
+- **Testimonials Data Model & Architecture (`src/features/testimonials/*`)**:
+  - `schema.ts`: Defined `testimonialSchema`, `testimonialInputSchema`, and `authorPhotoSchema` with strict 400-character quote cap and mandatory accessibility `alt` text for avatars.
+  - `data.ts`: Zero-seeded static dataset (`staticTestimonials = []`) ensuring zero synthetic/invented content ships out of the box per `AGENTS.md` §4.
+  - `queries.ts`: Added `getTestimonials` with published filtering, ordering, and offline resilience.
+  - `actions.ts`: Complete admin-guarded mutations (`createTestimonialAction`, `updateTestimonialAction`, `deleteTestimonialAction`, `togglePublishTestimonialAction`, `reorderTestimonialsAction`) with `revalidateTag("testimonials")`.
+- **Admin Endorsement Management (`/admin/testimonials`)**:
+  - `TestimonialsManager.tsx`: Interactive dashboard to create, edit, reorder, delete, and toggle publish states. Includes live quote character counter, author role, and direct Cloudinary signed avatar uploads.
+  - `AdminSidebar.tsx`: Added "Testimonials" with `MessageSquareQuote` icon to admin navigation.
+- **Scroll-Driven Reveal Component (`src/components/motion/TestimonialScroll.tsx`)**:
+  - ScrollTrigger scrub-and-reveal animation layering transform and opacity only.
+  - Strictly no auto-play; driven exclusively by user scroll.
+  - Respects `prefers-reduced-motion: reduce` by presenting all cards in natural rest position.
+  - Clean empty state: renders nothing on the public homepage when zero published entries exist.
+- **Unit Testing (`tests/unit/testimonials.test.ts`)**:
+  - Added unit test suite covering schema boundaries, 400-char quote cap, alt text enforcement, zero-seeded fallback, and `UNAUTHORIZED` server action rejection.
+
+## [Phase H] - Night Coder Charcoal Alternative (2026-09-25)
+
+### Added
+
+- **Night Coder Charcoal Alternative (`src/styles/tokens.css`, `src/features/appearance/schema.ts`)**:
+  - Implemented fifth theme `night-coder-charcoal` (`--bg: #151517`, `--surface: #1c1c1f`, `--surface-2: #232326`, `--ink: #ecebe9`, `--ink-muted: #9a9a9e`, `--line: #2c2c30`, `--accent: #8aa2ff`).
+  - Added full WCAG 2.2 AA contrast audit to `docs/DESIGN.md` (15.0:1 primary text contrast, 6.3:1 muted text contrast, 7.5:1 accent contrast, 8.1:1 accent-ink contrast).
+- **Interactive Appearance & Theme Switcher Live Comparison**:
+  - Added live side-by-side selection in `/admin/appearance` and the public header `ThemeSwitcher.tsx` with View Transition animation support for owner evaluation.
+- **Unit Testing (`tests/unit/night-coder-charcoal.test.ts`)**:
+  - Added unit test suite validating schema parsing for `night-coder-charcoal` and canonical themes.
+
+## [Phase G] - Cursor-Reactive Homepage Photo (2026-09-25)
+
+### Added
+
+- **Cursor-Reactive Backdrop System (`src/components/motion/DuotoneBackdrop.tsx`)**:
+  - Enhanced `DuotoneBackdrop` with an additive `cursorReactive?: boolean` property.
+  - Composed subtle pointer-following transform (`gsap.quickTo` on `x`/`y`, max $\pm 12\text{px}$) with the existing `ScrollTrigger` scrubbed scale parallax without matrix interference.
+  - Integrated `matchMedia` gates for `(pointer: fine)` and `(prefers-reduced-motion: no-preference)`, gracefully falling back to static/scroll-only presentation on touch devices or reduced motion.
+  - Smooth reset interpolation to `{ x: 0, y: 0 }` on pointer exit from section bounds.
+- **Homepage Hero Integration (`app/page.tsx`)**:
+  - Integrated `DuotoneBackdrop` with `cursorReactive={true}` and dynamic `activePhotoId` in the 100svh Hero section behind foreground content.
+- **Unit Testing (`tests/unit/cursor-reactive-photo.test.ts`)**:
+  - Added unit test suite covering duotone URL generation, Cloudinary tint formatting, and base64 safe-passing.
+
+## [Phase F] - Close Remaining Gaps: CI E2E, Eyebrow Audit & Mask Contrast (2026-09-25)
+
+### Added & Fixed
+
+- **Continuous Integration E2E Pipeline Gating (G1 / `.github/workflows/ci.yml`)**:
+  - Wired Playwright E2E test execution directly into the CI quality gate after production build step.
+  - Configured `playwright.config.ts` `webServer` option to serve the production build reliably during CI runs with automated report artifact upload on failure.
+- **Eyebrow & Uppercase Typography Audit (G2 / `app/*`, `src/*`, `docs/DESIGN.md`)**:
+  - Removed decorative tracked-out all-caps styling across admin forms, cards, and not-found pages, replacing them with clean sentence-case typography.
+  - Documented strict zero-slop uppercase policy and recorded the 3 legitimate functional exceptions (interactive cursor action badge, admin session guard pill, and OpenGraph category badge) in `docs/DESIGN.md`.
+- **Identity-Mask Photo Reveal Contrast Verification (G3 / `docs/DESIGN.md`)**:
+  - Audited and documented large-text contrast ratios for the text-mask photo reveal in all four themes (`day-shift` 7.5:1, `night-coder` 6.2:1, `blueprint` 5.9:1, `mono` 14.2:1), guaranteeing full WCAG 2.2 AA compliance.
+  - Documented `aria-label` screen reader safety and `prefers-reduced-motion` solid-color fallback guarantees.
+
 ## [Phase E] - Documentation, Runbook & Launch Prep (2026-09-25)
 
 ### Added

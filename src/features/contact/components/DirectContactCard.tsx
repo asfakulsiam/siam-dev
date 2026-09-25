@@ -21,7 +21,7 @@ export function DirectContactCard() {
     <div className="space-y-6 p-6 sm:p-8 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)]">
       {/* Email Copy Box */}
       <div className="space-y-2">
-        <span className="text-xs font-mono uppercase text-[var(--ink-muted)]">Direct Email</span>
+        <span className="text-xs font-semibold text-[var(--ink)]">Direct email</span>
         <div className="flex items-center justify-between gap-2 p-3 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--bg)]">
           <span className="text-sm font-medium text-[var(--ink)] font-mono select-all">
             {staticProfile.email}
@@ -44,12 +44,12 @@ export function DirectContactCard() {
 
       {/* Timezone & Location */}
       <div className="space-y-2 pt-4 border-t border-[var(--line)]">
-        <div className="flex items-center gap-2 text-xs font-mono uppercase text-[var(--ink-muted)]">
+        <div className="flex items-center gap-2 text-xs font-semibold text-[var(--ink)]">
           <Globe2 className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
-          <span>Location & Time</span>
+          <span>Location &amp; time</span>
         </div>
         <div className="text-sm font-medium text-[var(--ink)]">{staticProfile.location}</div>
-        <div className="text-xs text-[var(--ink-muted)] flex items-center gap-1.5">
+        <div className="text-xs text-[var(--ink-muted)] flex items-center gap-1.5 font-mono">
           <Clock className="w-3.5 h-3.5" aria-hidden="true" />
           <span>Asia/Dhaka (UTC+6)</span>
         </div>
@@ -57,18 +57,18 @@ export function DirectContactCard() {
 
       {/* Availability */}
       <div className="space-y-2 pt-4 border-t border-[var(--line)]">
-        <span className="text-xs font-mono uppercase text-[var(--ink-muted)]">
-          Current Capacity
+        <span className="text-xs font-semibold text-[var(--ink)]">
+          Current capacity
         </span>
-        <div className="text-xs text-[var(--ink)] leading-relaxed">
+        <div className="text-xs text-[var(--ink-muted)] leading-relaxed">
           {staticProfile.availability.text}
         </div>
       </div>
 
       {/* Social Links */}
       <div className="space-y-2 pt-4 border-t border-[var(--line)]">
-        <span className="text-xs font-mono uppercase text-[var(--ink-muted)]">
-          Profiles Elsewhere
+        <span className="text-xs font-semibold text-[var(--ink)]">
+          Profiles elsewhere
         </span>
         <ul className="space-y-1.5 text-xs">
           {staticProfile.socials.map((social) => (

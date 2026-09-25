@@ -45,7 +45,7 @@ export async function getDb(): Promise<Db> {
  * Retrieve a typed MongoDB collection.
  */
 export async function getCollection<T extends Document>(
-  name: "projects" | "profile" | "experience" | "messages" | "rate_limits" | "settings",
+  name: "projects" | "profile" | "experience" | "messages" | "rate_limits" | "settings" | "testimonials",
 ): Promise<Collection<T>> {
   const db = await getDb();
   return db.collection<T>(name);

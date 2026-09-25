@@ -7,23 +7,30 @@ import { Badge } from "@/components/ui/Badge";
 import { getFeaturedProjects } from "@/features/projects/queries";
 import { getPrinciples } from "@/features/experience/queries";
 import { getProfile } from "@/features/profile/queries";
+import { getTestimonials } from "@/features/testimonials/queries";
 import { NowCard } from "@/features/about/components/NowCard";
 import { HeroMotion } from "@/components/motion/HeroMotion";
+import { DuotoneBackdrop } from "@/components/motion/DuotoneBackdrop";
 import { PinnedWorkStack } from "@/components/motion/PinnedWorkStack";
 import { ScrubbedStatement } from "@/components/motion/ScrubbedStatement";
+import { TestimonialScroll } from "@/components/motion/TestimonialScroll";
 
 export default async function HomePage() {
-  const [featuredProjects, profile, principles] = await Promise.all([
+  const [featuredProjects, profile, principles, testimonials] = await Promise.all([
     getFeaturedProjects(),
     getProfile(),
     getPrinciples(),
+    getTestimonials(true),
   ]);
 
   return (
     <main id="main-content" className="flex-1 flex flex-col">
       {/* 1. Hero Section (100svh) */}
       <section className="min-h-[100svh] flex flex-col justify-between pt-24 pb-12 relative overflow-hidden">
-        <Container className="flex-1 flex flex-col justify-end space-y-8 pb-8">
+        {/* Subtle Ambient Duotone Identity Backdrop (Cursor-reactive Phase G) */}
+        <DuotoneBackdrop photoUrl={profile.activePhotoId} cursorReactive={true} />
+
+        <Container className="flex-1 flex flex-col justify-end space-y-8 pb-8 relative z-10">
           {/* Status Row */}
           <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[var(--ink-muted)]">
             <div className="flex items-center gap-2">
@@ -126,9 +133,6 @@ export default async function HomePage() {
 
           {/* Scrubbed Philosophy Statement (M5) */}
           <div className="p-8 sm:p-12 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)]">
-            <div className="text-xs font-mono uppercase text-[var(--accent)] tracking-wider mb-4">
-              Core Design Tenet
-            </div>
             <ScrubbedStatement
               text="Craft is the feature. In an ecosystem inundated with generic AI templates, meticulous typographic rhythm, token discipline, and uncompromising performance are the definitive proof of engineering excellence."
               statementClassName="text-2xl sm:text-3xl font-extrabold text-[var(--ink)] leading-snug tracking-tight"
@@ -152,7 +156,10 @@ export default async function HomePage() {
         </Container>
       </Section>
 
-      {/* 4. Currently / Now & Availability */}
+      {/* 4. Endorsements & Testimonials (Scroll scrub reveal Phase I) */}
+      <TestimonialScroll testimonials={testimonials} />
+
+      {/* 5. Currently / Now & Availability */}
       <Section spacing="default" className="border-t border-[var(--line)] bg-[var(--surface)]">
         <Container className="space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -178,9 +185,6 @@ export default async function HomePage() {
         <Container>
           <div className="p-8 sm:p-12 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-3 max-w-xl">
-              <span className="text-xs font-mono uppercase text-[var(--accent)] tracking-wider">
-                Collaboration
-              </span>
               <Heading as="h2" size="2xl">
                 Let&apos;s build something considered.
               </Heading>

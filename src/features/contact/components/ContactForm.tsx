@@ -145,14 +145,14 @@ export function ContactForm({ memes }: ContactFormProps) {
       <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)]">
         <MemeState asset={currentMemeAsset} maxLoops={3} className="shrink-0" />
         <div className="text-center sm:text-left space-y-1">
-          <span className="text-xs font-mono uppercase tracking-wider text-[var(--accent)]">
+          <span className="text-xs font-semibold text-[var(--accent)]">
             {status === "submitting"
-              ? "DISPATCHING NOTE..."
+              ? "Sending message..."
               : status === "error"
-              ? "REACTION: TRANSMISSION ISSUE"
-              : "READY WHEN YOU ARE"}
+              ? "Transmission issue"
+              : "Ready when you are"}
           </span>
-          <p className="text-xs text-[var(--muted)] leading-relaxed">
+          <p className="text-xs text-[var(--ink-muted)] leading-relaxed">
             {status === "submitting"
               ? "Encrypting payload and transmitting via secure API proxy."
               : status === "error"

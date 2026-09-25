@@ -14,7 +14,7 @@ export function ProjectMetrics({ metrics }: ProjectMetricsProps) {
           key={metric.label}
           className="p-6 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-2"
         >
-          <div className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+          <div className="text-xs font-semibold text-[var(--ink-muted)]">
             {metric.label}
           </div>
           <div className="text-3xl sm:text-4xl font-extrabold text-[var(--accent)] tracking-tight">

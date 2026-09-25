@@ -414,7 +414,7 @@ export function ExperienceManager({
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="exp-role" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+                  <label htmlFor="exp-role" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                     Role Title *
                   </label>
                   <input
@@ -429,7 +429,7 @@ export function ExperienceManager({
                 </div>
 
                 <div>
-                  <label htmlFor="exp-org" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+                  <label htmlFor="exp-org" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                     Company / Organization *
                   </label>
                   <input
@@ -446,7 +446,7 @@ export function ExperienceManager({
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label htmlFor="exp-period" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+                  <label htmlFor="exp-period" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                     Period *
                   </label>
                   <input
@@ -461,7 +461,7 @@ export function ExperienceManager({
                 </div>
 
                 <div>
-                  <label htmlFor="exp-loc" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+                  <label htmlFor="exp-loc" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                     Location *
                   </label>
                   <input
@@ -476,7 +476,7 @@ export function ExperienceManager({
                 </div>
 
                 <div>
-                  <label htmlFor="exp-type" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+                  <label htmlFor="exp-type" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                     Type *
                   </label>
                   <select
@@ -494,7 +494,7 @@ export function ExperienceManager({
               </div>
 
               <div>
-                <label htmlFor="exp-desc" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+                <label htmlFor="exp-desc" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                   Description *
                 </label>
                 <textarea
@@ -509,7 +509,7 @@ export function ExperienceManager({
               </div>
 
               <div>
-                <label htmlFor="exp-skills" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+                <label htmlFor="exp-skills" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                   Skills &amp; Tools * <span className="text-[10px] lowercase text-[var(--ink-muted)]/60">(comma-separated)</span>
                 </label>
                 <input
@@ -526,7 +526,7 @@ export function ExperienceManager({
               {/* Key Achievements */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)]">
+                  <span className="text-xs font-semibold text-[var(--ink-muted)]">
                     Key Achievements
                   </span>
                   <button

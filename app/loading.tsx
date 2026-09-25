@@ -15,11 +15,11 @@ export default async function Loading() {
         <Container size="narrow" className="flex flex-col items-center justify-center text-center space-y-4">
           <MemeState asset={loadingMeme} maxLoops={3} />
           <div className="space-y-1">
-            <p className="text-xs font-mono uppercase tracking-widest text-[var(--accent)] animate-pulse">
-              BREWING CONTENT...
+            <p className="text-sm font-semibold text-[var(--ink)]">
+              Loading content...
             </p>
-            <p className="text-xs text-[var(--muted)]">
-              Fetching assets and initializing motion layout.
+            <p className="text-xs text-[var(--ink-muted)]">
+              Fetching assets and initializing layout.
             </p>
           </div>
         </Container>

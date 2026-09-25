@@ -352,7 +352,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         <div className="bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-md)] p-5 sm:p-6 space-y-6 shadow-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="prof-name" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+              <label htmlFor="prof-name" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                 Display Name *
               </label>
               <input
@@ -366,7 +366,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
             </div>
 
             <div>
-              <label htmlFor="prof-email" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+              <label htmlFor="prof-email" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                 Contact Email *
               </label>
               <input
@@ -381,7 +381,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
           </div>
 
           <div>
-            <label htmlFor="prof-headline" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="prof-headline" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Headline *
             </label>
             <input
@@ -396,7 +396,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
           </div>
 
           <div>
-            <label htmlFor="prof-subheadline" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="prof-subheadline" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Subheadline *
             </label>
             <input
@@ -410,7 +410,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
           </div>
 
           <div>
-            <label htmlFor="prof-bio" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="prof-bio" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Biography &amp; Narrative *
             </label>
             <textarea
@@ -425,7 +425,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="prof-loc" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+              <label htmlFor="prof-loc" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                 Location *
               </label>
               <input
@@ -439,7 +439,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
             </div>
 
             <div>
-              <label htmlFor="prof-tz" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+              <label htmlFor="prof-tz" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                 Timezone *
               </label>
               <input
@@ -487,7 +487,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
           {/* Resume Link */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div>
-              <label htmlFor="prof-resume-url" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+              <label htmlFor="prof-resume-url" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                 Resume URL (Google Drive / CDN) *
               </label>
               <input
@@ -501,7 +501,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
             </div>
 
             <div>
-              <label htmlFor="prof-resume-upd" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+              <label htmlFor="prof-resume-upd" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
                 Resume Version / Date *
               </label>
               <input
@@ -693,7 +693,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
           </div>
 
           <div>
-            <label htmlFor="now-heading" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="now-heading" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Section Title *
             </label>
             <input
@@ -707,7 +707,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
           </div>
 
           <div>
-            <label htmlFor="now-body" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="now-body" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Current Focus Statement *
             </label>
             <textarea
@@ -721,7 +721,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
           </div>
 
           <div>
-            <label htmlFor="now-updated" className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1">
+            <label htmlFor="now-updated" className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
               Last Updated Timestamp *
             </label>
             <input

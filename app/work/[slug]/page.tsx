@@ -125,25 +125,25 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
           {/* Meta Specifications Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 p-6 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)]">
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+              <span className="text-xs font-semibold text-[var(--ink-muted)]">
                 Role
               </span>
               <p className="text-sm font-semibold text-[var(--ink)]">{project.role}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+              <span className="text-xs font-semibold text-[var(--ink-muted)]">
                 Client / Team
               </span>
               <p className="text-sm font-semibold text-[var(--ink)]">{project.client}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+              <span className="text-xs font-semibold text-[var(--ink-muted)]">
                 Timeline
               </span>
               <p className="text-sm font-semibold text-[var(--ink)]">{project.timeline}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+              <span className="text-xs font-semibold text-[var(--ink-muted)]">
                 Links
               </span>
               <div className="flex items-center gap-3 pt-0.5">
@@ -242,8 +242,8 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Tech Stack List */}
             <div className="p-6 sm:p-8 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-4">
-              <span className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
-                Technologies & Tools
+              <span className="text-xs font-semibold text-[var(--ink-muted)]">
+                Technologies &amp; Tools
               </span>
               <div className="flex flex-wrap gap-2">
                 {project.architecture.stack.map((tech) => (
@@ -259,7 +259,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
 
             {/* Core Architectural Decisions */}
             <div className="p-6 sm:p-8 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-4">
-              <span className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+              <span className="text-xs font-semibold text-[var(--ink-muted)]">
                 Key Architectural Decisions
               </span>
               <ul className="space-y-3 text-sm text-[var(--ink-muted)]">
@@ -304,7 +304,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
                 </div>
                 {section.takeaways && section.takeaways.length > 0 && (
                   <div className="pt-4 border-t border-[var(--line)] space-y-2">
-                    <span className="text-xs font-mono uppercase tracking-wider text-[var(--ink)]">
+                    <span className="text-xs font-semibold text-[var(--ink)]">
                       Key Takeaways
                     </span>
                     <ul className="space-y-1.5">

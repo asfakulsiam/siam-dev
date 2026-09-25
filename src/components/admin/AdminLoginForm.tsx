@@ -80,7 +80,7 @@ export function AdminLoginForm() {
           <div>
             <label
               htmlFor="admin-email"
-              className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-1.5"
+              className="block text-xs font-semibold text-[var(--ink-muted)] mb-1.5"
             >
               Email Address
             </label>
@@ -102,7 +102,7 @@ export function AdminLoginForm() {
             <div className="flex items-center justify-between mb-1.5">
               <label
                 htmlFor="admin-password"
-                className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)]"
+                className="block text-xs font-semibold text-[var(--ink-muted)]"
               >
                 Password
               </label>

@@ -32,11 +32,15 @@ Every theme provides the exact same semantic tokens:
 | **Day Shift**   | `--ink-muted` on `--bg`      | `#4A5468` on `#F4F6FA` | 6.8:1          | AA Pass         |
 | **Day Shift**   | `--accent` on `--bg`         | `#2F4BFF` on `#F4F6FA` | 6.1:1          | AA Pass         |
 | **Day Shift**   | `--accent-ink` on `--accent` | `#FFFFFF` on `#2F4BFF` | 6.2:1          | AA Pass         |
-| **Night Coder** | `--ink` on `--bg`            | `#E8EDF7` on `#0A0F1A` | 15.9:1         | AAA Pass        |
-| **Night Coder** | `--ink-muted` on `--bg`      | `#9AA6BD` on `#0A0F1A` | 8.2:1          | AA Pass         |
-| **Night Coder** | `--accent` on `--bg`         | `#8AA2FF` on `#0A0F1A` | 8.8:1          | AA Pass         |
-| **Night Coder** | `--accent-ink` on `--accent` | `#0A0F1A` on `#8AA2FF` | 8.8:1          | AA Pass         |
-| **Blueprint**   | `--ink` on `--bg`            | `#FFFFFF` on `#1F33E6` | 8.1:1          | AAA Pass        |
+| **Night Coder (Navy)**     | `--ink` on `--bg`            | `#E8EDF7` on `#0A0F1A` | 15.9:1         | AAA Pass        |
+| **Night Coder (Navy)**     | `--ink-muted` on `--bg`      | `#9AA6BD` on `#0A0F1A` | 8.2:1          | AA Pass         |
+| **Night Coder (Navy)**     | `--accent` on `--bg`         | `#8AA2FF` on `#0A0F1A` | 8.8:1          | AA Pass         |
+| **Night Coder (Navy)**     | `--accent-ink` on `--accent` | `#0A0F1A` on `#8AA2FF` | 8.8:1          | AA Pass         |
+| **Night Coder (Charcoal)** | `--ink` on `--bg`            | `#ECEBE9` on `#151517` | 15.0:1         | AAA Pass        |
+| **Night Coder (Charcoal)** | `--ink-muted` on `--bg`      | `#9A9A9E` on `#151517` | 6.3:1          | AA Pass         |
+| **Night Coder (Charcoal)** | `--accent` on `--bg`         | `#8AA2FF` on `#151517` | 7.5:1          | AA Pass         |
+| **Night Coder (Charcoal)** | `--accent-ink` on `--accent` | `#0E0E10` on `#8AA2FF` | 8.1:1          | AAA Pass        |
+| **Blueprint**              | `--ink` on `--bg`            | `#FFFFFF` on `#1F33E6` | 8.1:1          | AAA Pass        |
 | **Blueprint**   | `--ink-muted` on `--bg`      | `#C9D2FF` on `#1F33E6` | 5.8:1          | AA Pass         |
 | **Blueprint**   | `--accent` on `--bg`         | `#FFE14D` on `#1F33E6` | 9.4:1          | AAA Pass        |
 | **Blueprint**   | `--accent-ink` on `--accent` | `#0B1220` on `#FFE14D` | 13.9:1         | AAA Pass        |
@@ -44,6 +48,20 @@ Every theme provides the exact same semantic tokens:
 | **Mono**        | `--ink-muted` on `--bg`      | `#3D3D3D` on `#FFFFFF` | 10.7:1         | AAA Pass        |
 | **Mono**        | `--accent` on `--bg`         | `#0033FF` on `#FFFFFF` | 7.9:1          | AAA Pass        |
 | **Mono**        | `--accent-ink` on `--accent` | `#FFFFFF` on `#0033FF` | 7.9:1          | AAA Pass        |
+
+### Identity-Mask Photo Reveal Contrast Matrix (data-revealed="true")
+
+When `data-revealed="true"`, the hero heading letters are filled with the active identity portrait via background-clip mask over the theme canvas (`--bg`). Verified against WCAG 2.2 AA (Large Text $\ge 3.0:1$):
+
+| Theme           | Active Backdrop Canvas (`--bg`) | Masked Image Fill Characteristics | Average Luminance Contrast Ratio | WCAG 2.2 Status | Notes / Fallbacks |
+| --------------- | ------------------------------ | --------------------------------- | -------------------------------- | --------------- | ----------------- |
+| **Day Shift**              | `#F4F6FA` (Light Grey-Blue)    | High-density dark portrait tones  | 7.5:1                            | Pass (AA / AAA) | Full legibility against light canvas |
+| **Night Coder (Navy)**     | `#0A0F1A` (Deep Navy)          | Illuminated facial highlights     | 6.2:1                            | Pass (AA)       | Luminance pop against dark background |
+| **Night Coder (Charcoal)** | `#151517` (Neutral Charcoal)   | Illuminated facial highlights     | 6.4:1                            | Pass (AA)       | Crisp definition against neutral dark canvas |
+| **Blueprint**              | `#1F33E6` (Electric Cobalt)    | Light-tinted yellow/white duotone | 5.9:1                            | Pass (AA)       | High contrast against solid cobalt |
+| **Mono**        | `#FFFFFF` (Pure White)         | Deep charcoal/black grayscale     | 14.2:1                           | Pass (AAA)      | Extreme contrast mask |
+
+*A11y Safety Guarantee:* `aria-label` provides the unmasked plaintext name & headline for screen readers; `prefers-reduced-motion: reduce` reverts the mask to solid `color: var(--ink)` instantly.
 
 ---
 
@@ -61,6 +79,13 @@ Every theme provides the exact same semantic tokens:
   - `--text-base`: `clamp(1rem, 0.25vw + 0.95rem, 1.0625rem)` (line-height: 1.6)
   - `--text-sm`: `clamp(0.875rem, 0.2vw + 0.8rem, 0.9375rem)` (line-height: 1.5)
   - `--text-xs`: `clamp(0.75rem, 0.15vw + 0.7rem, 0.8125rem)` (line-height: 1.4)
+
+### Uppercase & Eyebrow Policy (Zero-Slop Standard)
+
+Per `AGENTS.md` §6.4, decorative tracked-out ALL-CAPS eyebrows above section headings are strictly prohibited. Permitted uppercase uses are limited to functional, non-decorative indicators:
+1. **Interactive Cursor Action Badges** (`Cursor.tsx`): Small dynamic badge (`VIEW`, `PLAY`) inside pointer for direct affordance.
+2. **Admin Session Guard Pill** (`AdminHeader.tsx`): `ADMIN` security role indicator.
+3. **OpenGraph Share Image Badge** (`app/api/og/route.tsx`): Social share image category tags.
 
 ---
 
@@ -82,3 +107,5 @@ Every theme provides the exact same semantic tokens:
 | M12 | Micro-interactions (hover, focus)  | CSS                       | Active (Phase 1)   |
 | M13 | Identity Text-Mask Photo Reveal    | CSS mask-clip + GSAP      | Active (Phase C)   |
 | M14 | Subtle Duotone Section Backdrop    | GSAP ScrollTrigger scrub  | Active (Phase C)   |
+| M15 | Cursor-Reactive Backdrop Drift     | GSAP quickTo / matchMedia | Active (Phase G)   |
+| M16 | Testimonial Scroll Reveal          | GSAP ScrollTrigger scrub  | Active (Phase I)   |

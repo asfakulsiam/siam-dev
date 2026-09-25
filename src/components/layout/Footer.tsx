@@ -103,7 +103,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           {/* Pages */}
           <div className="space-y-3">
-            <div className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+            <div className="text-xs font-semibold text-[var(--ink)]">
               Pages
             </div>
             <ul className="space-y-2">
@@ -144,7 +144,7 @@ export function Footer() {
 
           {/* Elsewhere */}
           <div className="space-y-3">
-            <div className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+            <div className="text-xs font-semibold text-[var(--ink)]">
               Elsewhere
             </div>
             <ul className="space-y-2">
@@ -183,7 +183,7 @@ export function Footer() {
 
           {/* Status & Local Time */}
           <div className="space-y-3 col-span-2 sm:col-span-1">
-            <div className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+            <div className="text-xs font-semibold text-[var(--ink)]">
               Status
             </div>
             <div className="space-y-2 text-[var(--ink-muted)]">
@@ -203,7 +203,7 @@ export function Footer() {
 
           {/* Design & Craft Statement */}
           <div className="space-y-3 col-span-2 sm:col-span-1">
-            <div className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+            <div className="text-xs font-semibold text-[var(--ink)]">
               Craft
             </div>
             <p className="text-xs text-[var(--ink-muted)] leading-relaxed">

@@ -13,7 +13,7 @@ export function NowCard({ now, location }: NowCardProps) {
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-[var(--accent)]" aria-hidden="true" />
-          <h3 className="text-xs font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+          <h3 className="text-xs font-semibold text-[var(--ink)]">
             What I&apos;m Doing Now
           </h3>
         </div>

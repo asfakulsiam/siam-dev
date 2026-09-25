@@ -52,6 +52,30 @@
   color-scheme: dark;
 }
 
+[data-theme="night-coder-charcoal"] {
+  /* Night Coder Charcoal Alternative (Phase H comparison candidate) */
+  --bg: #151517;
+  --surface: #1c1c1f;
+  --surface-2: #232326;
+  --ink: #ecebe9;
+  --ink-muted: #9a9a9e;
+  --line: #2c2c30;
+  --accent: #8aa2ff;
+  --accent-ink: #0e0e10;
+  --focus: #8aa2ff;
+
+  --success: #34d399;
+  --success-ink: #0e0e10;
+  --warning: #fbbf24;
+  --warning-ink: #0e0e10;
+  --danger: #f87171;
+  --danger-ink: #0e0e10;
+
+  --shadow-floating: 0 16px 36px -12px rgba(0, 0, 0, 0.6);
+  --header-bg: rgba(21, 21, 23, 0.85);
+  color-scheme: dark;
+}
+
 [data-theme="blueprint"] {
   /* Blueprint: Full-bleed cobalt with white type and crisp yellow accent */
   --bg: #1f33e6;

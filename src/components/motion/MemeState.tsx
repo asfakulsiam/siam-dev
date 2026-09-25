@@ -1,9 +1,29 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { cldUrl } from "@/lib/cloudinary";
 import { MemeAsset } from "@/features/appearance/schema";
+
+function subscribeReducedMotion(callback: () => void) {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return () => {};
+  }
+  const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function getReducedMotionSnapshot() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false;
+  }
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function getReducedMotionServerSnapshot() {
+  return false;
+}
 
 interface MemeStateProps {
   asset: MemeAsset;
@@ -18,24 +38,12 @@ export function MemeState({
 }: MemeStateProps) {
   const [loops, setLoops] = useState(0);
   const [playing, setPlaying] = useState(true);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const prefersReducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot
+  );
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (!mediaQuery) return;
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handler = (e: MediaQueryListEvent) => {
-      setPrefersReducedMotion(e.matches);
-    };
-
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener("change", handler);
-      return () => mediaQuery.removeEventListener("change", handler);
-    }
-  }, []);
 
   const mediaSource = cldUrl(asset.publicId);
   const posterSource = asset.posterPublicId

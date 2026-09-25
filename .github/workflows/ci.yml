@@ -8,7 +8,7 @@ on:
 
 jobs:
   validate:
-    name: Lint, Typecheck, Test & Build
+    name: Lint, Typecheck, Test, Build & E2E
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -49,3 +49,24 @@ jobs:
           ADMIN_PASSWORD_HASH: "$2a$12$e80yvEa3Rk97o8Q/65ZqeeP1kC8gO1i8w5M4gE0V8c0.Z/1z6Vq4G"
           MONGODB_URI: "mongodb://localhost:27017/ci"
           MONGODB_DB: "devden"
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run E2E Tests
+        run: pnpm run test:e2e
+        env:
+          NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
+          AUTH_SECRET: "ci_secret_mock_32_characters_minimum_length"
+          ADMIN_EMAIL: "admin@example.com"
+          ADMIN_PASSWORD_HASH: "$2a$12$e80yvEa3Rk97o8Q/65ZqeeP1kC8gO1i8w5M4gE0V8c0.Z/1z6Vq4G"
+          MONGODB_URI: "mongodb://localhost:27017/ci"
+          MONGODB_DB: "devden"
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

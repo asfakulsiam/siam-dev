@@ -12,7 +12,7 @@ export function ToolboxGrid({ groups }: ToolboxGridProps) {
           key={group.group}
           className="p-6 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-4"
         >
-          <h3 className="text-sm font-mono uppercase tracking-wider text-[var(--ink-muted)]">
+          <h3 className="text-sm font-semibold text-[var(--ink)]">
             {group.group}
           </h3>
           <ul className="flex flex-wrap gap-2">
