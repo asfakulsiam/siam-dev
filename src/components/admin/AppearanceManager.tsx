@@ -25,6 +25,8 @@ import {
 import { defaultMemeSVGs } from "@/features/appearance/data";
 import { updateSettingsAction } from "@/features/appearance/actions";
 import { MemeState } from "@/components/motion/MemeState";
+import { CloudinaryUploadField } from "@/components/admin/CloudinaryUploadField";
+import { deleteCloudinaryAssetAction } from "@/lib/cloudinary-actions";
 
 interface AppearanceManagerProps {
   initialSettings: SettingsDocument;
@@ -163,17 +165,30 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
   };
 
   const resetToDefaultMeme = (slotKey: keyof SettingsInput["memes"]) => {
+    const oldPublicId = currentMemes[slotKey]?.publicId;
+    if (oldPublicId && !oldPublicId.startsWith("data:")) {
+      deleteCloudinaryAssetAction(oldPublicId, currentMemes[slotKey]?.type || "image");
+    }
+
+    const oldPoster = currentMemes[slotKey]?.posterPublicId;
+    if (oldPoster && !oldPoster.startsWith("data:")) {
+      deleteCloudinaryAssetAction(oldPoster, "image");
+    }
+
     setValue(`memes.${slotKey}.type`, "image", { shouldDirty: true });
     setValue(`memes.${slotKey}.publicId`, defaultMemeSVGs[slotKey], {
       shouldDirty: true,
       shouldValidate: true,
     });
+    setValue(`memes.${slotKey}.posterPublicId`, "", { shouldDirty: true });
+
     setCurrentMemes((prev) => ({
       ...prev,
       [slotKey]: {
         ...prev[slotKey],
         type: "image",
         publicId: defaultMemeSVGs[slotKey],
+        posterPublicId: undefined,
       },
     }));
   };
@@ -337,79 +352,121 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
                 {/* Main Inputs & Preview Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                   {/* Inputs Column */}
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {/* Media Type */}
                     <div>
-                      <label className="block text-xs font-medium text-[var(--ink)] mb-1">
+                      <label className="block text-xs font-semibold text-[var(--ink)] mb-1">
                         Asset Format
                       </label>
                       <select
                         {...register(`memes.${slot.key}.type`)}
+                        value={slotData?.type || "image"}
+                        onChange={(e) => {
+                          const newType = e.target.value as "image" | "video";
+                          // If switching from video to image, clean up orphaned video poster
+                          if (newType === "image" && slotData?.posterPublicId && !slotData.posterPublicId.startsWith("data:")) {
+                            deleteCloudinaryAssetAction(slotData.posterPublicId, "image");
+                            setValue(`memes.${slot.key}.posterPublicId`, "", { shouldDirty: true });
+                          }
+                          setValue(`memes.${slot.key}.type`, newType, { shouldDirty: true });
+                          setCurrentMemes((prev) => ({
+                            ...prev,
+                            [slot.key]: {
+                              ...prev[slot.key],
+                              type: newType,
+                              posterPublicId: newType === "image" ? undefined : prev[slot.key]?.posterPublicId,
+                            },
+                          }));
+                        }}
                         className="w-full text-xs rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--bg)] px-2.5 py-1.5 text-[var(--ink)] focus:outline-[var(--focus)]"
                       >
                         <option value="image">Image / SVG / Still</option>
-                        <option value="video">Short Video Loop (MP4/WebM)</option>
+                        <option value="video">Short Video Loop (MP4/WebM ≤3s)</option>
                       </select>
                     </div>
 
-                    {/* Public ID / URL */}
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--ink)] mb-1">
-                        Cloudinary Public ID or URL <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        {...register(`memes.${slot.key}.publicId`)}
-                        placeholder="e.g. devden/memes/waiting or https://..."
-                        className={`w-full text-xs rounded-[var(--r-sm)] border bg-[var(--bg)] px-2.5 py-1.5 text-[var(--ink)] font-mono focus:outline-[var(--focus)] ${
-                          slotErrors?.publicId ? "border-red-500" : "border-[var(--line)]"
-                        }`}
-                      />
-                      {slotErrors?.publicId && (
-                        <p className="text-[11px] text-red-500 mt-0.5">
-                          {slotErrors.publicId.message}
-                        </p>
-                      )}
-                    </div>
+                    {/* Cloudinary Media Uploader — supports both image and video uploads */}
+                    <CloudinaryUploadField
+                      label={`${slot.label} Media (Image or Video)`}
+                      value={slotData?.publicId || ""}
+                      alt={slotData?.alt || ""}
+                      accept="image/*,video/*"
+                      folder="devden/memes"
+                      required
+                      altRequired
+                      helperText={slotData?.type === "video" ? "Video loop (≤3s, ≤100MB)" : "Still / SVG / Graphic (≤10MB)"}
+                      placeholderAlt={`Describe ${slot.label.toLowerCase()} reaction...`}
+                      onAltChange={(newAlt) => {
+                        setValue(`memes.${slot.key}.alt`, newAlt, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                        setCurrentMemes((prev) => ({
+                          ...prev,
+                          [slot.key]: {
+                            ...prev[slot.key],
+                            alt: newAlt,
+                          },
+                        }));
+                      }}
+                      onUploaded={(newPublicId, _secureUrl, detectedType) => {
+                        const targetType = detectedType || (newPublicId.endsWith(".mp4") || newPublicId.endsWith(".webm") ? "video" : "image");
+                        setValue(`memes.${slot.key}.type`, targetType, { shouldDirty: true });
+                        setValue(`memes.${slot.key}.publicId`, newPublicId, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                        setCurrentMemes((prev) => ({
+                          ...prev,
+                          [slot.key]: {
+                            ...prev[slot.key],
+                            type: targetType,
+                            publicId: newPublicId,
+                          },
+                        }));
+                      }}
+                      onDeleteOld={(oldId) => {
+                        if (oldId && !oldId.startsWith("data:")) {
+                          deleteCloudinaryAssetAction(oldId, slotData?.type || "image");
+                        }
+                      }}
+                    />
 
-                    {/* Video Poster (if type === 'video') */}
+                    {/* Video Poster Uploader (if type === 'video') */}
                     {slotData?.type === "video" && (
-                      <div>
-                        <label className="block text-xs font-medium text-[var(--ink)] mb-1">
-                          Poster Frame Public ID / URL
-                        </label>
-                        <input
-                          type="text"
-                          {...register(`memes.${slot.key}.posterPublicId`)}
-                          placeholder="devden/memes/waiting-poster"
-                          className="w-full text-xs rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--bg)] px-2.5 py-1.5 text-[var(--ink)] font-mono focus:outline-[var(--focus)]"
-                        />
-                      </div>
-                    )}
-
-                    {/* Mandatory Alt Text */}
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--ink)] mb-1">
-                        Accessibility Alt Text <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        {...register(`memes.${slot.key}.alt`)}
-                        placeholder="Describe the comic reaction..."
-                        className={`w-full text-xs rounded-[var(--r-sm)] border bg-[var(--bg)] px-2.5 py-1.5 text-[var(--ink)] focus:outline-[var(--focus)] ${
-                          slotErrors?.alt ? "border-red-500" : "border-[var(--line)]"
-                        }`}
+                      <CloudinaryUploadField
+                        label="Video Poster Frame (Still Image)"
+                        value={slotData?.posterPublicId || ""}
+                        alt={slotData?.alt ? `${slotData.alt} (poster frame)` : "Poster frame"}
+                        accept="image/*"
+                        folder="devden/memes"
+                        required={false}
+                        altRequired={false}
+                        helperText="Required still image shown before video loops"
+                        onAltChange={() => {}}
+                        onUploaded={(posterId) => {
+                          setValue(`memes.${slot.key}.posterPublicId`, posterId, {
+                            shouldDirty: true,
+                          });
+                          setCurrentMemes((prev) => ({
+                            ...prev,
+                            [slot.key]: {
+                              ...prev[slot.key],
+                              posterPublicId: posterId,
+                            },
+                          }));
+                        }}
+                        onDeleteOld={(oldPosterId) => {
+                          if (oldPosterId && !oldPosterId.startsWith("data:")) {
+                            deleteCloudinaryAssetAction(oldPosterId, "image");
+                          }
+                        }}
                       />
-                      {slotErrors?.alt && (
-                        <p className="text-[11px] text-red-500 mt-0.5">
-                          {slotErrors.alt.message}
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </div>
 
                   {/* Preview Column */}
-                  <div className="flex flex-col items-center justify-center p-2 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--bg)]">
+                  <div className="flex flex-col items-center justify-center p-3 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--bg)]">
                     <span className="text-[10px] font-mono text-[var(--muted)] mb-2">
                       LIVE PREVIEW
                     </span>

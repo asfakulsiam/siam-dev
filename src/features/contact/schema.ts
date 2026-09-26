@@ -48,6 +48,9 @@ export const contactMessageSchema = contactFormSchema.extend({
   id: z.string().optional(),
   ipHash: z.string(),
   status: z.enum(["unread", "read", "replied", "archived"]).default("unread"),
+  emailStatus: z.enum(["delivered", "failed", "skipped"]).default("skipped"),
+  emailError: z.string().optional(),
+  recipientEmail: z.string().optional(),
   createdAt: z.string(),
 });
 

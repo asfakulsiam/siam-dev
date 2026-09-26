@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { ContactForm } from "@/features/contact/components/ContactForm";
 import { DirectContactCard } from "@/features/contact/components/DirectContactCard";
 import { getSettings } from "@/features/appearance/queries";
+import { getProfile } from "@/features/profile/queries";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -41,7 +42,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactPage() {
-  const settings = await getSettings();
+  const [settings, profile] = await Promise.all([
+    getSettings(),
+    getProfile(),
+  ]);
 
   return (
     <main id="main-content" className="min-h-screen pt-24 pb-20">
@@ -68,7 +72,7 @@ export default async function ContactPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Direct Information & Timezone Card */}
             <div className="lg:col-span-5 space-y-6">
-              <DirectContactCard />
+              <DirectContactCard profile={profile} />
             </div>
 
             {/* Interactive Form Card */}

@@ -11,11 +11,17 @@ import {
   AlertTriangle,
   ExternalLink,
   MessageSquare,
+  MailCheck,
+  MailX,
+  Clock,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { ContactMessage } from "@/features/contact/schema";
 import {
   updateMessageStatusAction,
   deleteMessageAction,
+  retryMessageDeliveryAction,
 } from "@/features/contact/actions";
 
 interface MessagesManagerProps {
@@ -25,11 +31,12 @@ interface MessagesManagerProps {
 export function MessagesManager({ initialMessages }: MessagesManagerProps) {
   const [messages, setMessages] = useState<ContactMessage[]>(initialMessages);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "read">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "read" | "email-failed">("all");
 
   const [activeMessage, setActiveMessage] = useState<ContactMessage | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ContactMessage | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRetryingId, setIsRetryingId] = useState<string | null>(null);
   const [actionPendingId, setActionPendingId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -43,10 +50,61 @@ export function MessagesManager({ initialMessages }: MessagesManagerProps) {
     const matchesStatus =
       filterStatus === "all" ||
       (filterStatus === "unread" && msg.status === "unread") ||
-      (filterStatus === "read" && msg.status === "read");
+      (filterStatus === "read" && msg.status === "read") ||
+      (filterStatus === "email-failed" && msg.emailStatus === "failed");
 
     return matchesSearch && matchesStatus;
   });
+
+  const handleRetryDelivery = async (msg: ContactMessage) => {
+    const targetId = msg.id || "";
+    if (!targetId) return;
+
+    setIsRetryingId(targetId);
+    try {
+      const res = await retryMessageDeliveryAction(targetId);
+      if (res.ok) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === targetId ? { ...m, emailStatus: "delivered", emailError: undefined } : m,
+          ),
+        );
+        if (activeMessage?.id === targetId) {
+          setActiveMessage((prev) =>
+            prev ? { ...prev, emailStatus: "delivered", emailError: undefined } : null,
+          );
+        }
+        setNotification({
+          message: "Notification email dispatched successfully.",
+          type: "success",
+        });
+      } else {
+        const errorMsg = res.error || "Retry delivery failed.";
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === targetId ? { ...m, emailStatus: "failed", emailError: errorMsg } : m,
+          ),
+        );
+        if (activeMessage?.id === targetId) {
+          setActiveMessage((prev) =>
+            prev ? { ...prev, emailStatus: "failed", emailError: errorMsg } : null,
+          );
+        }
+        setNotification({
+          message: errorMsg,
+          type: "error",
+        });
+      }
+    } catch {
+      setNotification({
+        message: "An unexpected error occurred while retrying email delivery.",
+        type: "error",
+      });
+    } finally {
+      setIsRetryingId(null);
+      setTimeout(() => setNotification(null), 4000);
+    }
+  };
 
   const handleToggleStatus = async (msg: ContactMessage) => {
     const targetId = msg.id || "";
@@ -130,6 +188,7 @@ export function MessagesManager({ initialMessages }: MessagesManagerProps) {
   };
 
   const unreadCount = messages.filter((m) => m.status === "unread").length;
+  const failedEmailCount = messages.filter((m) => m.emailStatus === "failed").length;
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -145,9 +204,14 @@ export function MessagesManager({ initialMessages }: MessagesManagerProps) {
                 {unreadCount} unread
               </span>
             )}
+            {failedEmailCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--danger)] text-white">
+                {failedEmailCount} delivery failed
+              </span>
+            )}
           </div>
           <p className="text-xs text-[var(--ink-muted)] mt-1">
-            Submissions received from the public /contact form.
+            Submissions received from the public /contact form with live email delivery tracking.
           </p>
         </div>
       </div>
@@ -190,13 +254,14 @@ export function MessagesManager({ initialMessages }: MessagesManagerProps) {
         <div>
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as "all" | "unread" | "read")}
+            onChange={(e) => setFilterStatus(e.target.value as "all" | "unread" | "read" | "email-failed")}
             aria-label="Filter messages by status"
             className="w-full px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
           >
             <option value="all">All Messages ({messages.length})</option>
             <option value="unread">Unread Only ({unreadCount})</option>
             <option value="read">Read ({messages.length - unreadCount})</option>
+            <option value="email-failed">Email Delivery Failed ({failedEmailCount})</option>
           </select>
         </div>
       </div>
@@ -241,6 +306,33 @@ export function MessagesManager({ initialMessages }: MessagesManagerProps) {
                       <span className="px-2 py-0.5 rounded-[var(--r-sm)] text-[10px] font-semibold bg-[var(--surface-2)] border border-[var(--line)] text-[var(--ink-muted)]">
                         {msg.projectType}
                       </span>
+
+                      {/* Delivery Status Indicator (M.2 / Finding K4) */}
+                      {msg.emailStatus === "delivered" ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--r-sm)] text-[10px] font-mono font-medium bg-[var(--success)]/10 text-[var(--success)] border border-[var(--success)]/25"
+                          title={msg.recipientEmail ? `Notification sent to ${msg.recipientEmail}` : "Notification email sent"}
+                        >
+                          <MailCheck className="w-3 h-3" aria-hidden="true" />
+                          <span>Delivered</span>
+                        </span>
+                      ) : msg.emailStatus === "failed" ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--r-sm)] text-[10px] font-mono font-medium bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/25"
+                          title={msg.emailError || "Email notification delivery failed"}
+                        >
+                          <AlertCircle className="w-3 h-3" aria-hidden="true" />
+                          <span>Email Failed</span>
+                        </span>
+                      ) : (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--r-sm)] text-[10px] font-mono font-medium bg-[var(--surface-2)] text-[var(--ink-muted)] border border-[var(--line)]"
+                          title="Stored in MongoDB (Notification email skipped / local mode)"
+                        >
+                          <Clock className="w-3 h-3" aria-hidden="true" />
+                          <span>Saved in DB</span>
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-3 text-xs text-[var(--ink-muted)] font-mono">
@@ -316,7 +408,7 @@ export function MessagesManager({ initialMessages }: MessagesManagerProps) {
           aria-labelledby="msg-detail-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
         >
-          <div className="w-full max-w-lg bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-md)] p-6 space-y-5 shadow-lg animate-in fade-in zoom-in-95 duration-150">
+          <div className="w-full max-w-lg bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-md)] p-6 space-y-5 shadow-lg animate-in fade-in zoom-in-95 duration-150 max-h-[90svh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
               <div>
                 <h2 id="msg-detail-title" className="text-base font-bold text-[var(--ink)]">
@@ -335,6 +427,63 @@ export function MessagesManager({ initialMessages }: MessagesManagerProps) {
                 <span className="px-2 py-0.5 rounded-[var(--r-sm)] text-[10px] font-semibold bg-[var(--surface-2)] border border-[var(--line)] text-[var(--ink)]">
                   {activeMessage.projectType}
                 </span>
+              </div>
+            </div>
+
+            {/* Notification Email Delivery Diagnostics Panel (M.2 / Finding K4) */}
+            <div className="p-3.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)]/60 space-y-2.5">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[var(--ink)]">
+                  <Mail className="w-3.5 h-3.5 text-[var(--ink-muted)]" aria-hidden="true" />
+                  <span>Admin Notification Email:</span>
+                  {activeMessage.emailStatus === "delivered" ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--r-sm)] text-[10px] font-mono font-medium bg-[var(--success)]/15 text-[var(--success)] border border-[var(--success)]/30">
+                      <MailCheck className="w-3 h-3" />
+                      <span>Delivered</span>
+                    </span>
+                  ) : activeMessage.emailStatus === "failed" ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--r-sm)] text-[10px] font-mono font-medium bg-[var(--danger)]/15 text-[var(--danger)] border border-[var(--danger)]/30">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>Delivery Failed</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--r-sm)] text-[10px] font-mono font-medium bg-[var(--bg)] text-[var(--ink-muted)] border border-[var(--line)]">
+                      <Clock className="w-3 h-3" />
+                      <span>Saved in DB (Resend Skipped)</span>
+                    </span>
+                  )}
+                </div>
+
+                {activeMessage.emailStatus !== "delivered" && (
+                  <button
+                    type="button"
+                    disabled={isRetryingId === activeMessage.id}
+                    onClick={() => handleRetryDelivery(activeMessage)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono font-medium rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--accent)] hover:bg-[var(--surface-2)] transition-colors disabled:opacity-50 cursor-pointer"
+                    title="Attempt to send notification email again"
+                  >
+                    {isRetryingId === activeMessage.id ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-3 h-3" />
+                    )}
+                    <span>Retry Dispatch</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="text-[11px] font-mono space-y-1 text-[var(--ink-muted)]">
+                <div>
+                  <span>Target Recipient: </span>
+                  <span className="text-[var(--ink)] font-semibold">
+                    {activeMessage.recipientEmail || "Configured admin email"}
+                  </span>
+                </div>
+                {activeMessage.emailError && (
+                  <div className="text-[var(--danger)] bg-[var(--danger)]/10 p-2 rounded-[var(--r-sm)] border border-[var(--danger)]/20 mt-1.5 break-words">
+                    <strong>Error: </strong> {activeMessage.emailError}
+                  </div>
+                )}
               </div>
             </div>
 

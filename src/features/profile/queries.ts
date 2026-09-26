@@ -1,12 +1,12 @@
+import { safeUnstableCache } from "@/lib/cache";
 import { getCollection, sanitizeDocument } from "@/lib/db";
 import { staticProfile, ProfileData } from "@/features/profile/data";
 import { ProfileDocument } from "@/features/profile/schema";
 
 /**
- * Retrieves the profile information for the portfolio.
- * Falls back to static profile data if database is unreachable.
+ * Internal fetcher for profile data from MongoDB.
  */
-export async function getProfile(): Promise<ProfileData> {
+async function fetchProfileData(): Promise<ProfileData> {
   try {
     const collection = await getCollection("profile");
     const doc = await collection.findOne({});
@@ -42,6 +42,16 @@ export async function getProfile(): Promise<ProfileData> {
 
   return staticProfile;
 }
+
+/**
+ * Retrieves the profile information for the portfolio.
+ * Cached with tags: ["profile"] for instant revalidation upon admin mutation.
+ */
+export const getProfile = safeUnstableCache(
+  fetchProfileData,
+  ["profile-data"],
+  { tags: ["profile"] },
+);
 
 /**
  * Retrieves the current "Now" section status.

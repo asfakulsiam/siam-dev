@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { safeRevalidateTag, safeRevalidatePath } from "@/lib/cache";
 import { requireAdmin } from "@/lib/auth-guard";
 import { getCollection } from "@/lib/db";
 import { settingsInputSchema, SettingsInput } from "@/features/appearance/schema";
@@ -38,7 +38,8 @@ export async function updateSettingsAction(
       { upsert: true },
     );
 
-    revalidateTag("settings");
+    safeRevalidateTag("settings");
+    safeRevalidatePath("/", "layout");
     return { ok: true, data: { updated: true } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {

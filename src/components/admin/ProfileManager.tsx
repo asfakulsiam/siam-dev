@@ -20,6 +20,8 @@ import { ProfileDocument, Photo } from "@/features/profile/schema";
 import { defaultIdentityPhotoSVG } from "@/features/profile/data";
 import { updateProfileAction, updateNowAction } from "@/features/profile/actions";
 import { cldUrl, getDuotonePhotoUrl } from "@/lib/cloudinary";
+import { CloudinaryUploadField } from "@/components/admin/CloudinaryUploadField";
+import { deleteCloudinaryAssetAction } from "@/lib/cloudinary-actions";
 
 interface ProfileManagerProps {
   initialProfile: ProfileDocument;
@@ -109,6 +111,9 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
 
   const handleRemovePhoto = (idx: number) => {
     const photoToRemove = photos[idx];
+    if (photoToRemove?.publicId && !photoToRemove.publicId.startsWith("data:")) {
+      deleteCloudinaryAssetAction(photoToRemove.publicId, "image");
+    }
     const newPhotos = photos.filter((_, i) => i !== idx);
     setPhotos(newPhotos);
     const firstPhoto = newPhotos[0];
@@ -596,33 +601,23 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                     <div className="sm:col-span-2 space-y-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-[var(--ink)] mb-1">
-                          Cloudinary Public ID or Image URL *
-                        </label>
-                        <input
-                          type="text"
-                          value={photo.publicId}
-                          onChange={(e) => handleUpdatePhoto(pIdx, "publicId", e.target.value)}
-                          placeholder="e.g. devden/portraits/asfakul-working or https://..."
-                          required
-                          className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-[var(--ink)] mb-1">
-                          Accessibility Alt Text * (Mandatory)
-                        </label>
-                        <input
-                          type="text"
-                          value={photo.alt}
-                          onChange={(e) => handleUpdatePhoto(pIdx, "alt", e.target.value)}
-                          placeholder="Describe the portrait clearly (e.g. Asfakul in studio lighting)"
-                          required
-                          className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
-                        />
-                      </div>
+                      <CloudinaryUploadField
+                        label={`Portrait #${pIdx + 1} Image File`}
+                        value={photo.publicId}
+                        alt={photo.alt}
+                        accept="image/*"
+                        folder="devden/portraits"
+                        required
+                        altRequired
+                        placeholderAlt="Describe the portrait clearly (e.g. Asfakul in studio lighting)"
+                        onAltChange={(newAlt) => handleUpdatePhoto(pIdx, "alt", newAlt)}
+                        onUploaded={(newId) => handleUpdatePhoto(pIdx, "publicId", newId)}
+                        onDeleteOld={(oldId) => {
+                          if (!oldId.startsWith("data:")) {
+                            deleteCloudinaryAssetAction(oldId, "image");
+                          }
+                        }}
+                      />
 
                       <div>
                         <label className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">

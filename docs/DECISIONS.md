@@ -148,6 +148,31 @@ This log documents all architectural and technical decisions made for the Dev De
   - Published comprehensive production deployment documentation (`docs/DEPLOYMENT.md`) and enriched `.env.example` detailing configuration parameters, key generation scripts, and verification checklists across Vercel, Docker, and Cloud platforms.
 - **Rationale**: Elevates visual warmth and contrast fidelity across OLED displays while providing crystal-clear DevOps workflows.
 
+### ADR-017: Unified Cloudinary Direct Upload Component & Orphan Asset Cleanup (Phase K)
+- **Date**: 2026-09-25
+- **Decision**:
+  - Extracted shared Cloudinary direct upload architecture into `src/components/admin/CloudinaryUploadField.tsx` with client-side file size/type gating (Images ≤10MB, Video ≤100MB), signed authentication, progress indicators, live previews, and required WCAG 2.2 AA alt text.
+  - Integrated `CloudinaryUploadField` across all meme reaction slots in `AppearanceManager.tsx` (supporting both primary media and video poster frames) and identity portraits in `ProfileManager.tsx`.
+  - Added server-side asset deletion (`app/api/admin/cloudinary-delete/route.ts` and `src/lib/cloudinary-actions.ts`) to automatically purge replaced or removed assets from Cloudinary while safely bypassing SVG data URIs and external links.
+- **Rationale**: Fulfills Finding K1, removing manual Cloudinary dashboard round-trips and preventing orphaned asset accumulation in storage.
+
+### ADR-018: Instant Cache Invalidation & Tag-Based Revalidation Architecture (Phase L)
+- **Date**: 2026-09-25
+- **Decision**:
+  - Implemented Option A (`safeUnstableCache` with domain tags: `profile`, `settings`, `projects`, `experience`, `testimonials`) across all data queries in `src/features/*/queries.ts`.
+  - Created universal cache resilience wrapper in `src/lib/cache.ts` (`safeUnstableCache`, `safeRevalidateTag`, `safeRevalidatePath`) that uses Next.js Incremental Cache in server runtime and cleanly passes through during isolated unit testing (Vitest).
+  - Synchronized every administrative server action in `src/features/*/actions.ts` to call both `safeRevalidateTag(<domain>)` and `safeRevalidatePath("/", "layout")` (plus specific subpaths `/work`, `/about`).
+  - Added dedicated E2E verification test suite (`tests/e2e/live-updates.spec.ts`) asserting that edits to profile bio, appearance theme, meme reactions, and project publish state reflect on public routes without rebuilding or redeploying.
+- **Rationale**: Fulfills Finding K2 and solves the core problem of administrative updates not appearing on public pages without a full redeploy, maintaining edge caching speed while delivering instant updates upon save.
+
+### ADR-019: Dynamic Recipient Resolution & Email Delivery Diagnostics (Phase M)
+- **Date**: 2026-09-25
+- **Decision**:
+  - **Dynamic Recipient Routing (K3)**: Updated `submitContactAction` to dynamically route notifications to `profile.email` (editable in `/admin/profile`) via the cached `getProfile()` query with fallback to `env.CONTACT_TO_EMAIL`.
+  - **Delivery-Status Tracking & Diagnostics (K4)**: Extended `contactMessageSchema` with `emailStatus: "delivered" | "failed" | "skipped"`, `emailError?: string`, and `recipientEmail?: string`.
+  - **Admin Inbox Observability (`MessagesManager.tsx`)**: Added delivery status pills (`Delivered`, `Email Failed`, `Saved in DB`) to the messages list, a filter for failed deliveries, full delivery diagnostics in the modal, and an authenticated retry action (`retryMessageDeliveryAction`).
+- **Rationale**: Fulfills Findings K3 and K4, ensuring contact notifications go to the email the admin sets in the dashboard and giving full visibility into email delivery state.
+
 
 
 

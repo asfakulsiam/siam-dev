@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { safeRevalidateTag, safeRevalidatePath } from "@/lib/cache";
 import { requireAdmin } from "@/lib/auth-guard";
 import { getCollection } from "@/lib/db";
 import { profileInputSchema, nowSchema } from "@/features/profile/schema";
@@ -37,7 +37,8 @@ export async function updateProfileAction(
       { upsert: true },
     );
 
-    revalidateTag("profile");
+    safeRevalidateTag("profile");
+    safeRevalidatePath("/", "layout");
     return { ok: true, data: { updated: true } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -79,7 +80,8 @@ export async function updateNowAction(raw: unknown): Promise<ActionResponse<{ up
       { upsert: true },
     );
 
-    revalidateTag("profile");
+    safeRevalidateTag("profile");
+    safeRevalidatePath("/", "layout");
     return { ok: true, data: { updated: true } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {

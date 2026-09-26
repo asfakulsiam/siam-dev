@@ -106,6 +106,25 @@ describe("Appearance & Meme System", () => {
       }
     });
 
+    it("supports video meme assets with poster frame in all slots", async () => {
+      const memesWithVideo = {
+        ...staticSettings.memes,
+        waiting: {
+          type: "video" as const,
+          publicId: "devden/memes/waiting-loop",
+          posterPublicId: "devden/memes/waiting-poster",
+          alt: "Waiting loop animation",
+        },
+      };
+
+      const res = await updateSettingsAction({
+        defaultTheme: "day-shift" as const,
+        memes: memesWithVideo,
+      });
+
+      expect(res.ok).toBe(true);
+    });
+
     it("returns error response on invalid input payload", async () => {
       const invalidPayload = {
         defaultTheme: "invalid-theme-name",
@@ -113,7 +132,9 @@ describe("Appearance & Meme System", () => {
 
       const res = await updateSettingsAction(invalidPayload);
       expect(res.ok).toBe(false);
-      expect(res.error).toBeDefined();
+      if (!res.ok) {
+        expect(res.error).toBeDefined();
+      }
     });
   });
 });

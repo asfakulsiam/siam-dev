@@ -1,3 +1,4 @@
+import { safeUnstableCache } from "@/lib/cache";
 import { getCollection, sanitizeDocuments, sanitizeDocument } from "@/lib/db";
 import { staticProjects } from "@/features/projects/data";
 import { ProjectDocument } from "@/features/projects/schema";
@@ -41,27 +42,12 @@ function normalizeProject(doc: unknown): Project {
 }
 
 /**
- * Retrieves projects with optional filtering by category, featured flag, and publish status.
- * Seamlessly falls back to static seed data if the database is offline or unreachable.
+ * Internal cached fetcher for all projects from MongoDB.
  */
-export async function getProjects(options: GetProjectsOptions = {}): Promise<Project[]> {
-  const { category, featured, publishedOnly = true } = options;
-
+async function fetchAllProjectsData(): Promise<Project[]> {
   try {
     const collection = await getCollection("projects");
-    const query: Record<string, unknown> = {};
-
-    if (publishedOnly) {
-      query.published = { $ne: false };
-    }
-    if (category && category !== "All") {
-      query.category = category;
-    }
-    if (typeof featured === "boolean") {
-      query.featured = featured;
-    }
-
-    const docs = await collection.find(query).sort({ sortOrder: 1, year: -1 }).toArray();
+    const docs = await collection.find({}).sort({ sortOrder: 1, year: -1 }).toArray();
 
     if (docs.length > 0) {
       return sanitizeDocuments<ProjectDocument>(docs).map(normalizeProject);
@@ -73,8 +59,30 @@ export async function getProjects(options: GetProjectsOptions = {}): Promise<Pro
     );
   }
 
-  // Graceful fallback to curated static data
-  let filtered = [...staticProjects];
+  return staticProjects.map(normalizeProject);
+}
+
+/**
+ * Retrieves all raw projects cached with tags: ["projects"].
+ */
+export const getAllProjectsRaw = safeUnstableCache(
+  fetchAllProjectsData,
+  ["all-projects-data"],
+  { tags: ["projects"] },
+);
+
+/**
+ * Retrieves projects with optional filtering by category, featured flag, and publish status.
+ * Revalidates immediately when admin modifies projects.
+ */
+export async function getProjects(options: GetProjectsOptions = {}): Promise<Project[]> {
+  const { category, featured, publishedOnly = true } = options;
+  const all = await getAllProjectsRaw();
+
+  let filtered = all;
+  if (publishedOnly) {
+    filtered = filtered.filter((p) => p.published !== false);
+  }
   if (category && category !== "All") {
     filtered = filtered.filter((p) => p.category === category);
   }
@@ -96,24 +104,9 @@ export async function getFeaturedProjects(): Promise<Project[]> {
  * Retrieves a single project by its unique slug.
  */
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
-  try {
-    const collection = await getCollection("projects");
-    const doc = await collection.findOne({ slug });
-
-    if (doc) {
-      const sanitized = sanitizeDocument<ProjectDocument>(doc);
-      return sanitized ? normalizeProject(sanitized) : null;
-    }
-  } catch (err) {
-    console.warn(
-      `⚠️ [DB] Unable to reach MongoDB for getProjectBySlug (${slug}), falling back to static dataset:`,
-      err instanceof Error ? err.message : err,
-    );
-  }
-
-  // Graceful fallback to static data
-  const staticFound = staticProjects.find((p) => p.slug === slug);
-  return staticFound || null;
+  const all = await getAllProjectsRaw();
+  const found = all.find((p) => p.slug === slug);
+  return found || null;
 }
 
 /**

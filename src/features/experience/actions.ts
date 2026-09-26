@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { safeRevalidateTag, safeRevalidatePath } from "@/lib/cache";
 import { requireAdmin } from "@/lib/auth-guard";
 import { getCollection } from "@/lib/db";
 import { experienceInputSchema } from "@/features/experience/schema";
@@ -38,7 +38,9 @@ export async function createExperienceAction(
       updatedAt: now,
     });
 
-    revalidateTag("experience");
+    safeRevalidateTag("experience");
+    safeRevalidatePath("/", "layout");
+    safeRevalidatePath("/about");
     return { ok: true, data: { id: parsed.data.id } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -86,7 +88,9 @@ export async function updateExperienceAction(
       return { ok: false, error: "Experience milestone not found." };
     }
 
-    revalidateTag("experience");
+    safeRevalidateTag("experience");
+    safeRevalidatePath("/", "layout");
+    safeRevalidatePath("/about");
     return { ok: true, data: { id } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -116,7 +120,9 @@ export async function deleteExperienceAction(
       return { ok: false, error: "Experience item not found." };
     }
 
-    revalidateTag("experience");
+    safeRevalidateTag("experience");
+    safeRevalidatePath("/", "layout");
+    safeRevalidatePath("/about");
     return { ok: true, data: { deleted: true } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {

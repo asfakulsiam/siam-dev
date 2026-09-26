@@ -5,7 +5,9 @@ import { Resend } from "resend";
 import { env } from "@/lib/env";
 import { hashIp, checkRateLimit } from "@/lib/rate-limit";
 import { contactFormSchema } from "@/features/contact/schema";
-import { saveContactMessage } from "@/features/contact/queries";
+import { saveContactMessage, updateMessageDeliveryStatus } from "@/features/contact/queries";
+import { getProfile } from "@/features/profile/queries";
+import { safeRevalidateTag } from "@/lib/cache";
 import { ActionResponse } from "@/features/projects/actions";
 
 let resendClient: Resend | null = null;
@@ -19,11 +21,11 @@ function getResendClient(): Resend | null {
 /**
  * Handles contact form submissions with server-side validation,
  * honeypot bot trap, salted IP rate limiting, MongoDB persistence,
- * and optional Resend notification dispatch.
+ * dynamic recipient routing to profile.email, and Resend delivery-status tracking.
  */
 export async function submitContactAction(
   raw: unknown,
-): Promise<ActionResponse<{ message: string }>> {
+): Promise<ActionResponse<{ message: string; deliveryStatus?: string }>> {
   try {
     // 1. Resolve client IP and generate salted hash
     const headerList = await headers();
@@ -60,34 +62,66 @@ export async function submitContactAction(
       };
     }
 
-    // 5. Persist to MongoDB
+    // 5. Dynamic recipient resolution (M.1 / Finding K3)
+    // Priority: profile.email (editable in /admin/profile) -> fallback env.CONTACT_TO_EMAIL
+    let recipientEmail = env.CONTACT_TO_EMAIL;
     try {
-      await saveContactMessage(parsed.data, ipHash);
-    } catch (dbErr) {
-      console.error("Failed to save contact message to database:", dbErr);
-      // Even if DB fails in disconnected environments, allow proceeding if email sends or log safely
+      const profile = await getProfile();
+      if (profile?.email && profile.email.trim().length > 0) {
+        recipientEmail = profile.email.trim();
+      }
+    } catch {
+      // Fallback to static env recipient if profile query encounters issues
     }
 
-    // 6. Optional Email Notification via Resend
+    // 6. Delivery Status Tracking (M.2 / Finding K4)
+    let emailStatus: "delivered" | "failed" | "skipped" = "skipped";
+    let emailError: string | undefined = undefined;
+
     const resend = getResendClient();
     if (resend) {
       try {
-        await resend.emails.send({
+        const sendResult = await resend.emails.send({
           from: env.RESEND_FROM,
-          to: env.CONTACT_TO_EMAIL,
+          to: recipientEmail,
           subject: `[Dev Den] New message from ${parsed.data.name} (${parsed.data.projectType})`,
           text: `Name: ${parsed.data.name}\nEmail: ${parsed.data.email}\nProject Type: ${parsed.data.projectType}\nTimeline: ${parsed.data.timeline || "Not specified"}\n\nMessage:\n${parsed.data.message}`,
         });
+
+        if (sendResult.error) {
+          emailStatus = "failed";
+          emailError = sendResult.error.message || "Resend returned delivery error";
+          console.warn("⚠️ [Resend] Email dispatch returned error:", sendResult.error);
+        } else {
+          emailStatus = "delivered";
+        }
       } catch (emailErr) {
+        emailStatus = "failed";
+        emailError = emailErr instanceof Error ? emailErr.message : "Failed to dispatch email notification";
         console.warn("⚠️ [Resend] Email dispatch notice:", emailErr);
-        // Do not fail user submission if notification email fails; message is safely stored in DB
       }
+    } else {
+      emailStatus = "skipped";
+      emailError = "Resend API key not configured or set to placeholder";
+    }
+
+    // 7. Persist to MongoDB with full delivery metadata
+    try {
+      await saveContactMessage(parsed.data, ipHash, {
+        emailStatus,
+        emailError,
+        recipientEmail,
+      });
+      safeRevalidateTag("messages");
+    } catch (dbErr) {
+      console.error("Failed to save contact message to database:", dbErr);
     }
 
     return {
       ok: true,
       data: {
         message: "Thank you for reaching out. Your message has been received.",
+        deliveryStatus: emailStatus,
       },
     };
   } catch (err) {
@@ -95,6 +129,118 @@ export async function submitContactAction(
     return {
       ok: false,
       error: "An unexpected error occurred while sending your message. Please try again.",
+    };
+  }
+}
+
+/**
+ * Retries sending an email notification for a previously failed or skipped message.
+ * Requires admin authorization.
+ */
+export async function retryMessageDeliveryAction(
+  id: string,
+): Promise<ActionResponse<{ delivered: boolean; emailStatus: string; error?: string }>> {
+  try {
+    const { requireAdmin } = await import("@/lib/auth-guard");
+    const { getCollection } = await import("@/lib/db");
+    const { ObjectId } = await import("mongodb");
+
+    await requireAdmin();
+
+    const collection = await getCollection("messages");
+    let query: Record<string, unknown> = { id };
+    try {
+      if (ObjectId.isValid(id)) {
+        query = { $or: [{ _id: new ObjectId(id) }, { id }] };
+      }
+    } catch {
+      // Use query as is
+    }
+
+    const doc = await collection.findOne(query);
+    if (!doc) {
+      return { ok: false, error: "Message not found." };
+    }
+
+    let recipientEmail = env.CONTACT_TO_EMAIL;
+    try {
+      const profile = await getProfile();
+      if (profile?.email && profile.email.trim().length > 0) {
+        recipientEmail = profile.email.trim();
+      }
+    } catch {
+      // Fallback
+    }
+
+    const resend = getResendClient();
+    if (!resend) {
+      await updateMessageDeliveryStatus(id, {
+        emailStatus: "skipped",
+        emailError: "Resend API key not configured or set to placeholder",
+        recipientEmail,
+      });
+      safeRevalidateTag("messages");
+      return {
+        ok: false,
+        error: "Resend API key is not configured in environment variables.",
+      };
+    }
+
+    try {
+      const sendResult = await resend.emails.send({
+        from: env.RESEND_FROM,
+        to: recipientEmail,
+        subject: `[Dev Den] [Retry] New message from ${doc.name} (${doc.projectType})`,
+        text: `Name: ${doc.name}\nEmail: ${doc.email}\nProject Type: ${doc.projectType}\nTimeline: ${doc.timeline || "Not specified"}\n\nMessage:\n${doc.message}`,
+      });
+
+      if (sendResult.error) {
+        const errorMsg = sendResult.error.message || "Resend error occurred during delivery";
+        await updateMessageDeliveryStatus(id, {
+          emailStatus: "failed",
+          emailError: errorMsg,
+          recipientEmail,
+        });
+        safeRevalidateTag("messages");
+        return {
+          ok: false,
+          error: errorMsg,
+        };
+      }
+
+      await updateMessageDeliveryStatus(id, {
+        emailStatus: "delivered",
+        emailError: undefined,
+        recipientEmail,
+      });
+      safeRevalidateTag("messages");
+      return {
+        ok: true,
+        data: {
+          delivered: true,
+          emailStatus: "delivered",
+        },
+      };
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to send email";
+      await updateMessageDeliveryStatus(id, {
+        emailStatus: "failed",
+        emailError: errorMsg,
+        recipientEmail,
+      });
+      safeRevalidateTag("messages");
+      return {
+        ok: false,
+        error: errorMsg,
+      };
+    }
+  } catch (err) {
+    if (err instanceof Error && err.message === "UNAUTHORIZED") {
+      return { ok: false, error: "Unauthorized. Admin session required." };
+    }
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to retry message delivery",
     };
   }
 }
@@ -111,7 +257,6 @@ export async function updateMessageStatusAction(
     const { requireAdmin } = await import("@/lib/auth-guard");
     const { getCollection } = await import("@/lib/db");
     const { ObjectId } = await import("mongodb");
-    const { revalidateTag } = await import("next/cache");
 
     await requireAdmin();
 
@@ -132,7 +277,7 @@ export async function updateMessageStatusAction(
       },
     });
 
-    revalidateTag("messages");
+    safeRevalidateTag("messages");
     return { ok: true, data: { updated: true } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -156,7 +301,6 @@ export async function deleteMessageAction(
     const { requireAdmin } = await import("@/lib/auth-guard");
     const { getCollection } = await import("@/lib/db");
     const { ObjectId } = await import("mongodb");
-    const { revalidateTag } = await import("next/cache");
 
     await requireAdmin();
 
@@ -175,7 +319,7 @@ export async function deleteMessageAction(
       return { ok: false, error: "Message not found or already deleted." };
     }
 
-    revalidateTag("messages");
+    safeRevalidateTag("messages");
     return { ok: true, data: { deleted: true } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {

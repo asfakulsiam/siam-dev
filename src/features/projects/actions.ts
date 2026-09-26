@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { safeRevalidateTag, safeRevalidatePath } from "@/lib/cache";
 import { requireAdmin } from "@/lib/auth-guard";
 import { getCollection } from "@/lib/db";
 import { projectInputSchema } from "@/features/projects/schema";
@@ -43,7 +43,9 @@ export async function createProjectAction(raw: unknown): Promise<ActionResponse<
       updatedAt: now,
     });
 
-    revalidateTag("projects");
+    safeRevalidateTag("projects");
+    safeRevalidatePath("/", "layout");
+    safeRevalidatePath("/work");
     return { ok: true, data: { slug: parsed.data.slug } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -91,7 +93,10 @@ export async function updateProjectAction(
       return { ok: false, error: "Project not found." };
     }
 
-    revalidateTag("projects");
+    safeRevalidateTag("projects");
+    safeRevalidatePath("/", "layout");
+    safeRevalidatePath("/work");
+    safeRevalidatePath(`/work/${slug}`);
     return { ok: true, data: { slug } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -121,7 +126,9 @@ export async function deleteProjectAction(
       return { ok: false, error: "Project not found or already deleted." };
     }
 
-    revalidateTag("projects");
+    safeRevalidateTag("projects");
+    safeRevalidatePath("/", "layout");
+    safeRevalidatePath("/work");
     return { ok: true, data: { deleted: true } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -156,7 +163,10 @@ export async function togglePublishAction(
       },
     );
 
-    revalidateTag("projects");
+    safeRevalidateTag("projects");
+    safeRevalidatePath("/", "layout");
+    safeRevalidatePath("/work");
+    safeRevalidatePath(`/work/${slug}`);
     return { ok: true, data: { published } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {

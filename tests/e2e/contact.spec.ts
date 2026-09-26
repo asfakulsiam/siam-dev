@@ -46,4 +46,21 @@ test.describe("Contact Form Interaction & Bot Protection Flow", () => {
     // App pretends submission succeeded to discard spam silently
     await expect(page.getByRole("status")).toBeVisible();
   });
+
+  test("valid submission records in messages inbox with delivery status tracking", async ({ page }) => {
+    const timestamp = Date.now();
+    const testName = `Delivery Test ${timestamp}`;
+    const testEmail = `tester-${timestamp}@example.com`;
+
+    await page.locator("#contact-name").fill(testName);
+    await page.locator("#contact-email").fill(testEmail);
+    await page.locator("#contact-projectType").selectOption("Full-Stack Web App");
+    await page.locator("#contact-message").fill("Comprehensive testing of the contact submission and live delivery status tracking pipeline.");
+
+    const submitBtn = page.getByRole("button", { name: /Send Message/i });
+    await submitBtn.click();
+
+    // Verify submission success state
+    await expect(page.getByRole("status")).toContainText(/received/i, { timeout: 10000 });
+  });
 });

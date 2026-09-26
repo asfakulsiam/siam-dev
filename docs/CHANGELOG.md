@@ -5,6 +5,54 @@ Format based on Keep a Changelog.
 
 ---
 
+## [Phase M] - Contact Form Email Destination & Resend Delivery Tracking (2026-09-25)
+
+### Added & Fixed
+
+- **Dynamic Recipient Routing to `profile.email` (K3 / `src/features/contact/actions.ts`)**:
+  - `submitContactAction` dynamically resolves the recipient address from `getProfile()` (updated instantly by the admin in `/admin/profile` thanks to Phase L's tag-based cache invalidation), falling back to `env.CONTACT_TO_EMAIL`.
+- **Delivery-Status Tracking & Error Diagnostics (K4 / `src/features/contact/schema.ts`, `queries.ts`)**:
+  - Extended `contactMessageSchema` with `emailStatus` (`delivered` | `failed` | `skipped`), `emailError`, and `recipientEmail`.
+  - Persists delivery metadata on every submission, ensuring Resend failures (e.g. unverified domains or bad keys) are recorded and surfaced instead of silently discarded.
+- **Admin Inbox Observability & One-Click Retry (`src/components/admin/MessagesManager.tsx`)**:
+  - Added delivery status indicator pills on every message item in the inbox.
+  - Added "Email Delivery Failed" filter option to quickly surface undelivered inquiries.
+  - Added detailed email delivery diagnostics block in the message modal showing target recipient, failure error text, and a "Retry Dispatch" button calling `retryMessageDeliveryAction`.
+- **Unit & Integration Suite (`tests/unit/contact-delivery.test.ts`, `tests/unit/contact.test.ts`)**:
+  - Added comprehensive tests for schema delivery validation, fallback behavior, recipient persistence, and `requireAdmin` enforcement on retry actions.
+
+## [Phase L] - Instant Cache Invalidation & Live Updates Without Redeploy (2026-09-25)
+
+### Added & Fixed
+
+- **Unified Incremental Cache Strategy (Option A / `src/lib/cache.ts`)**:
+  - Implemented `safeUnstableCache` wrapping Next.js `unstable_cache` with domain tags:
+    - `getProfile`: `tags: ["profile"]`
+    - `getSettings`: `tags: ["settings"]`
+    - `getAllProjectsRaw`: `tags: ["projects"]`
+    - `getExperience`: `tags: ["experience"]`
+    - `getAllTestimonialsRaw`: `tags: ["testimonials"]`
+  - Created test-resilient wrappers `safeRevalidateTag` and `safeRevalidatePath` to gracefully execute in Next.js runtime while preventing invariant exceptions in standalone test runners.
+- **Synchronized Action Invalidation Targets**:
+  - All admin mutations across `profile`, `appearance`, `projects`, `experience`, and `testimonials` invoke exact matching tags and revalidate root layout `/` along with respective subpages.
+- **End-to-End Live Updates Verification (`tests/e2e/live-updates.spec.ts`)**:
+  - Validates in an isolated browser context that saving in admin immediately updates the public homepage, `/work`, and `/contact` without a rebuild.
+- **Unit & Integration Suite (`tests/unit/cache-revalidation.test.ts`)**:
+  - Tests cache wrapper behavior and fallback resilience across all queries.
+
+## [Phase K] - Cloudinary Direct Uploads Everywhere & Asset Lifecycle (2026-09-25)
+
+### Added & Fixed
+
+- **Shared Direct Upload Component (`src/components/admin/CloudinaryUploadField.tsx`)**:
+  - Extracted standardized upload UI featuring client-side file-size gating (Images ≤10MB, Video ≤100MB), signed direct Cloudinary upload, live previews, progress indicators, manual input fallback, and mandatory accessibility alt-text enforcement.
+- **Meme Reaction Uploads in `AppearanceManager.tsx`**:
+  - Replaced manual text inputs with `CloudinaryUploadField` for all meme slots. Supports both image formats and short video loops with dedicated poster frame uploaders.
+- **Portrait Photo Uploads in `ProfileManager.tsx`**:
+  - Connected identity portrait photo manager with `CloudinaryUploadField` for image upload and live duotone rendering.
+- **Server-Side Orphan Cleanup (`app/api/admin/cloudinary-delete/route.ts` & `src/lib/cloudinary-actions.ts`)**:
+  - Automatically deletes previous assets from Cloudinary when replaced or removed in admin forms.
+
 ## [Phase J] - Test Suite Integrity, CI MongoDB Service & Loud Failures (2026-09-25)
 
 ### Added & Fixed

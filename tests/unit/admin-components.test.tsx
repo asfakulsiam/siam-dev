@@ -39,4 +39,42 @@ describe("Phase 5: Admin UI Components", () => {
     expect(screen.getByText("Messages")).toBeDefined();
     expect(screen.getByText("3")).toBeDefined(); // unread count badge
   });
+
+  it("renders MessagesManager with delivery badges and status filters", async () => {
+    const { MessagesManager } = await import("@/components/admin/MessagesManager");
+
+    const sampleMessages = [
+      {
+        id: "msg-1",
+        name: "Alice Cooper",
+        email: "alice@example.com",
+        projectType: "Design System" as const,
+        message: "Need a comprehensive tokens overhaul.",
+        ipHash: "hash-1",
+        status: "unread" as const,
+        emailStatus: "delivered" as const,
+        recipientEmail: "asfakul@devden.io",
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: "msg-2",
+        name: "Bob Builder",
+        email: "bob@example.com",
+        projectType: "Full-Stack Web App" as const,
+        message: "Need full stack engineering support.",
+        ipHash: "hash-2",
+        status: "read" as const,
+        emailStatus: "failed" as const,
+        emailError: "Resend: domain not verified",
+        recipientEmail: "asfakul@devden.io",
+        createdAt: new Date().toISOString(),
+      },
+    ];
+
+    render(<MessagesManager initialMessages={sampleMessages} />);
+    expect(screen.getByText("Alice Cooper")).toBeDefined();
+    expect(screen.getByText("Bob Builder")).toBeDefined();
+    expect(screen.getByText("Delivered")).toBeDefined();
+    expect(screen.getByText("Email Failed")).toBeDefined();
+  });
 });

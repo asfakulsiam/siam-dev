@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { safeRevalidateTag, safeRevalidatePath } from "@/lib/cache";
 import { requireAdmin } from "@/lib/auth-guard";
 import { getCollection } from "@/lib/db";
 import { testimonialInputSchema } from "./schema";
@@ -38,7 +38,8 @@ export async function createTestimonialAction(
       updatedAt: now,
     });
 
-    revalidateTag("testimonials");
+    safeRevalidateTag("testimonials");
+    safeRevalidatePath("/", "layout");
     return { ok: true, data: { id: parsed.data.id } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -86,7 +87,8 @@ export async function updateTestimonialAction(
       return { ok: false, error: "Testimonial not found." };
     }
 
-    revalidateTag("testimonials");
+    safeRevalidateTag("testimonials");
+    safeRevalidatePath("/", "layout");
     return { ok: true, data: { id } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -116,7 +118,8 @@ export async function deleteTestimonialAction(
       return { ok: false, error: "Testimonial not found." };
     }
 
-    revalidateTag("testimonials");
+    safeRevalidateTag("testimonials");
+    safeRevalidatePath("/", "layout");
     return { ok: true, data: { deleted: true } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -155,7 +158,8 @@ export async function togglePublishTestimonialAction(
       return { ok: false, error: "Testimonial not found." };
     }
 
-    revalidateTag("testimonials");
+    safeRevalidateTag("testimonials");
+    safeRevalidatePath("/", "layout");
     return { ok: true, data: { id, published } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -194,7 +198,8 @@ export async function reorderTestimonialsAction(
       if (res.modifiedCount > 0) count++;
     }
 
-    revalidateTag("testimonials");
+    safeRevalidateTag("testimonials");
+    safeRevalidatePath("/", "layout");
     return { ok: true, data: { updated: count } };
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {

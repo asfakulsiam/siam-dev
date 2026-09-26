@@ -2,14 +2,22 @@
 
 import { useState } from "react";
 import { Copy, Check, Clock, Globe2, ArrowUpRight } from "lucide-react";
-import { staticProfile } from "@/features/profile/data";
+import { staticProfile, ProfileData } from "@/features/profile/data";
 
-export function DirectContactCard() {
+interface DirectContactCardProps {
+  profile?: ProfileData;
+}
+
+export function DirectContactCard({ profile = staticProfile }: DirectContactCardProps) {
   const [copied, setCopied] = useState(false);
+
+  const contactEmail = profile.email || staticProfile.email;
+  const contactLocation = profile.location || staticProfile.location;
+  const availability = profile.availability || staticProfile.availability;
 
   const handleCopyEmail = async () => {
     try {
-      await navigator.clipboard.writeText(staticProfile.email);
+      await navigator.clipboard.writeText(contactEmail);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -24,7 +32,7 @@ export function DirectContactCard() {
         <span className="text-xs font-semibold text-[var(--ink)]">Direct email</span>
         <div className="flex items-center justify-between gap-2 p-3 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--bg)]">
           <span className="text-sm font-medium text-[var(--ink)] font-mono select-all">
-            {staticProfile.email}
+            {contactEmail}
           </span>
           <button
             type="button"
@@ -48,7 +56,7 @@ export function DirectContactCard() {
           <Globe2 className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
           <span>Location &amp; time</span>
         </div>
-        <div className="text-sm font-medium text-[var(--ink)]">{staticProfile.location}</div>
+        <div className="text-sm font-medium text-[var(--ink)]">{contactLocation}</div>
         <div className="text-xs text-[var(--ink-muted)] flex items-center gap-1.5 font-mono">
           <Clock className="w-3.5 h-3.5" aria-hidden="true" />
           <span>Asia/Dhaka (UTC+6)</span>
@@ -58,10 +66,17 @@ export function DirectContactCard() {
       {/* Availability */}
       <div className="space-y-2 pt-4 border-t border-[var(--line)]">
         <span className="text-xs font-semibold text-[var(--ink)]">
-          Current capacity
+          Current status
         </span>
-        <div className="text-xs text-[var(--ink-muted)] leading-relaxed">
-          {staticProfile.availability.text}
+        <div className="flex items-center gap-2 text-sm text-[var(--ink)]">
+          <span
+            className={`w-2 h-2 rounded-full ${
+              availability.open ? "bg-[var(--success)] animate-pulse" : "bg-[var(--line)]"
+            }`}
+          />
+          <span className="font-medium">
+            {availability.text || (availability.open ? "Available for select contracts" : "Engaged on active client project")}
+          </span>
         </div>
       </div>
 

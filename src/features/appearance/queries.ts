@@ -1,12 +1,12 @@
+import { safeUnstableCache } from "@/lib/cache";
 import { getCollection, sanitizeDocument } from "@/lib/db";
 import { staticSettings } from "@/features/appearance/data";
 import { SettingsDocument, MemeAsset } from "@/features/appearance/schema";
 
 /**
- * Retrieves the global site appearance and meme settings.
- * Falls back safely to staticSettings if database is unreachable.
+ * Internal fetcher for global site appearance and meme settings from MongoDB.
  */
-export async function getSettings(): Promise<SettingsDocument> {
+async function fetchSettingsData(): Promise<SettingsDocument> {
   try {
     const collection = await getCollection("settings");
     const doc = await collection.findOne({});
@@ -37,6 +37,16 @@ export async function getSettings(): Promise<SettingsDocument> {
 
   return staticSettings;
 }
+
+/**
+ * Retrieves the global site appearance and meme settings.
+ * Cached with tags: ["settings"] for instant revalidation upon admin mutation.
+ */
+export const getSettings = safeUnstableCache(
+  fetchSettingsData,
+  ["settings-data"],
+  { tags: ["settings"] },
+);
 
 /**
  * Retrieves a specific meme asset for a given state.

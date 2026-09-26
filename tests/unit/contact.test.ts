@@ -202,4 +202,72 @@ describe("Contact Form Validation Schema", () => {
       expect(result.success).toBe(false);
     });
   });
+
+  describe("Phase M: Delivery Tracking & Schema Extension (K3, K4)", () => {
+    it("validates contactMessageSchema with email delivery status fields", async () => {
+      const { contactMessageSchema } = await import("@/features/contact/schema");
+
+      const validMessage = {
+        name: "John Doe",
+        email: "john@example.com",
+        projectType: "Full-Stack Web App" as const,
+        message: "We need an application built with high performance and craft.",
+        ipHash: "abcdef123456",
+        status: "unread" as const,
+        emailStatus: "delivered" as const,
+        recipientEmail: "hello@asfakul.com",
+        createdAt: new Date().toISOString(),
+      };
+
+      const parsed = contactMessageSchema.safeParse(validMessage);
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.emailStatus).toBe("delivered");
+        expect(parsed.data.recipientEmail).toBe("hello@asfakul.com");
+      }
+    });
+
+    it("defaults emailStatus to 'skipped' when omitted in contactMessageSchema", async () => {
+      const { contactMessageSchema } = await import("@/features/contact/schema");
+
+      const messageWithoutDelivery = {
+        name: "Jane Smith",
+        email: "jane@example.com",
+        projectType: "Design System" as const,
+        message: "Looking for an expert design system engineer.",
+        ipHash: "123456abcdef",
+        createdAt: new Date().toISOString(),
+      };
+
+      const parsed = contactMessageSchema.safeParse(messageWithoutDelivery);
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.emailStatus).toBe("skipped");
+      }
+    });
+
+    it("captures emailError when delivery fails", async () => {
+      const { contactMessageSchema } = await import("@/features/contact/schema");
+
+      const failedMessage = {
+        name: "Mark Stone",
+        email: "mark@example.com",
+        projectType: "Consulting / Audit" as const,
+        message: "Codebase accessibility audit needed.",
+        ipHash: "78910fedcba",
+        status: "unread" as const,
+        emailStatus: "failed" as const,
+        emailError: "API key revoked or domain unverified",
+        recipientEmail: "asfakul@devden.io",
+        createdAt: new Date().toISOString(),
+      };
+
+      const parsed = contactMessageSchema.safeParse(failedMessage);
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.emailStatus).toBe("failed");
+        expect(parsed.data.emailError).toContain("domain unverified");
+      }
+    });
+  });
 });

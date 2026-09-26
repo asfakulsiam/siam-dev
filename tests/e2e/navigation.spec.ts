@@ -41,7 +41,7 @@ test.describe("Public Navigation & Shell Flow", () => {
   });
 
   test("handles 404 routes gracefully with custom not-found page", async ({ page }) => {
-    await page.goto("/non-existent-page-url-xyz", { failOnStatusCode: false });
+    await page.goto("/non-existent-page-url-xyz");
     await expect(page.locator("main#main-content")).toBeVisible();
     await expect(page.getByRole("heading", { name: /Page Not Found|404/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /Return Home/i })).toBeVisible();

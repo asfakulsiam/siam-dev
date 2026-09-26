@@ -1,3 +1,4 @@
+import { safeUnstableCache } from "@/lib/cache";
 import { getCollection, sanitizeDocuments } from "@/lib/db";
 import {
   staticExperience,
@@ -8,10 +9,9 @@ import {
 import { ExperienceDocument } from "@/features/experience/schema";
 
 /**
- * Retrieves career experience items.
- * Falls back to static experience data if database is unreachable.
+ * Internal cached fetcher for career experience items from MongoDB.
  */
-export async function getExperience(): Promise<ExperienceItem[]> {
+async function fetchExperienceData(): Promise<ExperienceItem[]> {
   try {
     const collection = await getCollection("experience");
     const docs = await collection.find({}).sort({ sortOrder: 1 }).toArray();
@@ -38,6 +38,16 @@ export async function getExperience(): Promise<ExperienceItem[]> {
 
   return staticExperience;
 }
+
+/**
+ * Retrieves career experience items.
+ * Cached with tags: ["experience"] for instant revalidation upon admin mutation.
+ */
+export const getExperience = safeUnstableCache(
+  fetchExperienceData,
+  ["experience-data"],
+  { tags: ["experience"] },
+);
 
 /**
  * Retrieves the core principles of craft.
