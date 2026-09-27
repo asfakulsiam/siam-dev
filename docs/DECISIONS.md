@@ -219,6 +219,23 @@ This log documents all architectural and technical decisions made for the Dev De
   - **Responsive Table Overflow**: Wrapped in `overflow-x-auto` with responsive column hiding (`hidden md:table-cell`, `hidden lg:table-cell`, `hidden sm:table-cell`) to guarantee zero horizontal blowout on narrow mobile devices (360px–768px).
 - **Rationale**: Elevates portfolio curation, preserves access to earlier work, and adheres to semantic HTML and mobile-first rules.
 
+### ADR-025: "Split Frame" Asymmetric Hero Redesign (v8)
+- **Date**: 2026-09-27
+- **Context**: The previous blob-and-glow avatar treatment read as a generic decorative template move rather than a confident, tailored product design. The owner required a large, real photographic presence where typography and photography interact directly with zero gimmicks (no glowing borders, no blob clip-paths).
+- **Decision**:
+  - **"Split Frame" Asymmetric Architecture (`src/components/motion/SplitHero.tsx`)**:
+    - **Desktop (`lg+`)**: 56–60% left column for meta row, headline, bio, and CTAs. Right 40–44% column for tall, full-bleed primary photograph cropped cleanly with a single soft bottom-left corner (`rounded-bl-3xl`) and duotone-treated in theme accent.
+    - **Deliberate Overlap Moment**: The closing word of the headline bridges across columns, resting directly on top of the left boundary of the primary photograph (`z-20`). Backed by an 85% opacity `--bg` blurred chip to guarantee WCAG 2.2 AA contrast in all four themes.
+    - **Optional Secondary Accent Photo**: Admin-controlled candid/action shot tucked behind the bottom-left corner of the primary frame (`-rotate-6`), evoking an intentional print.
+    - **Zero-Photo Graceful Degradation**: When zero photos hold `hero-primary`, the hero drops cleanly to a single-column, full-width text-only layout with the full headline intact.
+    - **Mobile (`< lg`)**: Stacks vertically (photo first, headline below) without the desktop overlap trick.
+  - **Admin Role Management (`src/features/profile/schema.ts`, `actions.ts`, `ProfileManager.tsx`)**:
+    - Extended `photoSchema` with `role: "hero-primary" | "hero-secondary" | "unassigned"`.
+    - Server action enforces single-holder exclusivity for `hero-primary` and `hero-secondary`.
+    - Integrated "Set as hero photo" and "Set as hero accent" controls in `/admin/profile`.
+- **Rationale**: Replaces template aesthetics with a confident, editorial design engineer signature moment while honoring accessibility and performance budgets.
+
+
 
 
 

@@ -13,6 +13,7 @@ export interface ProfilePhoto {
   alt: string;
   mood?: string;
   accentColor?: string;
+  role: "hero-primary" | "hero-secondary" | "unassigned";
 }
 
 export const DEFAULT_AVATAR_ID = "default-avatar";
@@ -113,6 +114,7 @@ export const staticProfile: ProfileData = {
       alt: "Asfakul in studio lighting with high-contrast architectural silhouette",
       mood: "working",
       accentColor: "#2F4BFF",
+      role: "hero-primary",
     },
   ],
   activePhotoId: defaultIdentityPhotoSVG,

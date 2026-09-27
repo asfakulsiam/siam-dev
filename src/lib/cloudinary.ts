@@ -14,6 +14,8 @@ export interface CloudinaryTransformOptions {
   gravity?: "auto" | "center" | "face" | "north" | "south";
   blur?: number;
   dpr?: number | "auto";
+  duotone?: boolean;
+  accent?: string;
 }
 
 /**
@@ -81,9 +83,16 @@ export function getOptimizedCloudinaryUrl(
     gravity = "auto",
     blur,
     dpr = "auto",
+    duotone,
+    accent = "2f4bff",
   } = options;
 
   const transforms: string[] = [];
+
+  if (duotone) {
+    const cleanTint = (accent || "2f4bff").replace("#", "").trim();
+    transforms.push("e_grayscale", `e_tint:70:${cleanTint}`);
+  }
 
   if (format) transforms.push(`f_${format}`);
   if (quality) transforms.push(`q_${quality}`);

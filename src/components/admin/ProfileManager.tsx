@@ -134,8 +134,24 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       alt: "Asfakul portfolio portrait",
       mood: "candid",
       accentColor: "#2F4BFF",
+      role: "unassigned",
     };
     setPhotos((prev) => [...prev, newPhoto]);
+  };
+
+  const handleSetHeroRole = (idx: number, role: "hero-primary" | "hero-secondary" | "unassigned") => {
+    setPhotos((prev) =>
+      prev.map((p, i) => {
+        if (i === idx) {
+          return { ...p, role };
+        }
+        // Enforce exclusivity: if another photo held this hero role, clear it to unassigned
+        if (role !== "unassigned" && p.role === role) {
+          return { ...p, role: "unassigned" };
+        }
+        return p;
+      }),
+    );
   };
 
   const handleRemovePhoto = (idx: number) => {
@@ -606,7 +622,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         </div>
       )}
 
-      {/* Tab 2: Identity & Photos (Phase C) */}
+      {/* Tab 2: Identity & Photos (Phase C & Split Frame Hero) */}
       {activeTab === "photos" && (
         <div className="bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-md)] p-5 sm:p-6 space-y-6 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--line)]">
@@ -614,121 +630,131 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[var(--accent)]" />
                 <h2 className="text-sm font-bold text-[var(--ink)]">
-                  Identity Portraits &amp; Hero Mask Reveal
+                  Hero Photo Manager (Split Frame)
                 </h2>
               </div>
               <p className="text-xs text-[var(--ink-muted)] mt-1">
-                Upload portraits, set the active hero mask photo, and maintain WCAG 2.2 AA compliant alt text.
+                Upload photos, assign hero primary and secondary roles, and maintain WCAG 2.2 AA compliant alt text.
               </p>
             </div>
 
             <button
               type="button"
               onClick={handleAddPhoto}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:bg-[var(--surface)] transition-colors shrink-0"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:bg-[var(--surface)] transition-colors shrink-0 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Portrait Photo</span>
             </button>
           </div>
 
-          <div className="space-y-6">
-            {/* P.3 Default Avatar Option */}
-            <div
-              className={`p-5 rounded-[var(--r-md)] border space-y-4 transition-all ${
-                activePhotoId === DEFAULT_AVATAR_PUBLIC_ID
-                  ? "border-[var(--accent)] bg-[var(--surface-2)]/60 ring-2 ring-[var(--accent)]/20"
-                  : "border-[var(--line)] bg-[var(--bg)]"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-xs text-[var(--ink)]">
-                    Default Geometric Avatar (P.3)
+          {/* Current Hero Assignment Summary Banner */}
+          <div className="p-4 rounded-[var(--r-sm)] bg-[var(--surface-2)] border border-[var(--line)] flex flex-wrap items-center justify-between gap-4 text-xs">
+            <div className="space-y-1">
+              <span className="font-bold text-[var(--ink)] block">
+                Current Hero Role Assignments:
+              </span>
+              <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono">
+                <div>
+                  <span className="text-[var(--ink-muted)]">Hero Primary: </span>
+                  <span className="text-[var(--accent)] font-semibold">
+                    {photos.find((p) => p.role === "hero-primary")?.alt || "None assigned (clean text-only hero)"}
                   </span>
-                  {activePhotoId === DEFAULT_AVATAR_PUBLIC_ID && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold">
-                      <Check className="w-3 h-3" /> ACTIVE HERO PHOTO
-                    </span>
-                  )}
                 </div>
-
-                {activePhotoId !== DEFAULT_AVATAR_PUBLIC_ID && (
-                  <button
-                    type="button"
-                    onClick={() => setActivePhotoId(DEFAULT_AVATAR_PUBLIC_ID)}
-                    className="text-[11px] font-mono text-[var(--accent)] hover:underline"
-                  >
-                    Set as Active
-                  </button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                <div className="sm:col-span-2 space-y-2 text-xs text-[var(--ink-muted)]">
-                  <p>
-                    On-brand architectural vector silhouette. Displays in the organic irregular frame with glowing border when active or when no custom photos are uploaded.
-                  </p>
-                  <p className="text-[11px] font-mono text-[var(--ink-muted)]">
-                    Reserved Sentinel ID: <span className="text-[var(--accent)] font-semibold">{DEFAULT_AVATAR_PUBLIC_ID}</span>
-                  </p>
-                </div>
-
-                <div className="flex flex-col items-center justify-center p-3 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] space-y-2">
-                  <span className="text-[10px] font-mono text-[var(--ink-muted)]">
-                    ORGANIC FRAME PREVIEW
+                <span className="text-[var(--line)]">•</span>
+                <div>
+                  <span className="text-[var(--ink-muted)]">Hero Accent: </span>
+                  <span className="text-[var(--ink)] font-semibold">
+                    {photos.find((p) => p.role === "hero-secondary")?.alt || "None (hidden)"}
                   </span>
-                  <PortraitFrame
-                    photo={{ publicId: DEFAULT_AVATAR_PUBLIC_ID, alt: "Default geometric avatar" }}
-                    variant={1}
-                    size="sm"
-                    showBackgroundTint={true}
-                  />
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="space-y-6">
+            {photos.length === 0 && (
+              <div className="p-8 text-center rounded-[var(--r-sm)] border border-dashed border-[var(--line)] space-y-2">
+                <p className="text-xs font-semibold text-[var(--ink)]">No photos uploaded yet</p>
+                <p className="text-[11px] text-[var(--ink-muted)] max-w-sm mx-auto">
+                  The hero currently displays a confident text-only layout. Click &ldquo;Add Portrait Photo&rdquo; to upload an image.
+                </p>
+              </div>
+            )}
 
             {photos.map((photo, pIdx) => {
-              const isActive = activePhotoId === photo.publicId;
+              const role = photo.role || "unassigned";
+              const isPrimary = role === "hero-primary";
+              const isSecondary = role === "hero-secondary";
 
               return (
                 <div
                   key={pIdx}
                   className={`p-5 rounded-[var(--r-md)] border space-y-4 transition-all ${
-                    isActive
+                    isPrimary
                       ? "border-[var(--accent)] bg-[var(--surface-2)]/60 ring-2 ring-[var(--accent)]/20"
+                      : isSecondary
+                      ? "border-[var(--line)] bg-[var(--surface-2)]/30 ring-1 ring-[var(--line)]"
                       : "border-[var(--line)] bg-[var(--bg)]"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-xs text-[var(--ink)]">
-                        Portrait #{pIdx + 1}
+                        Photo #{pIdx + 1}
                       </span>
-                      {isActive && (
+                      {isPrimary && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold">
-                          <Check className="w-3 h-3" /> ACTIVE HERO PHOTO
+                          <Check className="w-3 h-3" /> HERO PRIMARY
+                        </span>
+                      )}
+                      {isSecondary && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                          HERO SECONDARY ACCENT
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      {!isActive && (
+                    {/* Role Control Actions */}
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      {!isPrimary && (
                         <button
                           type="button"
-                          onClick={() => setActivePhotoId(photo.publicId)}
+                          onClick={() => handleSetHeroRole(pIdx, "hero-primary")}
                           disabled={!photo.publicId}
-                          className="text-[11px] font-mono text-[var(--accent)] hover:underline disabled:opacity-30"
+                          className="px-2.5 py-1 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--accent)] font-semibold hover:bg-[var(--surface-2)] disabled:opacity-40 cursor-pointer"
                         >
-                          Set as Active
+                          Set as hero photo
                         </button>
                       )}
+
+                      {!isSecondary && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetHeroRole(pIdx, "hero-secondary")}
+                          disabled={!photo.publicId}
+                          className="px-2.5 py-1 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] font-semibold hover:bg-[var(--surface-2)] disabled:opacity-40 cursor-pointer"
+                        >
+                          Set as hero accent
+                        </button>
+                      )}
+
+                      {(isPrimary || isSecondary) && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetHeroRole(pIdx, "unassigned")}
+                          className="px-2.5 py-1 rounded-[var(--r-sm)] border border-transparent text-[var(--ink-muted)] hover:text-[var(--danger)] cursor-pointer"
+                        >
+                          Remove from hero
+                        </button>
+                      )}
+
                       <button
                         type="button"
                         onClick={() => handleRemovePhoto(pIdx)}
-                        className="p-1 text-[var(--ink-muted)] hover:text-[var(--danger)] transition-colors"
-                        title="Remove photo"
-                        aria-label={`Remove photo #${pIdx + 1}`}
+                        className="p-1.5 text-[var(--ink-muted)] hover:text-[var(--danger)] transition-colors cursor-pointer"
+                        title="Delete photo from library"
+                        aria-label={`Delete photo #${pIdx + 1}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
@@ -738,7 +764,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                     <div className="sm:col-span-2 space-y-3">
                       <CloudinaryUploadField
-                        label={`Portrait #${pIdx + 1} Image File`}
+                        label={`Photo #${pIdx + 1} Image File`}
                         value={photo.publicId}
                         alt={photo.alt}
                         accept="image/*"
@@ -769,11 +795,11 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                           />
                         </div>
 
-                        {/* P.2 Accent Color Picker */}
+                        {/* Accent Color / Duotone Tint Override */}
                         <div>
                           <label className="block text-xs font-semibold text-[var(--ink-muted)] mb-1 flex items-center gap-1">
                             <Palette className="w-3 h-3 text-[var(--accent)]" />
-                            <span>Ambient Glow Tint (P.2)</span>
+                            <span>Duotone Accent Override</span>
                           </label>
                           <div className="flex items-center gap-2">
                             <input
@@ -805,7 +831,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                               type="button"
                               onClick={() => handleUpdatePhoto(pIdx, "accentColor", preset.hex)}
                               title={preset.label}
-                              className={`w-5 h-5 rounded-full border transition-transform ${
+                              className={`w-5 h-5 rounded-full border transition-transform cursor-pointer ${
                                 (photo.accentColor || "#2F4BFF").toLowerCase() === preset.hex.toLowerCase()
                                   ? "ring-2 ring-[var(--ink)] scale-110 border-white"
                                   : "border-[var(--line)] hover:scale-105"
@@ -817,25 +843,39 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                       </div>
                     </div>
 
-                    {/* Previews Column */}
+                    {/* Previews Column: Split-Frame Sharp Rectangular Preview */}
                     <div className="flex flex-col items-center justify-center p-3 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] space-y-2">
                       <span className="text-[10px] font-mono text-[var(--ink-muted)]">
-                        ORGANIC FRAME PREVIEW
+                        SPLIT FRAME PREVIEW
                       </span>
                       {photo.publicId ? (
-                        <PortraitFrame
-                          photo={photo}
-                          variant={1}
-                          size="sm"
-                          showBackgroundTint={true}
-                        />
+                        <div className="relative w-32 h-40 rounded-bl-xl overflow-hidden border border-[var(--line)] bg-[var(--surface-2)]">
+                          {photo.publicId.startsWith("data:") ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={photo.publicId}
+                              alt={photo.alt}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={cldUrl(photo.publicId, {
+                                duotone: true,
+                                accent: photo.accentColor,
+                              })}
+                              alt={photo.alt}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
                       ) : (
-                        <div className="w-28 h-36 rounded-[var(--r-sm)] border border-dashed border-[var(--line)] flex items-center justify-center text-[10px] text-[var(--ink-muted)]">
+                        <div className="w-28 h-36 rounded-bl-xl border border-dashed border-[var(--line)] flex items-center justify-center text-[10px] text-[var(--ink-muted)]">
                           Upload photo
                         </div>
                       )}
                       <span className="text-[9px] font-mono text-[var(--ink-muted)]">
-                        Organic Blob + Glow
+                        Duotone Tinted
                       </span>
                     </div>
                   </div>

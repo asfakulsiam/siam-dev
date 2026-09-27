@@ -25,12 +25,41 @@ export async function updateProfileAction(
       };
     }
 
+    const profileData = { ...parsed.data };
+
+    // Enforce role exclusivity: exactly zero or one photo can hold "hero-primary" or "hero-secondary"
+    if (profileData.photos && Array.isArray(profileData.photos)) {
+      let foundPrimary = false;
+      let foundSecondary = false;
+
+      profileData.photos = profileData.photos.map((photo) => {
+        let role = photo.role || "unassigned";
+        if (role === "hero-primary") {
+          if (foundPrimary) {
+            role = "unassigned";
+          } else {
+            foundPrimary = true;
+          }
+        } else if (role === "hero-secondary") {
+          if (foundSecondary) {
+            role = "unassigned";
+          } else {
+            foundSecondary = true;
+          }
+        }
+        return {
+          ...photo,
+          role,
+        };
+      });
+    }
+
     const collection = await getCollection("profile");
     await collection.updateOne(
       {},
       {
         $set: {
-          ...parsed.data,
+          ...profileData,
           updatedAt: new Date().toISOString(),
         },
       },

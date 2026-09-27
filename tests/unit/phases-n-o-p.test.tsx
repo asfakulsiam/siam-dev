@@ -6,6 +6,7 @@ import { ContactForm } from "@/features/contact/components/ContactForm";
 import { CloudinaryUploadField } from "@/components/admin/CloudinaryUploadField";
 import { PortraitFrame, DEFAULT_AVATAR_PUBLIC_ID } from "@/components/ui/PortraitFrame";
 import { ProjectArchive } from "@/features/projects/components/ProjectArchive";
+import { SplitHero } from "@/components/motion/SplitHero";
 import { staticProjects } from "@/features/projects/data";
 import { photoSchema } from "@/features/profile/schema";
 import type { ProfileData } from "@/features/profile/data";
@@ -291,3 +292,91 @@ describe("Phase Q: Hero Photo Consolidation & PortraitFrame Polish", () => {
     expect(screen.queryByRole("table")).toBeNull();
   });
 });
+
+describe("Phase S / Hero Redesign v8: Split Frame Hero & Role Management", () => {
+  it("photoSchema validates role field with default unassigned", () => {
+    const validPhoto = {
+      publicId: "devden/portraits/sample-1",
+      alt: "Studio portrait",
+      role: "hero-primary",
+    };
+    const parsed = photoSchema.safeParse(validPhoto);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.role).toBe("hero-primary");
+    }
+
+    const unassignedPhoto = {
+      publicId: "devden/portraits/sample-2",
+      alt: "Candid photo",
+    };
+    const parsed2 = photoSchema.safeParse(unassignedPhoto);
+    expect(parsed2.success).toBe(true);
+    if (parsed2.success) {
+      expect(parsed2.data.role).toBe("unassigned");
+    }
+  });
+
+  it("SplitHero renders clean single-column text-only layout when zero photos assigned", () => {
+    const { container } = render(
+      <SplitHero
+        name="Asfakul"
+        headline="I design and build websites that feel considered."
+        subheadline="Web designer and full-stack developer"
+        primaryPhoto={null}
+        secondaryPhoto={null}
+        metaRow={<span data-testid="meta-row">Available</span>}
+        actions={<button type="button">Explore Work</button>}
+      />,
+    );
+
+    // Full headline present in accessible text
+    const heading = screen.getByRole("heading", {
+      name: /Asfakul — I design and build websites that feel considered\./i,
+    });
+    expect(heading).toBeDefined();
+
+    // No photo images rendered
+    expect(container.querySelectorAll("img").length).toBe(0);
+
+    // No secondary photo or overlap chip
+    expect(container.querySelector(".rounded-bl-3xl")).toBeNull();
+  });
+
+  it("SplitHero renders two-column layout with primary photo and overlap word", () => {
+    const { container } = render(
+      <SplitHero
+        name="Asfakul"
+        headline="I design and build websites that feel considered."
+        primaryPhoto={{
+          publicId: "devden/portraits/asfakul-split",
+          alt: "Asfakul in studio lighting",
+          accentColor: "#2F4BFF",
+        }}
+        secondaryPhoto={{
+          publicId: "devden/portraits/asfakul-candid",
+          alt: "Asfakul candid at desk",
+        }}
+        metaRow={<span>Available</span>}
+        actions={<button type="button">Explore Work</button>}
+      />,
+    );
+
+    // Heading has unified accessible label
+    const heading = screen.getByRole("heading", {
+      name: /Asfakul — I design and build websites that feel considered\./i,
+    });
+    expect(heading).toBeDefined();
+
+    // Overlap word extracted: "considered."
+    expect(screen.getAllByText(/considered\./i).length).toBeGreaterThan(0);
+
+    // Images rendered: primary and secondary
+    const images = container.querySelectorAll("img");
+    expect(images.length).toBeGreaterThanOrEqual(1);
+
+    // Primary photo container has soft bottom-left corner class
+    expect(container.querySelector(".rounded-bl-2xl")).toBeDefined();
+  });
+});
+

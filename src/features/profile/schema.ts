@@ -22,6 +22,9 @@ export const photoSchema = z.object({
   alt: z.string().min(1, "Photo alt text is required for accessibility"),
   mood: z.string().optional(),
   accentColor: z.string().optional(),
+  role: z
+    .enum(["hero-primary", "hero-secondary", "unassigned"])
+    .default("unassigned"),
 });
 
 export const profileSchema = z.object({

@@ -28,7 +28,10 @@ async function fetchProfileData(): Promise<ProfileData> {
           resume: sanitized.resume,
           now: sanitized.now,
           toolbox: sanitized.toolbox,
-          photos: sanitized.photos || staticProfile.photos,
+          photos: (sanitized.photos || staticProfile.photos).map((p) => ({
+            ...p,
+            role: (p.role as "hero-primary" | "hero-secondary" | "unassigned") || "unassigned",
+          })),
           activePhotoId:
             sanitized.activePhotoId !== undefined
               ? sanitized.activePhotoId
