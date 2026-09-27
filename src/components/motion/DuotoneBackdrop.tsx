@@ -7,12 +7,14 @@ import { getDuotonePhotoUrl } from "@/lib/cloudinary";
 
 interface DuotoneBackdropProps {
   photoUrl?: string;
+  accentColor?: string;
   className?: string;
   cursorReactive?: boolean;
 }
 
 export function DuotoneBackdrop({
   photoUrl,
+  accentColor,
   className = "",
   cursorReactive = false,
 }: DuotoneBackdropProps) {
@@ -20,7 +22,11 @@ export function DuotoneBackdrop({
   const scrollLayerRef = useRef<HTMLDivElement>(null);
   const cursorLayerRef = useRef<HTMLDivElement>(null);
 
-  const resolvedUrl = photoUrl ? getDuotonePhotoUrl(photoUrl, "2f4bff") : undefined;
+  const cleanHex = accentColor ? accentColor.replace("#", "") : "2f4bff";
+  const resolvedUrl =
+    photoUrl && photoUrl !== "default-avatar"
+      ? getDuotonePhotoUrl(photoUrl, cleanHex)
+      : undefined;
 
   useGSAP(
     () => {
@@ -34,10 +40,10 @@ export function DuotoneBackdrop({
         () => {
           gsap.fromTo(
             scrollLayerRef.current,
-            { scale: 1.0, yPercent: -4 },
+            { scale: 1.0, yPercent: -3 },
             {
-              scale: 1.06,
-              yPercent: 4,
+              scale: 1.05,
+              yPercent: 3,
               ease: "none",
               scrollTrigger: {
                 trigger: containerRef.current,
@@ -50,7 +56,7 @@ export function DuotoneBackdrop({
         },
       );
 
-      // 2. Cursor-reactive drift (additive subtle offset, Phase G)
+      // 2. Cursor-reactive drift (additive subtle offset)
       if (cursorReactive && cursorLayerRef.current) {
         mm.add(
           {
@@ -63,7 +69,7 @@ export function DuotoneBackdrop({
 
             const xTo = gsap.quickTo(cursorEl, "x", { duration: 0.6, ease: "power3.out" });
             const yTo = gsap.quickTo(cursorEl, "y", { duration: 0.6, ease: "power3.out" });
-            const MAX_SHIFT = 12; // px, deliberately small — this is a whisper, not a parallax gallery
+            const MAX_SHIFT = 16;
 
             const section = containerRef.current?.closest("section") || containerRef.current?.parentElement;
             if (!section) return;
@@ -95,7 +101,7 @@ export function DuotoneBackdrop({
     { scope: containerRef, dependencies: [cursorReactive] },
   );
 
-  if (!resolvedUrl) return null;
+  const effectiveAccent = accentColor || "var(--accent)";
 
   return (
     <div
@@ -103,18 +109,30 @@ export function DuotoneBackdrop({
       aria-hidden="true"
       className={`pointer-events-none absolute inset-0 overflow-hidden select-none z-0 ${className}`}
     >
-      <div ref={scrollLayerRef} className="absolute inset-0">
-        <div
-          ref={cursorLayerRef}
-          className="absolute inset-0 bg-cover bg-center opacity-[0.06] transition-opacity duration-700 dark:opacity-[0.08]"
-          style={{
-            backgroundImage: `url("${resolvedUrl}")`,
-            willChange: "transform",
-          }}
-        />
-      </div>
+      {/* P.2: Radial Atmospheric Glow adopting photo tone */}
+      <div
+        className="absolute inset-0 transition-opacity duration-700 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 65% 65% at 50% 35%, ${effectiveAccent}16 0%, ${effectiveAccent}06 45%, transparent 75%)`,
+        }}
+      />
+
+      {/* Layer with photo background if available */}
+      {resolvedUrl && (
+        <div ref={scrollLayerRef} className="absolute inset-0">
+          <div
+            ref={cursorLayerRef}
+            className="absolute inset-0 bg-cover bg-center opacity-[0.14] dark:opacity-[0.16] transition-opacity duration-700 mix-blend-luminosity"
+            style={{
+              backgroundImage: `url("${resolvedUrl}")`,
+              willChange: "transform",
+            }}
+          />
+        </div>
+      )}
+
       {/* Vignette gradient overlay for smooth section blending */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg)] via-transparent to-[var(--bg)] opacity-80" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg)] via-transparent to-[var(--bg)] opacity-85" />
     </div>
   );
 }

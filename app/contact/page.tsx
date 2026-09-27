@@ -86,7 +86,7 @@ export default async function ContactPage() {
                 </Text>
               </div>
 
-              <ContactForm memes={settings.memes} />
+              <ContactForm memes={settings.memes} fallbackEmail={profile.email} />
             </div>
           </div>
         </Container>

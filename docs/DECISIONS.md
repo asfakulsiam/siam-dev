@@ -173,6 +173,32 @@ This log documents all architectural and technical decisions made for the Dev De
   - **Admin Inbox Observability (`MessagesManager.tsx`)**: Added delivery status pills (`Delivered`, `Email Failed`, `Saved in DB`) to the messages list, a filter for failed deliveries, full delivery diagnostics in the modal, and an authenticated retry action (`retryMessageDeliveryAction`).
 - **Rationale**: Fulfills Findings K3 and K4, ensuring contact notifications go to the email the admin sets in the dashboard and giving full visibility into email delivery state.
 
+### ADR-020: Elimination of Hardcoded Contact Details Across All Public Surfaces (Phase N)
+- **Date**: 2026-09-26
+- **Decision**:
+  - **Single Source of Truth (N1 & N2)**: Replaced every visitor-facing hardcoded occurrence of `hello@asfakul.com` and bare `github.com`/`linkedin.com` URLs with dynamic reads from `profile.email` and `profile.socials[]`.
+  - **Prop-Driven Layout Architecture**: `Footer.tsx` and `MobileSheet.tsx` read `profile` passed down from the root layout's cached `getProfile()` call.
+  - **Contact Form Fallback (`ContactForm.tsx`)**: Accepts dynamic `fallbackEmail={profile.email}` prop, eliminating hardcoded string defaults in client code.
+  - **Designed Empty State**: If `profile.socials` is empty, no synthetic or placeholder links are injected in the footer or elsewhere, strictly honoring the "don't invent content" rule.
+  - **Admin Profile Manager (`ProfileManager.tsx`)**: Cleaned initial states and save payloads so clearing socials or changing email saves directly without reviving hardcoded defaults.
+- **Rationale**: Fulfills Findings N1 and N2, ensuring any change made in `/admin/profile` immediately cascades across the entire public app without code changes or redeployments.
+
+### ADR-021: Long-URL Truncation and Accessible Public ID Display in Admin (Phase O)
+- **Date**: 2026-09-26
+- **Decision**:
+  - **Display Formatting**: In `CloudinaryUploadField.tsx`, raw `secure_url` strings are parsed into clean, human-readable public IDs via `getDisplayPublicId` with an accessible one-click "Copy full URL" icon button.
+  - **Text Truncation**: Applied `truncate` and inline ellipsis styling to manual public-ID fallback `<input>` elements in `CloudinaryUploadField.tsx`, `ProjectForm.tsx`, and `TestimonialsManager.tsx` to prevent horizontal layout blowout at viewport widths ≥1024px.
+- **Rationale**: Fulfills Finding N3, cleaning administrative surfaces while preserving power-user manual overrides.
+
+### ADR-022: Organic Framed Portrait Redesign, Default SVG Avatar & Background Tint (Phase P)
+- **Date**: 2026-09-26
+- **Decision**:
+  - **Organic Framed Portrait (`PortraitFrame.tsx`)**: Retired thin text-mask clipping as the sole photo treatment. Introduced `PortraitFrame` featuring hand-drawn organic blob geometry via scalable SVG `clip-path` units, an ambient glowing border utilizing the theme's `--accent` token, and responsive dimensions that keep the owner's face unmistakably recognizable.
+  - **Background-Adopts-Photo-Color Aesthetic (P.2)**: Added `photos[].accentColor` to the schema and admin manager. A soft radial gradient behind the portrait frame and ambient `DuotoneBackdrop` radiates this accent color without compromising text contrast tokens (`--ink`/`--ink-muted`).
+  - **On-Brand Default Vector Avatar (P.3)**: Built an architectural geometric SVG silhouette avatar (`DefaultAvatarSVG`) bound to the reserved sentinel ID `default-avatar`. Admin can activate it with one click in `/admin/profile` or use it as an elegant fallback when no photos are uploaded.
+  - **Public Pages Integration**: Integrated `PortraitFrame` into the Home Hero section and About header, harmonizing bold variable typography with human presence.
+- **Rationale**: Fulfills Findings N4 and N5, delivering a memorable, craft-first identity presentation with dignified fallbacks.
+
 
 
 

@@ -413,7 +413,8 @@ export function TestimonialsManager({
                     value={photoPublicId}
                     onChange={(e) => setPhotoPublicId(e.target.value)}
                     placeholder="devden/testimonials/sarah-lin"
-                    className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none"
+                    title={photoPublicId}
+                    className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none truncate"
                   />
                 </div>
 

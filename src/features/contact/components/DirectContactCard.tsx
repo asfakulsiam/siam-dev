@@ -14,6 +14,7 @@ export function DirectContactCard({ profile = staticProfile }: DirectContactCard
   const contactEmail = profile.email || staticProfile.email;
   const contactLocation = profile.location || staticProfile.location;
   const availability = profile.availability || staticProfile.availability;
+  const socials = profile.socials !== undefined ? profile.socials : staticProfile.socials;
 
   const handleCopyEmail = async () => {
     try {
@@ -81,26 +82,28 @@ export function DirectContactCard({ profile = staticProfile }: DirectContactCard
       </div>
 
       {/* Social Links */}
-      <div className="space-y-2 pt-4 border-t border-[var(--line)]">
-        <span className="text-xs font-semibold text-[var(--ink)]">
-          Profiles elsewhere
-        </span>
-        <ul className="space-y-1.5 text-xs">
-          {staticProfile.socials.map((social) => (
-            <li key={social.label}>
-              <a
-                href={social.url}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="flex items-center justify-between text-[var(--ink-muted)] hover:text-[var(--accent)] transition-colors py-1"
-              >
-                <span>{social.label}</span>
-                <ArrowUpRight className="w-3.5 h-3.5 opacity-60" aria-hidden="true" />
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {socials.length > 0 && (
+        <div className="space-y-2 pt-4 border-t border-[var(--line)]">
+          <span className="text-xs font-semibold text-[var(--ink)]">
+            Profiles elsewhere
+          </span>
+          <ul className="space-y-1.5 text-xs">
+            {socials.map((social) => (
+              <li key={social.label}>
+                <a
+                  href={social.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="flex items-center justify-between text-[var(--ink-muted)] hover:text-[var(--accent)] transition-colors py-1"
+                >
+                  <span>{social.label}</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 opacity-60" aria-hidden="true" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

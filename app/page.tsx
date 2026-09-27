@@ -11,6 +11,7 @@ import { getTestimonials } from "@/features/testimonials/queries";
 import { NowCard } from "@/features/about/components/NowCard";
 import { HeroMotion } from "@/components/motion/HeroMotion";
 import { DuotoneBackdrop } from "@/components/motion/DuotoneBackdrop";
+import { PortraitFrame } from "@/components/ui/PortraitFrame";
 import { PinnedWorkStack } from "@/components/motion/PinnedWorkStack";
 import { ScrubbedStatement } from "@/components/motion/ScrubbedStatement";
 import { TestimonialScroll } from "@/components/motion/TestimonialScroll";
@@ -23,37 +24,76 @@ export default async function HomePage() {
     getTestimonials(true),
   ]);
 
+  const activePhoto =
+    profile.activePhotoId === "default-avatar"
+      ? {
+          publicId: "default-avatar",
+          alt: `${profile.name} — default geometric avatar`,
+          accentColor: "#2F4BFF",
+        }
+      : profile.photos?.find((p) => p.publicId === profile.activePhotoId) || profile.photos?.[0] || {
+          publicId: "default-avatar",
+          alt: `${profile.name} portrait`,
+          accentColor: "#2F4BFF",
+        };
+
   return (
     <main id="main-content" className="flex-1 flex flex-col">
       {/* 1. Hero Section (100svh) */}
       <section className="min-h-[100svh] flex flex-col justify-between pt-24 pb-12 relative overflow-hidden">
-        {/* Subtle Ambient Duotone Identity Backdrop (Cursor-reactive Phase G) */}
-        <DuotoneBackdrop photoUrl={profile.activePhotoId} cursorReactive={true} />
+        {/* P.2 Subtle Ambient Duotone Identity Backdrop adopting photo accent */}
+        <DuotoneBackdrop
+          photoUrl={profile.activePhotoId}
+          accentColor={activePhoto.accentColor}
+          cursorReactive={true}
+        />
 
         <Container className="flex-1 flex flex-col justify-end space-y-8 pb-8 relative z-10">
           {/* Status Row */}
-          <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[var(--ink-muted)]">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono text-[var(--ink-muted)]">
+            <div className="flex items-center gap-1.5">
               <span
-                className="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse"
+                className={`w-1.5 h-1.5 rounded-full ${
+                  profile.availability?.open ?? true ? "bg-[var(--success)] animate-pulse" : "bg-[var(--line)]"
+                }`}
                 aria-hidden="true"
               />
-              <span className="text-[var(--ink)] font-medium">Available for Q4 2026</span>
+              <span className="text-[var(--ink)] font-medium">
+                {profile.availability?.open ?? true
+                  ? (profile.availability?.text && profile.availability.text.length <= 32
+                      ? profile.availability.text
+                      : "Available for contracts")
+                  : "Unavailable"}
+              </span>
             </div>
-            <span className="text-[var(--line)]">/</span>
-            <span>Dhaka, Bangladesh</span>
-            <span className="text-[var(--line)]">/</span>
-            <span>Full-Stack & Design Systems</span>
+            <span className="text-[var(--line)] select-none">/</span>
+            <span>{profile.location ? profile.location.split(",")[0] : "Dhaka"}</span>
+            <span className="text-[var(--line)] select-none">/</span>
+            <span>Design &amp; Engineering</span>
           </div>
 
-          {/* Signature Headline (M3: Variable Font Load & Compress + Phase C Text-Mask Reveal) */}
-          <HeroMotion
-            name={profile.name}
-            headline={profile.headline}
-            subheadline={profile.subheadline}
-            bio={profile.bio}
-            photoUrl={profile.activePhotoId}
-          />
+          {/* Hero Composition: Variable Headline + Organic Framed Portrait (P.1) */}
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 lg:gap-12">
+            <div className="flex-1 max-w-3xl">
+              <HeroMotion
+                name={profile.name}
+                headline={profile.headline}
+                subheadline={profile.subheadline}
+                bio={profile.bio}
+                photoUrl={profile.activePhotoId}
+              />
+            </div>
+
+            {/* P.1: Organic Irregular Framed Portrait with Glowing Border */}
+            <div className="self-start lg:self-end shrink-0 pb-1">
+              <PortraitFrame
+                photo={activePhoto}
+                variant={1}
+                size="hero"
+                showBackgroundTint={true}
+              />
+            </div>
+          </div>
 
           {/* Action Row */}
           <div className="flex flex-wrap items-center gap-4 pt-4">

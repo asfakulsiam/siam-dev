@@ -11,6 +11,7 @@ import { ExperienceTimeline } from "@/features/about/components/ExperienceTimeli
 import { ToolboxGrid } from "@/features/about/components/ToolboxGrid";
 import { NowCard } from "@/features/about/components/NowCard";
 import { DuotoneBackdrop } from "@/components/motion/DuotoneBackdrop";
+import { PortraitFrame } from "@/components/ui/PortraitFrame";
 import { siteConfig } from "@/config/site";
 import { generateProfilePageJsonLd, JsonLd } from "@/lib/json-ld";
 
@@ -56,6 +57,19 @@ export default async function AboutPage() {
 
   const profileJsonLd = generateProfilePageJsonLd();
 
+  const activePhoto =
+    profile.activePhotoId === "default-avatar"
+      ? {
+          publicId: "default-avatar",
+          alt: `${profile.name} — default geometric avatar`,
+          accentColor: "#2F4BFF",
+        }
+      : profile.photos?.find((p) => p.publicId === profile.activePhotoId) || profile.photos?.[0] || {
+          publicId: "default-avatar",
+          alt: `${profile.name} portrait`,
+          accentColor: "#2F4BFF",
+        };
+
   return (
     <main id="main-content" className="min-h-screen pt-24 pb-20">
       {/* Schema.org ProfilePage Structured Data */}
@@ -63,36 +77,41 @@ export default async function AboutPage() {
 
       {/* 1. Profile Header with subtle ambient duotone identity backdrop */}
       <Section spacing="compact" className="relative">
-        <DuotoneBackdrop photoUrl={profile.activePhotoId} />
+        <DuotoneBackdrop photoUrl={profile.activePhotoId} accentColor={activePhoto.accentColor} />
         <Container size="narrow" className="space-y-8 relative z-10">
-          <div className="space-y-4 border-b border-[var(--line)] pb-8 bg-[var(--surface)]/90 backdrop-blur-xs p-6 sm:p-8 rounded-[var(--r-md)] border border-[var(--line)]">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge variant="outline">Profile & Craft</Badge>
-              <span className="text-xs text-[var(--ink-muted)] font-mono">{profile.location}</span>
+          <div className="flex flex-col sm:flex-row items-start gap-6 sm:gap-8 border-b border-[var(--line)] pb-8 bg-[var(--surface)]/90 backdrop-blur-xs p-6 sm:p-8 rounded-[var(--r-md)] border border-[var(--line)]">
+            <div className="shrink-0">
+              <PortraitFrame photo={activePhoto} variant={2} size="md" showBackgroundTint={true} />
             </div>
-            <Heading as="h1" size="display" className="tracking-tight text-[var(--ink)]">
-              Designer who codes. Developer who designs.
-            </Heading>
-            <Text size="xl" variant="muted" className="leading-relaxed text-pretty">
-              {profile.bio}
-            </Text>
-            <div className="flex flex-wrap items-center gap-4 pt-4">
-              <a
-                href={profile.resume.url}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex items-center"
-              >
-                <Button variant="primary" size="md">
-                  <Download className="w-4 h-4 mr-2" aria-hidden="true" />
-                  <span>Download Resume</span>
-                </Button>
-              </a>
-              <Link href="/contact">
-                <Button variant="outline" size="md">
-                  Get in Touch
-                </Button>
-              </Link>
+            <div className="space-y-4 flex-1">
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge variant="outline">Profile &amp; Craft</Badge>
+                <span className="text-xs text-[var(--ink-muted)] font-mono">{profile.location}</span>
+              </div>
+              <Heading as="h1" size="2xl" className="tracking-tight text-[var(--ink)]">
+                Designer who codes. Developer who designs.
+              </Heading>
+              <Text size="lg" variant="muted" className="leading-relaxed text-pretty">
+                {profile.bio}
+              </Text>
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <a
+                  href={profile.resume.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center"
+                >
+                  <Button variant="primary" size="md">
+                    <Download className="w-4 h-4 mr-2" aria-hidden="true" />
+                    <span>Download Resume</span>
+                  </Button>
+                </a>
+                <Link href="/contact">
+                  <Button variant="outline" size="md">
+                    Get in Touch
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </Container>

@@ -6,35 +6,43 @@ import { usePathname } from "next/navigation";
 import { ArrowUp, Copy, Check } from "lucide-react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { FooterWordmark } from "@/components/motion/FooterWordmark";
+import { ProfileData } from "@/features/profile/data";
 
-export function Footer() {
+interface FooterProps {
+  profile?: ProfileData;
+}
+
+export function Footer({ profile }: FooterProps) {
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
-  const [dhakaTime, setDhakaTime] = useState("");
+  const [localTime, setLocalTime] = useState("");
 
-  const email = "hello@asfakul.com";
+  const email = profile?.email || "";
+  const socials = profile?.socials || [];
+  const displayName = profile?.name || "Asfakul";
 
-  // Calculate live Asia/Dhaka time each minute
+  // Calculate live local time each minute
   useEffect(() => {
     if (pathname?.startsWith("/admin")) return;
     const updateTime = () => {
       try {
+        const tz = profile?.timezone?.split(" ")[0] || "Asia/Dhaka";
         const formatter = new Intl.DateTimeFormat("en-US", {
-          timeZone: "Asia/Dhaka",
+          timeZone: tz,
           hour: "2-digit",
           minute: "2-digit",
           hour12: false,
         });
-        setDhakaTime(formatter.format(new Date()));
+        setLocalTime(formatter.format(new Date()));
       } catch {
-        setDhakaTime("14:30");
+        setLocalTime("14:30");
       }
     };
 
     updateTime();
     const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
-  }, [pathname]);
+  }, [pathname, profile?.timezone]);
 
   const handleCopyEmail = async () => {
     try {
@@ -70,33 +78,35 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <a
-              href={`mailto:${email}`}
-              className="text-base sm:text-xl font-mono text-[var(--ink)] hover:text-[var(--accent)] transition-colors underline decoration-[var(--line)] underline-offset-8"
-              data-cursor-text="Mail"
-            >
-              {email}
-            </a>
-            <button
-              type="button"
-              onClick={handleCopyEmail}
-              aria-label="Copy email address to clipboard"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:bg-[var(--surface)] transition-colors"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-[var(--success)]" aria-hidden="true" />
-                  <span>Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5 opacity-70" aria-hidden="true" />
-                  <span>Copy email</span>
-                </>
-              )}
-            </button>
-          </div>
+          {email ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href={`mailto:${email}`}
+                className="text-base sm:text-xl font-mono text-[var(--ink)] hover:text-[var(--accent)] transition-colors underline decoration-[var(--line)] underline-offset-8"
+                data-cursor-text="Mail"
+              >
+                {email}
+              </a>
+              <button
+                type="button"
+                onClick={handleCopyEmail}
+                aria-label="Copy email address to clipboard"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:bg-[var(--surface)] transition-colors"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-[var(--success)]" aria-hidden="true" />
+                    <span>Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 opacity-70" aria-hidden="true" />
+                    <span>Copy email</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ) : null}
         </div>
 
         {/* Middle Section: Columns */}
@@ -142,44 +152,40 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Elsewhere */}
-          <div className="space-y-3">
-            <div className="text-xs font-semibold text-[var(--ink)]">
-              Elsewhere
+          {/* Elsewhere: dynamic from profile.socials[] */}
+          {socials.length > 0 && (
+            <div className="space-y-3">
+              <div className="text-xs font-semibold text-[var(--ink)]">
+                Elsewhere
+              </div>
+              <ul className="space-y-2">
+                {socials.map((social) => (
+                  <li key={social.url}>
+                    <a
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
+                    >
+                      {social.label}
+                    </a>
+                  </li>
+                ))}
+                {profile?.resume?.url && (
+                  <li>
+                    <a
+                      href={profile.resume.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
+                    >
+                      Resume
+                    </a>
+                  </li>
+                )}
+              </ul>
             </div>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
-                >
-                  GitHub
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
-                >
-                  LinkedIn
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://drive.google.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
-                >
-                  Resume
-                </a>
-              </li>
-            </ul>
-          </div>
+          )}
 
           {/* Status & Local Time */}
           <div className="space-y-3 col-span-2 sm:col-span-1">
@@ -189,13 +195,21 @@ export function Footer() {
             <div className="space-y-2 text-[var(--ink-muted)]">
               <div className="flex items-center gap-2">
                 <span
-                  className="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse"
+                  className={`w-2 h-2 rounded-full ${
+                    profile?.availability?.open ?? true
+                      ? "bg-[var(--success)] animate-pulse"
+                      : "bg-[var(--line)]"
+                  }`}
                   aria-hidden="true"
                 />
-                <span className="text-[var(--ink)] font-medium">Open for work</span>
+                <span className="text-[var(--ink)] font-medium">
+                  {profile?.availability?.text ||
+                    (profile?.availability?.open ?? true ? "Open for work" : "Unavailable")}
+                </span>
               </div>
               <div className="font-mono text-xs">
-                Dhaka · {dhakaTime ? `${dhakaTime} (local time)` : "Loading..."}
+                {profile?.location ? `${profile.location} · ` : "Dhaka · "}
+                {localTime ? `${localTime} (local time)` : "Loading..."}
               </div>
               <div className="text-xs">Built in 2026</div>
             </div>
@@ -219,7 +233,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-[var(--line)] text-xs text-[var(--ink-muted)]">
           <div className="flex items-center gap-4">
-            <span>© 2026 Asfakul. All rights reserved.</span>
+            <span>© 2026 {displayName}. All rights reserved.</span>
             <Link href="/colophon" className="hover:text-[var(--ink)] transition-colors underline">
               Colophon
             </Link>

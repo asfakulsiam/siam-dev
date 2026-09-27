@@ -4,17 +4,24 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { X, ArrowUpRight } from "lucide-react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { ProfileData } from "@/features/profile/data";
 
 interface MobileSheetProps {
   isOpen: boolean;
   onClose: () => void;
   links: { href: string; label: string }[];
   currentPath: string;
+  profile?: ProfileData;
 }
 
-export function MobileSheet({ isOpen, onClose, links, currentPath }: MobileSheetProps) {
+export function MobileSheet({ isOpen, onClose, links, currentPath, profile }: MobileSheetProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
+
+  const email = profile?.email || "";
+  const timezone = profile?.timezone || "Asia/Dhaka";
+  const socials = profile?.socials || [];
+  const displayName = profile?.name || "Asfakul";
 
   // Lock scroll & handle Escape key
   useEffect(() => {
@@ -54,7 +61,7 @@ export function MobileSheet({ isOpen, onClose, links, currentPath }: MobileSheet
     >
       {/* Top row */}
       <div className="flex items-center justify-between pb-6 border-b border-[var(--line)]">
-        <span className="font-bold text-lg tracking-tight">Asfakul</span>
+        <span className="font-bold text-lg tracking-tight">{displayName}</span>
         <div className="flex items-center gap-3">
           <ThemeSwitcher />
           <button
@@ -94,34 +101,31 @@ export function MobileSheet({ isOpen, onClose, links, currentPath }: MobileSheet
       {/* Sheet footer info */}
       <div className="pt-6 border-t border-[var(--line)] flex flex-col gap-4 text-xs text-[var(--ink-muted)]">
         <div className="flex items-center justify-between">
-          <span className="font-mono">hello@asfakul.com</span>
-          <span className="font-mono">Asia/Dhaka</span>
+          {email ? <span className="font-mono">{email}</span> : <span />}
+          <span className="font-mono">{timezone}</span>
         </div>
-        <div className="flex items-center gap-4 font-medium text-[var(--ink)]">
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-[var(--accent)] transition-colors"
-          >
-            GitHub
-          </a>
-          <a
-            href="https://linkedin.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-[var(--accent)] transition-colors"
-          >
-            LinkedIn
-          </a>
-          <a
-            href="https://drive.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-[var(--accent)] transition-colors"
-          >
-            Resume
-          </a>
+        <div className="flex flex-wrap items-center gap-4 font-medium text-[var(--ink)]">
+          {socials.map((social) => (
+            <a
+              key={social.url}
+              href={social.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[var(--accent)] transition-colors"
+            >
+              {social.label}
+            </a>
+          ))}
+          {profile?.resume?.url && (
+            <a
+              href={profile.resume.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[var(--accent)] transition-colors"
+            >
+              Resume
+            </a>
+          )}
         </div>
       </div>
     </div>

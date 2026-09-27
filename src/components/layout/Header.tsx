@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, ArrowUpRight } from "lucide-react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { MobileSheet } from "./MobileSheet";
+import { ProfileData } from "@/features/profile/data";
 
 const NAV_LINKS = [
   { href: "/work", label: "Work" },
@@ -14,7 +15,11 @@ const NAV_LINKS = [
   { href: "/colophon", label: "Colophon" },
 ];
 
-export function Header() {
+interface HeaderProps {
+  profile?: ProfileData;
+}
+
+export function Header({ profile }: HeaderProps) {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
@@ -114,7 +119,7 @@ export function Header() {
 
             {/* Resume Button */}
             <a
-              href="https://drive.google.com"
+              href={profile?.resume?.url || "https://drive.google.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)] hover:border-[var(--ink)] transition-colors"
@@ -143,6 +148,7 @@ export function Header() {
         onClose={() => setIsMobileOpen(false)}
         links={NAV_LINKS}
         currentPath={pathname || "/"}
+        profile={profile}
       />
     </>
   );

@@ -19,9 +19,10 @@ interface ContactFormProps {
     success: MemeAsset;
     error: MemeAsset;
   };
+  fallbackEmail?: string;
 }
 
-export function ContactForm({ memes }: ContactFormProps) {
+export function ContactForm({ memes, fallbackEmail }: ContactFormProps) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [messageLength, setMessageLength] = useState<number>(0);
@@ -104,7 +105,9 @@ export function ContactForm({ memes }: ContactFormProps) {
     } catch {
       setStatus("error");
       setErrorMessage(
-        "Something went wrong while sending your note. Please email hello@asfakul.com directly.",
+        fallbackEmail
+          ? `Something went wrong while sending your note. Please email ${fallbackEmail} directly.`
+          : "Something went wrong while sending your note. Please try again or reach out directly.",
       );
     }
   };

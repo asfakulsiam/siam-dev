@@ -551,7 +551,8 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                 onChange={(e) => setCoverSrc(e.target.value)}
                 required
                 placeholder="https://..."
-                className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none"
+                title={coverSrc}
+                className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none truncate"
               />
             </div>
 
@@ -818,7 +819,8 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               value={liveUrl}
               onChange={(e) => setLiveUrl(e.target.value)}
               placeholder="https://example.com"
-              className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none"
+              title={liveUrl}
+              className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none truncate"
             />
           </div>
 
@@ -832,7 +834,8 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               value={githubUrl}
               onChange={(e) => setGithubUrl(e.target.value)}
               placeholder="https://github.com/..."
-              className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none"
+              title={githubUrl}
+              className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none truncate"
             />
           </div>
         </div>

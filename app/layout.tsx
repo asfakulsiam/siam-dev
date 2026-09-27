@@ -7,6 +7,7 @@ import { LenisProvider } from "@/components/motion/LenisProvider";
 import { siteConfig } from "@/config/site";
 import { generatePersonJsonLd, generateWebSiteJsonLd, JsonLd } from "@/lib/json-ld";
 import { getSettings } from "@/features/appearance/queries";
+import { getProfile } from "@/features/profile/queries";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -89,9 +90,12 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getSettings();
+  const [settings, profile] = await Promise.all([
+    getSettings(),
+    getProfile(),
+  ]);
   const fallbackTheme = settings.defaultTheme || "day-shift";
-  const personJsonLd = generatePersonJsonLd();
+  const personJsonLd = generatePersonJsonLd(profile);
   const websiteJsonLd = generateWebSiteJsonLd();
 
   const dynamicThemeScript = `(function() {
@@ -121,9 +125,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body suppressHydrationWarning className="font-sans antialiased flex flex-col min-h-screen">
         <LenisProvider>
           <Cursor />
-          <Header />
+          <Header profile={profile} />
           <div className="flex-1 flex flex-col">{children}</div>
-          <Footer />
+          <Footer profile={profile} />
         </LenisProvider>
       </body>
     </html>

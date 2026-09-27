@@ -5,6 +5,53 @@ Format based on Keep a Changelog.
 
 ---
 
+## [Phase P] - Organic Framed Portrait Redesign, Default Vector Avatar & Background Tint (2026-09-26)
+
+### Added & Fixed
+
+- **Organic Framed Portrait Component (`src/components/ui/PortraitFrame.tsx`)**:
+  - Replaced thin text-mask clipping with an organic, irregular framed portrait using SVG `clip-path` blob geometry.
+  - Sized generously to guarantee the owner's face is unmistakably recognizable at a glance across mobile and desktop.
+  - Added soft glowing border using the current theme's `--accent` token with subtle, low-opacity drop-shadow pulse respecting `prefers-reduced-motion`.
+- **Background-Adopts-Photo-Color Aesthetic (P.2)**:
+  - Extended schema and admin forms with `photos[].accentColor` (hex selection with theme presets and native color picker).
+  - Implemented soft radial gradient backdrop behind the frame that inherits the photo's tone while keeping all typography strictly bound to `--ink`/`--ink-muted` for guaranteed WCAG 2.2 AA contrast compliance.
+- **On-Brand Default Vector Avatar (P.3)**:
+  - Built an architectural geometric SVG silhouette avatar (`DefaultAvatarSVG`) bound to the reserved sentinel value `default-avatar`.
+  - Added one-click activation in `/admin/profile` with live preview, ensuring a graceful, intentional visual fallback when no custom photos are uploaded.
+- **Hero & About Integration (`app/page.tsx`, `app/about/page.tsx`)**:
+  - Integrated `PortraitFrame` alongside the variable-typography headline in the Home Hero and inside the About profile card.
+  - Enhanced `DuotoneBackdrop.tsx` with improved contrast and radial accent color harmony.
+
+## [Phase O] - Admin Long-URL Truncation & Accessible Public ID Display (2026-09-26)
+
+### Added & Fixed
+
+- **Cloudinary Public ID Display (`src/components/admin/CloudinaryUploadField.tsx`)**:
+  - Formatted raw `secure_url` previews into clean, short public IDs via `getDisplayPublicId` helper.
+  - Added accessible one-click "Copy full URL/ID" affordance with instant visual feedback.
+  - Applied `truncate` and inline ellipsis styling to the manual public-ID fallback `<input>` to prevent layout stretching at any viewport width ≥1024px.
+- **Admin Sweep for Long Inputs**:
+  - Applied truncation to cover image inputs in `ProjectForm.tsx` and author avatar fields in `TestimonialsManager.tsx`.
+
+## [Phase N] - Zero-Hardcoded Contact Details & Dynamic Social Profiles (2026-09-26)
+
+### Added & Fixed
+
+- **Single Source of Truth for Public Contact**:
+  - Removed all hardcoded instances of `hello@asfakul.com` and bare `github.com`/`linkedin.com` links from `Footer.tsx` and `MobileSheet.tsx`.
+  - Both components dynamically read `profile.email` and `profile.socials[]` fetched once in the root server layout.
+- **Contact Form Dynamic Error Fallback (`ContactForm.tsx`)**:
+  - Accepts `fallbackEmail={profile.email}` from server page, eliminating client-side string literals.
+- **Strict Designed Empty State**:
+  - If `profile.socials` is empty, the "Elsewhere" section renders nothing, avoiding artificial or broken gaps.
+- **Admin Profile Editor Cleaned (`ProfileManager.tsx`)**:
+  - Removed hardcoded defaults from state and submission payloads; clearing socials saves an empty array without reviving default strings.
+- **Structured Data Dynamic Binding (`src/lib/json-ld.tsx`)**:
+  - `generatePersonJsonLd` dynamically extracts `sameAs` from `profile.socials` and name/bio from `profile`.
+- **Grep Sweep (N.3)**:
+  - Validated that zero forbidden hardcoded strings remain in application `.tsx` files.
+
 ## [Phase M] - Contact Form Email Destination & Resend Delivery Tracking (2026-09-25)
 
 ### Added & Fixed

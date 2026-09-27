@@ -15,6 +15,7 @@ import {
   Camera,
   Check,
   Sparkles,
+  Palette,
 } from "lucide-react";
 import { ProfileDocument, Photo } from "@/features/profile/schema";
 import { defaultIdentityPhotoSVG } from "@/features/profile/data";
@@ -22,6 +23,18 @@ import { updateProfileAction, updateNowAction } from "@/features/profile/actions
 import { cldUrl, getDuotonePhotoUrl } from "@/lib/cloudinary";
 import { CloudinaryUploadField } from "@/components/admin/CloudinaryUploadField";
 import { deleteCloudinaryAssetAction } from "@/lib/cloudinary-actions";
+import { PortraitFrame, DEFAULT_AVATAR_PUBLIC_ID } from "@/components/ui/PortraitFrame";
+
+const PRESET_ACCENTS = [
+  { label: "Cobalt", hex: "#2F4BFF" },
+  { label: "Periwinkle", hex: "#8AA2FF" },
+  { label: "Yellow", hex: "#FFE14D" },
+  { label: "Mono", hex: "#0033FF" },
+  { label: "Emerald", hex: "#10B981" },
+  { label: "Amber", hex: "#F59E0B" },
+  { label: "Coral", hex: "#F43F5E" },
+  { label: "Slate", hex: "#64748B" },
+];
 
 interface ProfileManagerProps {
   initialProfile: ProfileDocument;
@@ -40,30 +53,45 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
   const [headline, setHeadline] = useState(initialProfile.headline || "");
   const [subheadline, setSubheadline] = useState(initialProfile.subheadline || "");
   const [bio, setBio] = useState(initialProfile.bio || "");
-  const [email, setEmail] = useState(initialProfile.email || "hello@asfakul.com");
+  const [email, setEmail] = useState(initialProfile.email || "");
   const [location, setLocation] = useState(initialProfile.location || "Bangladesh");
   const [timezone, setTimezone] = useState(initialProfile.timezone || "Asia/Dhaka (UTC+6)");
   const [resumeUrl, setResumeUrl] = useState(initialProfile.resume?.url || "https://drive.google.com");
   const [resumeUpdated, setResumeUpdated] = useState(initialProfile.resume?.updatedAt || "Q1 2026");
   const [availabilityOpen, setAvailabilityOpen] = useState(initialProfile.availability?.open ?? true);
   const [availabilityText, setAvailabilityText] = useState(
-    initialProfile.availability?.text || "Available for Select Q2 2026 Engagements",
+    initialProfile.availability?.text || "Available for contracts (Q4 2026)",
   );
+
+  // Social Links (N.2)
+  const [socials, setSocials] = useState<{ label: string; url: string }[]>(
+    initialProfile.socials || [],
+  );
+
+  const handleAddSocial = () => {
+    setSocials((prev) => [...prev, { label: "", url: "" }]);
+  };
+
+  const handleRemoveSocial = (idx: number) => {
+    setSocials((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleUpdateSocial = (idx: number, field: "label" | "url", val: string) => {
+    setSocials((prev) =>
+      prev.map((s, i) => (i === idx ? { ...s, [field]: val } : s)),
+    );
+  };
 
   // Identity Photos
   const [photos, setPhotos] = useState<Photo[]>(
     initialProfile.photos && initialProfile.photos.length > 0
       ? initialProfile.photos
-      : [
-          {
-            publicId: defaultIdentityPhotoSVG,
-            alt: "Asfakul in studio lighting with architectural silhouette",
-            mood: "working",
-          },
-        ],
+      : [],
   );
   const [activePhotoId, setActivePhotoId] = useState<string>(
-    initialProfile.activePhotoId || initialProfile.photos?.[0]?.publicId || defaultIdentityPhotoSVG,
+    initialProfile.activePhotoId ||
+      initialProfile.photos?.[0]?.publicId ||
+      DEFAULT_AVATAR_PUBLIC_ID,
   );
 
   // "Now" fields
@@ -105,6 +133,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       publicId: "",
       alt: "Asfakul portfolio portrait",
       mood: "candid",
+      accentColor: "#2F4BFF",
     };
     setPhotos((prev) => [...prev, newPhoto]);
   };
@@ -116,9 +145,8 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
     }
     const newPhotos = photos.filter((_, i) => i !== idx);
     setPhotos(newPhotos);
-    const firstPhoto = newPhotos[0];
-    if (photoToRemove && activePhotoId === photoToRemove.publicId && firstPhoto) {
-      setActivePhotoId(firstPhoto.publicId);
+    if (photoToRemove && activePhotoId === photoToRemove.publicId) {
+      setActivePhotoId(newPhotos[0]?.publicId || DEFAULT_AVATAR_PUBLIC_ID);
     }
   };
 
@@ -149,6 +177,10 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       }
     }
 
+    const cleanSocials = socials
+      .map((s) => ({ label: s.label.trim(), url: s.url.trim() }))
+      .filter((s) => s.label.length > 0 && s.url.length > 0);
+
     const payload = {
       name: name.trim(),
       headline: headline.trim(),
@@ -161,10 +193,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         text: availabilityText.trim(),
       },
       email: email.trim(),
-      socials: initialProfile.socials || [
-        { label: "GitHub", url: "https://github.com" },
-        { label: "LinkedIn", url: "https://linkedin.com" },
-      ],
+      socials: cleanSocials,
       resume: {
         url: resumeUrl.trim(),
         updatedAt: resumeUpdated.trim(),
@@ -176,7 +205,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       },
       toolbox,
       photos,
-      activePhotoId: activePhotoId || photos[0]?.publicId,
+      activePhotoId: activePhotoId || (photos.length > 0 ? photos[0]?.publicId : DEFAULT_AVATAR_PUBLIC_ID),
     };
 
     startTransition(async () => {
@@ -501,7 +530,8 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                 value={resumeUrl}
                 onChange={(e) => setResumeUrl(e.target.value)}
                 required
-                className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none"
+                title={resumeUrl}
+                className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none truncate"
               />
             </div>
 
@@ -518,6 +548,59 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                 placeholder="Q1 2026"
                 className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
               />
+            </div>
+          </div>
+
+          {/* Social Profiles & Links Editor (N.2) */}
+          <div className="p-4 rounded-[var(--r-sm)] bg-[var(--surface-2)]/60 border border-[var(--line)] space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="block text-xs font-bold text-[var(--ink)]">
+                  Social Profiles &amp; External Links
+                </span>
+                <p className="text-[11px] text-[var(--ink-muted)]">
+                  Rendered in the public footer, mobile sheet, and direct contact card.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAddSocial}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Link</span>
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {socials.map((social, sIdx) => (
+                <div key={sIdx} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={social.label}
+                    onChange={(e) => handleUpdateSocial(sIdx, "label", e.target.value)}
+                    placeholder="Platform Label (e.g. GitHub)"
+                    className="w-1/3 px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
+                  />
+                  <input
+                    type="url"
+                    value={social.url}
+                    onChange={(e) => handleUpdateSocial(sIdx, "url", e.target.value)}
+                    placeholder="Full Profile URL (e.g. https://github.com/username)"
+                    title={social.url}
+                    className="flex-1 px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none truncate"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSocial(sIdx)}
+                    disabled={socials.length <= 1}
+                    className="p-1.5 text-[var(--ink-muted)] hover:text-[var(--danger)] transition-colors disabled:opacity-30 cursor-pointer"
+                    title="Remove link"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -550,10 +633,63 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
           </div>
 
           <div className="space-y-6">
+            {/* P.3 Default Avatar Option */}
+            <div
+              className={`p-5 rounded-[var(--r-md)] border space-y-4 transition-all ${
+                activePhotoId === DEFAULT_AVATAR_PUBLIC_ID
+                  ? "border-[var(--accent)] bg-[var(--surface-2)]/60 ring-2 ring-[var(--accent)]/20"
+                  : "border-[var(--line)] bg-[var(--bg)]"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-xs text-[var(--ink)]">
+                    Default Geometric Avatar (P.3)
+                  </span>
+                  {activePhotoId === DEFAULT_AVATAR_PUBLIC_ID && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold">
+                      <Check className="w-3 h-3" /> ACTIVE HERO PHOTO
+                    </span>
+                  )}
+                </div>
+
+                {activePhotoId !== DEFAULT_AVATAR_PUBLIC_ID && (
+                  <button
+                    type="button"
+                    onClick={() => setActivePhotoId(DEFAULT_AVATAR_PUBLIC_ID)}
+                    className="text-[11px] font-mono text-[var(--accent)] hover:underline"
+                  >
+                    Set as Active
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                <div className="sm:col-span-2 space-y-2 text-xs text-[var(--ink-muted)]">
+                  <p>
+                    On-brand architectural vector silhouette. Displays in the organic irregular frame with glowing border when active or when no custom photos are uploaded.
+                  </p>
+                  <p className="text-[11px] font-mono text-[var(--ink-muted)]">
+                    Reserved Sentinel ID: <span className="text-[var(--accent)] font-semibold">{DEFAULT_AVATAR_PUBLIC_ID}</span>
+                  </p>
+                </div>
+
+                <div className="flex flex-col items-center justify-center p-3 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] space-y-2">
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)]">
+                    ORGANIC FRAME PREVIEW
+                  </span>
+                  <PortraitFrame
+                    photo={{ publicId: DEFAULT_AVATAR_PUBLIC_ID, alt: "Default geometric avatar" }}
+                    variant={1}
+                    size="sm"
+                    showBackgroundTint={true}
+                  />
+                </div>
+              </div>
+            </div>
+
             {photos.map((photo, pIdx) => {
-              const isActive = (activePhotoId || photos[0]?.publicId) === photo.publicId;
-              const photoDeliveryUrl = cldUrl(photo.publicId);
-              const duotoneUrl = getDuotonePhotoUrl(photo.publicId);
+              const isActive = activePhotoId === photo.publicId;
 
               return (
                 <div
@@ -590,9 +726,9 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                       <button
                         type="button"
                         onClick={() => handleRemovePhoto(pIdx)}
-                        disabled={photos.length <= 1}
-                        className="p-1 text-[var(--ink-muted)] hover:text-[var(--danger)] transition-colors disabled:opacity-30"
+                        className="p-1 text-[var(--ink-muted)] hover:text-[var(--danger)] transition-colors"
                         title="Remove photo"
+                        aria-label={`Remove photo #${pIdx + 1}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
@@ -619,41 +755,87 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                         }}
                       />
 
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
+                            Mood / Setting (Optional)
+                          </label>
+                          <input
+                            type="text"
+                            value={photo.mood || ""}
+                            onChange={(e) => handleUpdatePhoto(pIdx, "mood", e.target.value)}
+                            placeholder="e.g. working, candid, formal"
+                            className="w-full px-3 py-1.5 text-xs bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
+                          />
+                        </div>
+
+                        {/* P.2 Accent Color Picker */}
+                        <div>
+                          <label className="block text-xs font-semibold text-[var(--ink-muted)] mb-1 flex items-center gap-1">
+                            <Palette className="w-3 h-3 text-[var(--accent)]" />
+                            <span>Ambient Glow Tint (P.2)</span>
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={photo.accentColor || "#2F4BFF"}
+                              onChange={(e) => handleUpdatePhoto(pIdx, "accentColor", e.target.value)}
+                              className="w-7 h-7 rounded border border-[var(--line)] cursor-pointer bg-transparent"
+                            />
+                            <input
+                              type="text"
+                              value={photo.accentColor || "#2F4BFF"}
+                              onChange={(e) => handleUpdatePhoto(pIdx, "accentColor", e.target.value)}
+                              placeholder="#2F4BFF"
+                              className="w-24 px-2 py-1 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick preset color swatches */}
                       <div>
-                        <label className="block text-xs font-semibold text-[var(--ink-muted)] mb-1">
-                          Mood / Setting (Optional)
-                        </label>
-                        <input
-                          type="text"
-                          value={photo.mood || ""}
-                          onChange={(e) => handleUpdatePhoto(pIdx, "mood", e.target.value)}
-                          placeholder="e.g. working, candid, formal"
-                          className="w-full px-3 py-1.5 text-xs bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
-                        />
+                        <span className="block text-[10px] text-[var(--ink-muted)] mb-1">
+                          Preset Theme Tints:
+                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {PRESET_ACCENTS.map((preset) => (
+                            <button
+                              key={preset.hex}
+                              type="button"
+                              onClick={() => handleUpdatePhoto(pIdx, "accentColor", preset.hex)}
+                              title={preset.label}
+                              className={`w-5 h-5 rounded-full border transition-transform ${
+                                (photo.accentColor || "#2F4BFF").toLowerCase() === preset.hex.toLowerCase()
+                                  ? "ring-2 ring-[var(--ink)] scale-110 border-white"
+                                  : "border-[var(--line)] hover:scale-105"
+                              }`}
+                              style={{ backgroundColor: preset.hex }}
+                            />
+                          ))}
+                        </div>
                       </div>
                     </div>
 
                     {/* Previews Column */}
                     <div className="flex flex-col items-center justify-center p-3 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] space-y-2">
                       <span className="text-[10px] font-mono text-[var(--ink-muted)]">
-                        LIVE PREVIEW
+                        ORGANIC FRAME PREVIEW
                       </span>
                       {photo.publicId ? (
-                        <div className="relative w-28 h-36 rounded-[var(--r-sm)] overflow-hidden border border-[var(--line)]">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={photoDeliveryUrl}
-                            alt={photo.alt || "Portrait preview"}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
+                        <PortraitFrame
+                          photo={photo}
+                          variant={1}
+                          size="sm"
+                          showBackgroundTint={true}
+                        />
                       ) : (
                         <div className="w-28 h-36 rounded-[var(--r-sm)] border border-dashed border-[var(--line)] flex items-center justify-center text-[10px] text-[var(--ink-muted)]">
-                          No URL
+                          Upload photo
                         </div>
                       )}
                       <span className="text-[9px] font-mono text-[var(--ink-muted)]">
-                        Duotone Transform Applied
+                        Organic Blob + Glow
                       </span>
                     </div>
                   </div>

@@ -9,8 +9,4 @@ export const siteConfig = {
     location: "Bangladesh",
     timezone: "Asia/Dhaka",
   },
-  links: {
-    github: "https://github.com",
-    linkedin: "https://linkedin.com",
-  },
 };

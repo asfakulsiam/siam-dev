@@ -21,6 +21,7 @@ export const photoSchema = z.object({
   publicId: z.string().min(1, "Photo public ID or URL is required"),
   alt: z.string().min(1, "Photo alt text is required for accessibility"),
   mood: z.string().optional(),
+  accentColor: z.string().optional(),
 });
 
 export const profileSchema = z.object({

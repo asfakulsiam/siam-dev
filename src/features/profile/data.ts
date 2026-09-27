@@ -12,7 +12,10 @@ export interface ProfilePhoto {
   publicId: string;
   alt: string;
   mood?: string;
+  accentColor?: string;
 }
+
+export const DEFAULT_AVATAR_ID = "default-avatar";
 
 export interface ProfileData {
   name: string;
@@ -87,7 +90,7 @@ export const staticProfile: ProfileData = {
   timezone: "Asia/Dhaka",
   availability: {
     open: true,
-    text: "Open for full-stack engineering & design system contracts (Q4 2026)",
+    text: "Open for contracts (Q4 2026)",
   },
   email: "hello@asfakul.com",
   socials: [
@@ -109,6 +112,7 @@ export const staticProfile: ProfileData = {
       publicId: defaultIdentityPhotoSVG,
       alt: "Asfakul in studio lighting with high-contrast architectural silhouette",
       mood: "working",
+      accentColor: "#2F4BFF",
     },
   ],
   activePhotoId: defaultIdentityPhotoSVG,

@@ -1,5 +1,6 @@
 import React from "react";
 import { siteConfig } from "@/config/site";
+import { staticProfile, type ProfileData } from "@/features/profile/data";
 import type { Project } from "@/features/projects/types";
 
 /**
@@ -65,18 +66,23 @@ export interface CreativeWorkJsonLd {
 /**
  * Builds the Person JSON-LD entity for Asfakul
  */
-export function generatePersonJsonLd(): PersonJsonLd {
+export function generatePersonJsonLd(profile?: ProfileData): PersonJsonLd {
+  const sameAs =
+    profile !== undefined
+      ? profile.socials.map((s) => s.url)
+      : staticProfile.socials.map((s) => s.url);
+
   return {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: siteConfig.author.name,
+    name: profile?.name || staticProfile.name || siteConfig.author.name,
     url: siteConfig.url,
     jobTitle: "Web Designer & Full-Stack Developer",
-    sameAs: [siteConfig.links.github, siteConfig.links.linkedin],
-    description: siteConfig.description,
+    sameAs,
+    description: profile?.bio || staticProfile.bio || siteConfig.description,
     address: {
       "@type": "PostalAddress",
-      addressCountry: siteConfig.author.location,
+      addressCountry: profile?.location || staticProfile.location || siteConfig.author.location,
     },
     knowsAbout: [
       "Web Design",

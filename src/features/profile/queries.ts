@@ -29,7 +29,10 @@ async function fetchProfileData(): Promise<ProfileData> {
           now: sanitized.now,
           toolbox: sanitized.toolbox,
           photos: sanitized.photos || staticProfile.photos,
-          activePhotoId: sanitized.activePhotoId || sanitized.photos?.[0]?.publicId || staticProfile.activePhotoId,
+          activePhotoId:
+            sanitized.activePhotoId !== undefined
+              ? sanitized.activePhotoId
+              : sanitized.photos?.[0]?.publicId || staticProfile.activePhotoId,
         };
       }
     }
@@ -64,19 +67,28 @@ export async function getNow(): Promise<ProfileData["now"]> {
 /**
  * Retrieves the active profile photo or fallback.
  */
-export async function getActivePhoto(): Promise<{ publicId: string; alt: string }> {
+export async function getActivePhoto(): Promise<{ publicId: string; alt: string; accentColor?: string }> {
   const profile = await getProfile();
+  if (profile.activePhotoId === "default-avatar") {
+    return {
+      publicId: "default-avatar",
+      alt: "Asfakul — default geometric silhouette avatar",
+      accentColor: "#2F4BFF",
+    };
+  }
   const active = profile.photos?.find((p) => p.publicId === profile.activePhotoId) || profile.photos?.[0];
   if (active) {
-    return { publicId: active.publicId, alt: active.alt };
+    return { publicId: active.publicId, alt: active.alt, accentColor: active.accentColor };
   }
   const defaultPhoto = staticProfile.photos[0] || {
-    publicId: "devden/portraits/default",
+    publicId: "default-avatar",
     alt: "Asfakul portrait",
+    accentColor: "#2F4BFF",
   };
 
   return {
     publicId: defaultPhoto.publicId,
     alt: defaultPhoto.alt,
+    accentColor: defaultPhoto.accentColor,
   };
 }

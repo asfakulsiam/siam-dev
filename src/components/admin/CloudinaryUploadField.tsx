@@ -1,8 +1,26 @@
 "use client";
 
 import { useState, useRef, useId } from "react";
-import { UploadCloud, CheckCircle2, AlertCircle, Loader2, Image as ImageIcon, Video, X } from "lucide-react";
+import { UploadCloud, CheckCircle2, AlertCircle, Loader2, Image as ImageIcon, Video, X, Copy } from "lucide-react";
 import { cldUrl } from "@/lib/cloudinary";
+
+function getDisplayPublicId(val: string): string {
+  if (!val) return "";
+  if (val.startsWith("http://") || val.startsWith("https://")) {
+    try {
+      const url = new URL(val);
+      // Cloudinary URL structure: /<cloud_name>/<resource_type>/upload/(v<version>/)?<public_id>.<ext>
+      const match = url.pathname.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-zA-Z0-9]+)?$/);
+      if (match && match[1]) {
+        return match[1];
+      }
+      return url.pathname.split("/").pop() || val;
+    } catch {
+      return val;
+    }
+  }
+  return val;
+}
 
 export interface CloudinaryUploadFieldProps {
   label: string;
@@ -40,6 +58,7 @@ export function CloudinaryUploadField({
     text: string;
   } | null>(null);
   const [showManualInput, setShowManualInput] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
@@ -269,9 +288,28 @@ export function CloudinaryUploadField({
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-mono text-[var(--ink)] truncate" title={value}>
-                {value}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs font-mono text-[var(--ink)] truncate" title={value}>
+                  {getDisplayPublicId(value)}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(value);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="p-1 rounded-[var(--r-sm)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors shrink-0"
+                  title="Copy full URL/ID"
+                  aria-label="Copy full URL or ID to clipboard"
+                >
+                  {copied ? (
+                    <CheckCircle2 className="w-3 h-3 text-[var(--accent)]" aria-hidden="true" />
+                  ) : (
+                    <Copy className="w-3 h-3" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
               <p className="text-[10px] text-[var(--ink-muted)] truncate">
                 Folder: <span className="font-mono">{folder}</span>
               </p>
@@ -285,14 +323,37 @@ export function CloudinaryUploadField({
             <label htmlFor={`${inputId}-manual`} className="block text-[11px] font-mono text-[var(--ink-muted)]">
               Direct Public ID or Hosted URL
             </label>
-            <input
-              id={`${inputId}-manual`}
-              type="text"
-              value={value}
-              onChange={handleManualValueChange}
-              placeholder="e.g. devden/memes/waiting or https://res.cloudinary.com/..."
-              className="w-full px-2.5 py-1.5 text-xs font-mono bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
-            />
+            <div className="relative">
+              <input
+                id={`${inputId}-manual`}
+                type="text"
+                value={value}
+                onChange={handleManualValueChange}
+                placeholder="e.g. devden/memes/waiting or https://res.cloudinary.com/..."
+                title={value}
+                className="w-full px-2.5 py-1.5 pr-8 text-xs font-mono bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none truncate"
+                style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}
+              />
+              {value && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(value);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  title="Copy full value"
+                  aria-label="Copy full value"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--ink-muted)] hover:text-[var(--ink)]"
+                >
+                  {copied ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
