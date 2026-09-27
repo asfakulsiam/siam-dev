@@ -96,7 +96,7 @@ export function SplitHero({
           );
         }
 
-        // 3. Primary Photo scale-fade entrance (staggered ~180ms after headline start)
+        // 3. Primary Photo scale-fade entrance (staggered 180ms after headline start)
         if (primaryImgRef.current) {
           gsap.fromTo(
             primaryImgRef.current,
@@ -105,7 +105,7 @@ export function SplitHero({
               opacity: 1,
               scale: 1.0,
               duration: 0.75,
-              delay: 0.2,
+              delay: 0.18,
               ease: "expo.out",
             },
           );
@@ -158,6 +158,31 @@ export function SplitHero({
               ease: "none",
             });
           }
+        }
+      });
+
+      // Accessible reduced motion mode: render immediately in final static state with zero animations
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        if (headlineRef.current) {
+          headlineRef.current.style.fontVariationSettings = "'wght' 800, 'wdth' 100";
+          headlineRef.current.style.opacity = "1";
+          headlineRef.current.style.transform = "none";
+        }
+        if (textRef.current) {
+          textRef.current.style.opacity = "1";
+          textRef.current.style.transform = "none";
+        }
+        if (primaryImgRef.current) {
+          primaryImgRef.current.style.opacity = "1";
+          primaryImgRef.current.style.transform = "none";
+        }
+        if (secondaryImgRef.current) {
+          secondaryImgRef.current.style.opacity = "1";
+          secondaryImgRef.current.style.transform = "rotate(-6deg)";
+        }
+        if (overlapWordRef.current) {
+          overlapWordRef.current.style.opacity = "1";
+          overlapWordRef.current.style.transform = "none";
         }
       });
     },
