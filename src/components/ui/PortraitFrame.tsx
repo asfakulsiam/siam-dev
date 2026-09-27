@@ -150,7 +150,8 @@ export function PortraitFrame({
   className = "",
   showBackgroundTint = true,
 }: PortraitFrameProps) {
-  const clipId = useId();
+  const rawId = useId();
+  const clipId = `portrait-blob-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const [imageError, setImageError] = useState(false);
 
   const publicId = photo?.publicId?.trim();
@@ -158,11 +159,11 @@ export function PortraitFrame({
   const accentColor = photo?.accentColor || "var(--accent)";
   const altText = photo?.alt || "Asfakul — Designer & Full-Stack Developer";
 
-  // Three organic irregular blob clip-paths in normalized objectBoundingBox (0..1)
+  // Three organic irregular blob clip-paths in normalized objectBoundingBox strictly bounded within 0.02..0.98
   const clipPaths = {
-    1: "M 0.18,0.06 C 0.48,-0.04 0.78,0.02 0.90,0.18 C 1.02,0.36 1.00,0.68 0.88,0.86 C 0.74,1.02 0.38,1.03 0.18,0.92 C -0.02,0.80 -0.04,0.48 0.05,0.26 C 0.10,0.14 0.12,0.08 0.18,0.06 Z",
-    2: "M 0.14,0.14 C 0.35,-0.02 0.72,-0.02 0.88,0.12 C 1.04,0.26 1.02,0.66 0.90,0.84 C 0.78,0.98 0.44,1.04 0.22,0.94 C 0.02,0.84 -0.04,0.56 0.02,0.32 C 0.06,0.20 0.08,0.16 0.14,0.14 Z",
-    3: "M 0.20,0.06 C 0.52,-0.04 0.82,0.04 0.92,0.22 C 1.02,0.42 1.00,0.72 0.84,0.88 C 0.68,1.03 0.30,1.01 0.14,0.88 C -0.02,0.74 -0.02,0.44 0.05,0.24 C 0.10,0.12 0.14,0.08 0.20,0.06 Z",
+    1: "M 0.20,0.06 C 0.48,0.02 0.76,0.04 0.88,0.18 C 0.98,0.34 0.97,0.66 0.88,0.84 C 0.74,0.97 0.40,0.98 0.20,0.90 C 0.04,0.80 0.03,0.50 0.06,0.28 C 0.09,0.16 0.12,0.09 0.20,0.06 Z",
+    2: "M 0.16,0.14 C 0.36,0.03 0.70,0.03 0.86,0.14 C 0.98,0.26 0.97,0.64 0.88,0.82 C 0.76,0.96 0.46,0.98 0.24,0.92 C 0.05,0.83 0.03,0.56 0.05,0.34 C 0.07,0.22 0.10,0.16 0.16,0.14 Z",
+    3: "M 0.20,0.07 C 0.50,0.02 0.78,0.05 0.88,0.22 C 0.97,0.40 0.96,0.70 0.84,0.86 C 0.70,0.97 0.34,0.97 0.16,0.86 C 0.04,0.73 0.03,0.46 0.06,0.26 C 0.10,0.14 0.14,0.09 0.20,0.07 Z",
   };
 
   const selectedPath = clipPaths[variant] || clipPaths[1];
@@ -171,7 +172,7 @@ export function PortraitFrame({
     sm: "w-28 h-32 sm:w-36 sm:h-40",
     md: "w-44 h-52 sm:w-52 sm:h-60",
     lg: "w-56 h-64 sm:w-64 sm:h-72",
-    hero: "w-52 h-60 sm:w-64 sm:h-72 md:w-76 md:h-88 lg:w-84 lg:h-96",
+    hero: "w-52 h-60 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-96",
   }[size];
 
   const imageUrl = !isDefaultAvatar ? cldUrl(publicId) : null;
@@ -189,7 +190,7 @@ export function PortraitFrame({
       {/* SVG ClipPath Definition */}
       <svg width="0" height="0" className="absolute pointer-events-none" aria-hidden="true">
         <defs>
-          <clipPath id={`portrait-blob-${clipId}`} clipPathUnits="objectBoundingBox">
+          <clipPath id={clipId} clipPathUnits="objectBoundingBox">
             <path d={selectedPath} />
           </clipPath>
         </defs>
@@ -218,7 +219,7 @@ export function PortraitFrame({
           aria-hidden="true"
           className="absolute -inset-1 sm:-inset-1.5 opacity-80"
           style={{
-            clipPath: `url(#portrait-blob-${clipId})`,
+            clipPath: `url(#${clipId})`,
             backgroundColor: "var(--frame-accent, var(--accent))",
           }}
         />
@@ -227,8 +228,10 @@ export function PortraitFrame({
         <div
           className="relative w-full h-full bg-[var(--surface-2)] overflow-hidden"
           style={{
-            clipPath: `url(#portrait-blob-${clipId})`,
+            clipPath: `url(#${clipId})`,
           }}
+          role={isDefaultAvatar || imageError || !imageUrl ? "img" : undefined}
+          aria-label={isDefaultAvatar || imageError || !imageUrl ? altText : undefined}
         >
           {isDefaultAvatar || imageError || !imageUrl ? (
             <DefaultAvatarSVG />
@@ -258,7 +261,7 @@ export function PortraitFrame({
             aria-hidden="true"
             className="absolute inset-0 pointer-events-none border border-white/20 dark:border-white/10"
             style={{
-              clipPath: `url(#portrait-blob-${clipId})`,
+              clipPath: `url(#${clipId})`,
             }}
           />
         </div>

@@ -5,6 +5,23 @@ Format based on Keep a Changelog.
 
 ---
 
+## [Phase Q] - Hero Photo Consolidation & PortraitFrame Polish (2026-09-27)
+
+### Added & Fixed
+
+- **Hero Photo Consolidation (Q.1)**:
+  - Eliminated conflicting duplicate photo treatments (`DuotoneBackdrop` ambient background and `identity-mask` text clip) from the Home Hero.
+  - Returned the hero headline to a solid, high-contrast `--ink` heading with variable weight and optical width transitions.
+  - Made `PortraitFrame` the sole, signature photo treatment in the Hero section.
+- **Responsive Sizing Scale (Q.2)**:
+  - Replaced non-standard utility classes with standard Tailwind utilities (`w-52 h-60 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-96`), ensuring distinct, fluid step-scaling at 768px, 1024px, and 1280px+.
+- **Sanitized ClipPath ID (Q.3)**:
+  - Stripped non-alphanumeric characters from React `useId()` in `PortraitFrame.tsx` (`portrait-blob-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`), resolving cross-browser `clip-path: url(#...)` issues in WebKit/Safari.
+- **Bounded Organic Geometry (Q.4)**:
+  - Re-authored all three organic blob bezier curves to remain strictly within `0.02..0.98` normalized bounding-box coordinates, eliminating edge-flattening artifacts.
+- **Accessible Default Avatar Name (Q.5)**:
+  - Assigned `role="img"` and `aria-label={altText}` to the container when rendering `DefaultAvatarSVG`, ensuring full screen reader accessibility.
+
 ## [Phase P] - Organic Framed Portrait Redesign, Default Vector Avatar & Background Tint (2026-09-26)
 
 ### Added & Fixed

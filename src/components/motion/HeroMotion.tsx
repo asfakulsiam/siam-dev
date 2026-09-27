@@ -1,16 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
-import { cldUrl } from "@/lib/cloudinary";
 
 interface HeroMotionProps {
   name?: string;
   headline: string;
   subheadline?: string;
   bio?: string;
-  photoUrl?: string;
 }
 
 export function HeroMotion({
@@ -18,14 +16,10 @@ export function HeroMotion({
   headline,
   subheadline,
   bio,
-  photoUrl,
 }: HeroMotionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
-  const [revealed, setRevealed] = useState(false);
-
-  const resolvedPhotoUrl = photoUrl ? cldUrl(photoUrl) : undefined;
 
   useGSAP(
     () => {
@@ -74,26 +68,6 @@ export function HeroMotion({
             ease: "none",
           });
         }
-
-        // Touch device reveal animation (triggers on scroll entrance for touch screens)
-        if (headlineRef.current && window.matchMedia("(pointer: coarse)").matches && resolvedPhotoUrl) {
-          gsap.timeline({
-            scrollTrigger: {
-              trigger: containerRef.current,
-              start: "top 80%",
-              once: true,
-            },
-          })
-            .to(headlineRef.current, {
-              onStart: () => setRevealed(true),
-              duration: 1.2,
-            })
-            .to(headlineRef.current, {
-              onComplete: () => setRevealed(false),
-              duration: 0.8,
-              delay: 2.0,
-            });
-        }
       });
     },
     { scope: containerRef },
@@ -104,21 +78,13 @@ export function HeroMotion({
       <h1
         ref={headlineRef}
         aria-label={`${name} — ${headline}`}
-        data-revealed={revealed}
-        className={`text-[var(--text-display)] font-extrabold tracking-tight text-[var(--ink)] leading-[0.92] text-balance cursor-pointer transition-colors duration-[var(--duration-base)] ${
-          resolvedPhotoUrl ? "identity-mask" : ""
-        }`}
+        className="text-[var(--text-display)] font-extrabold tracking-tight text-[var(--ink)] leading-[0.92] text-balance transition-colors duration-[var(--duration-base)]"
         style={
           {
             fontVariationSettings: "'wght' 800, 'wdth' 100",
             willChange: "transform, opacity",
-            ...(resolvedPhotoUrl
-              ? ({ "--identity-photo-url": `url("${resolvedPhotoUrl}")` } as React.CSSProperties)
-              : {}),
           } as React.CSSProperties
         }
-        onMouseEnter={() => setRevealed(true)}
-        onMouseLeave={() => setRevealed(false)}
       >
         {headline}
       </h1>

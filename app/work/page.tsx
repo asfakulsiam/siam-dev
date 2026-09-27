@@ -4,6 +4,7 @@ import { Heading, Text } from "@/components/ui/Heading";
 import { Badge } from "@/components/ui/Badge";
 import { getProjects } from "@/features/projects/queries";
 import { WorkGallery } from "@/features/projects/components/WorkGallery";
+import { ProjectArchive } from "@/features/projects/components/ProjectArchive";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -41,6 +42,8 @@ export const metadata: Metadata = {
 
 export default async function WorkPage() {
   const projects = await getProjects({ publishedOnly: true });
+  const activeProjects = projects.filter((p) => p.featured !== false);
+  const archivedProjects = projects.filter((p) => p.featured === false);
 
   return (
     <main id="main-content" className="min-h-screen pt-24 pb-20">
@@ -51,7 +54,7 @@ export default async function WorkPage() {
             <div className="flex items-center gap-3">
               <Badge variant="outline">Case Studies</Badge>
               <span className="text-xs text-[var(--ink-muted)] font-mono">
-                {projects.length} Published Projects
+                {projects.length} Total Projects · {activeProjects.length} Featured
               </span>
             </div>
             <Heading as="h1" size="4xl" className="tracking-tight">
@@ -64,8 +67,13 @@ export default async function WorkPage() {
             </Text>
           </div>
 
-          {/* Interactive Project Gallery */}
-          <WorkGallery initialProjects={projects} />
+          {/* Interactive Project Gallery for Active Projects */}
+          <WorkGallery initialProjects={activeProjects.length > 0 ? activeProjects : projects} />
+
+          {/* Project Archive for Older or Non-Featured Work */}
+          <ProjectArchive
+            projects={archivedProjects.length > 0 ? archivedProjects : projects}
+          />
         </Container>
       </Section>
     </main>

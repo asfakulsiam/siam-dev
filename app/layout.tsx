@@ -8,6 +8,8 @@ import { siteConfig } from "@/config/site";
 import { generatePersonJsonLd, generateWebSiteJsonLd, JsonLd } from "@/lib/json-ld";
 import { getSettings } from "@/features/appearance/queries";
 import { getProfile } from "@/features/profile/queries";
+import fs from "fs";
+import path from "path";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -111,9 +113,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 })();`;
 
+  let inlineCss = "";
+  try {
+    const cssPath = path.resolve(process.cwd(), "public/css/globals.css");
+    if (fs.existsSync(cssPath)) {
+      inlineCss = fs.readFileSync(cssPath, "utf8");
+    }
+  } catch {
+    // Fallback if file read fails
+  }
+
   return (
     <html
       lang="en"
+      data-theme={fallbackTheme}
       suppressHydrationWarning
       className={`${bricolage.variable} ${geistMono.variable}`}
     >
@@ -123,6 +136,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <JsonLd data={websiteJsonLd as unknown as Record<string, unknown>} />
       </head>
       <body suppressHydrationWarning className="font-sans antialiased flex flex-col min-h-screen">
+        {inlineCss && (
+          <style
+            id="devden-theme-tokens"
+            dangerouslySetInnerHTML={{ __html: inlineCss }}
+          />
+        )}
         <LenisProvider>
           <Cursor />
           <Header profile={profile} />

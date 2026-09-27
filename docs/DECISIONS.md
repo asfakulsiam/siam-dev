@@ -199,6 +199,26 @@ This log documents all architectural and technical decisions made for the Dev De
   - **Public Pages Integration**: Integrated `PortraitFrame` into the Home Hero section and About header, harmonizing bold variable typography with human presence.
 - **Rationale**: Fulfills Findings N4 and N5, delivering a memorable, craft-first identity presentation with dignified fallbacks.
 
+### ADR-023: Hero Photo Consolidation to Single Signature Treatment & PortraitFrame Polish (Phase Q)
+- **Date**: 2026-09-27
+- **Context**: The Hero section previously stacked three competing photo treatments simultaneously (`DuotoneBackdrop` full-bleed ambient canvas, `identity-mask` text-clip on the headline, and `PortraitFrame` organic framed portrait). This violated `AGENTS.md` §6.5 ("spend boldness in one place") and generated visual noise. Furthermore, `PortraitFrame` contained invalid Tailwind breakpoint sizes (`w-76`, `h-88`, `w-84`), unescaped colons in `clipPath` ids, coordinates overshooting `0..1`, and lacked accessible labelling on default avatars.
+- **Decision**:
+  - **Subtractive Hero Composition (Q.1)**: Removed `DuotoneBackdrop` and `identity-mask` from the Home Hero. The headline returned to a solid, high-legibility `--ink` heading with variable weight/width animations. `PortraitFrame` is now the single, authoritative signature photo treatment in the Hero.
+  - **Standard Tailwind Responsive Scale (Q.2)**: Replaced invalid utility classes with standard Tailwind utilities (`w-52 h-60 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-96`).
+  - **Sanitized ClipPath IDs (Q.3)**: Sanitized React `useId()` colons so `url(#...)` SVG clip references operate reliably across all modern browser rendering engines (Chromium, WebKit, Gecko).
+  - **Bounded Organic Geometry (Q.4)**: Bounded all organic blob bezier coordinates strictly within `0.02..0.98` to eliminate boundary clipping and edge flattening.
+  - **Accessible Avatar Name (Q.5)**: Assigned `role="img"` and `aria-label={altText}` to the container when rendering default avatars.
+- **Rationale**: Fulfills Phase Q requirements, enforces visual hierarchy, and guarantees cross-browser rendering integrity.
+
+### ADR-024: Project Archive Component & Showcase Separation (Phase R)
+- **Date**: 2026-09-27
+- **Context**: The Work page previously listed all case studies in a uniform card grid, lacking a distinct section for older projects, client experiments, or utilities no longer actively featured.
+- **Decision**:
+  - **Project Archive Component (`src/features/projects/components/ProjectArchive.tsx`)**: Created an accessible, responsive table component listing archived or secondary projects with year, title, category, role/client, built-with tech tags, and direct study/live links.
+  - **Progressive Disclosure**: Built with an accessible collapsible pattern (`aria-expanded`, `aria-controls`), keeping the initial page view focused on primary active case studies while providing immediate exploration for visitors seeking depth.
+  - **Responsive Table Overflow**: Wrapped in `overflow-x-auto` with responsive column hiding (`hidden md:table-cell`, `hidden lg:table-cell`, `hidden sm:table-cell`) to guarantee zero horizontal blowout on narrow mobile devices (360px–768px).
+- **Rationale**: Elevates portfolio curation, preserves access to earlier work, and adheres to semantic HTML and mobile-first rules.
+
 
 
 

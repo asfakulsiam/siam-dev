@@ -10,7 +10,6 @@ import { getProfile } from "@/features/profile/queries";
 import { getTestimonials } from "@/features/testimonials/queries";
 import { NowCard } from "@/features/about/components/NowCard";
 import { HeroMotion } from "@/components/motion/HeroMotion";
-import { DuotoneBackdrop } from "@/components/motion/DuotoneBackdrop";
 import { PortraitFrame } from "@/components/ui/PortraitFrame";
 import { PinnedWorkStack } from "@/components/motion/PinnedWorkStack";
 import { ScrubbedStatement } from "@/components/motion/ScrubbedStatement";
@@ -41,13 +40,6 @@ export default async function HomePage() {
     <main id="main-content" className="flex-1 flex flex-col">
       {/* 1. Hero Section (100svh) */}
       <section className="min-h-[100svh] flex flex-col justify-between pt-24 pb-12 relative overflow-hidden">
-        {/* P.2 Subtle Ambient Duotone Identity Backdrop adopting photo accent */}
-        <DuotoneBackdrop
-          photoUrl={profile.activePhotoId}
-          accentColor={activePhoto.accentColor}
-          cursorReactive={true}
-        />
-
         <Container className="flex-1 flex flex-col justify-end space-y-8 pb-8 relative z-10">
           {/* Status Row */}
           <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono text-[var(--ink-muted)]">
@@ -80,7 +72,6 @@ export default async function HomePage() {
                 headline={profile.headline}
                 subheadline={profile.subheadline}
                 bio={profile.bio}
-                photoUrl={profile.activePhotoId}
               />
             </div>
 

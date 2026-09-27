@@ -5,6 +5,8 @@ import { MobileSheet } from "@/components/layout/MobileSheet";
 import { ContactForm } from "@/features/contact/components/ContactForm";
 import { CloudinaryUploadField } from "@/components/admin/CloudinaryUploadField";
 import { PortraitFrame, DEFAULT_AVATAR_PUBLIC_ID } from "@/components/ui/PortraitFrame";
+import { ProjectArchive } from "@/features/projects/components/ProjectArchive";
+import { staticProjects } from "@/features/projects/data";
 import { photoSchema } from "@/features/profile/schema";
 import type { ProfileData } from "@/features/profile/data";
 
@@ -215,5 +217,77 @@ describe("Phase P: Portrait Frame & Default Avatar", () => {
     expect(tintElement).toBeDefined();
     // JSDOM computes #F43F5E into rgb(244, 63, 94)
     expect((tintElement as HTMLElement)?.style.background).toMatch(/(#F43F5E|244,\s*63,\s*94)/i);
+  });
+});
+
+describe("Phase Q: Hero Photo Consolidation & PortraitFrame Polish", () => {
+  it("uses valid Tailwind responsive utility classes for hero size", () => {
+    const { container } = render(
+      <PortraitFrame
+        photo={{ publicId: DEFAULT_AVATAR_PUBLIC_ID, alt: "Hero avatar" }}
+        size="hero"
+      />,
+    );
+
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.className).toContain("md:w-72");
+    expect(root.className).toContain("md:h-80");
+    expect(root.className).toContain("lg:w-80");
+    expect(root.className).toContain("lg:h-96");
+    // Ensure invalid classes are absent
+    expect(root.className).not.toContain("md:w-76");
+    expect(root.className).not.toContain("md:h-88");
+    expect(root.className).not.toContain("lg:w-84");
+  });
+
+  it("sanitizes clipPath id so url(#...) contains no unescaped colons", () => {
+    const { container } = render(
+      <PortraitFrame
+        photo={{ publicId: DEFAULT_AVATAR_PUBLIC_ID, alt: "Avatar" }}
+        variant={1}
+      />,
+    );
+
+    const clipDef = container.querySelector("clipPath");
+    expect(clipDef).not.toBeNull();
+    const id = clipDef?.getAttribute("id");
+    expect(id).toBeDefined();
+    expect(id).not.toContain(":");
+  });
+
+  it("provides role='img' and accessible aria-label on default avatar container", () => {
+    render(
+      <PortraitFrame
+        photo={{ publicId: DEFAULT_AVATAR_PUBLIC_ID, alt: "Asfakul geometric silhouette" }}
+      />,
+    );
+
+    const avatarImg = screen.getByRole("img", { name: /Asfakul geometric silhouette/i });
+    expect(avatarImg).toBeDefined();
+  });
+
+  it("ProjectArchive renders title and project count badge", () => {
+    render(<ProjectArchive projects={staticProjects} />);
+    expect(screen.getByRole("heading", { name: /Project Archive/i })).toBeDefined();
+    expect(screen.getByText(String(staticProjects.length))).toBeDefined();
+  });
+
+  it("ProjectArchive expands and collapses table on toggle click", () => {
+    render(<ProjectArchive projects={staticProjects} />);
+
+    // Initially collapsed
+    expect(screen.queryByRole("table")).toBeNull();
+    const toggleBtn = screen.getByRole("button", { name: /Expand Archive/i });
+    expect(toggleBtn).toBeDefined();
+
+    // Click to expand
+    fireEvent.click(toggleBtn);
+    expect(screen.getByRole("table")).toBeDefined();
+    expect(screen.getByText("Stride Design System")).toBeDefined();
+    expect(screen.getByRole("button", { name: /Collapse Archive/i })).toBeDefined();
+
+    // Click to collapse
+    fireEvent.click(screen.getByRole("button", { name: /Collapse Archive/i }));
+    expect(screen.queryByRole("table")).toBeNull();
   });
 });
