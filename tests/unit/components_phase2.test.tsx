@@ -42,4 +42,34 @@ describe("Phase 2 Component Testing", () => {
     expect(await screen.findByText(/at least 2 characters/i)).toBeDefined();
     expect(await screen.findByText(/provide a valid email/i)).toBeDefined();
   });
+
+  it("renders Home navigation link inside the mobile menu sheet", async () => {
+    const { Header } = await import("@/components/layout/Header");
+    const { MobileSheet } = await import("@/components/layout/MobileSheet");
+
+    render(<Header />);
+
+    // Header has brand wordmark link to home and mobile menu trigger
+    expect(screen.getByRole("link", { name: "Asfakul" })).toBeDefined();
+    expect(screen.getByRole("button", { name: /Open navigation menu/i })).toBeDefined();
+    // Small screen navbar does NOT have a separate home icon button cluttering the bar
+    expect(screen.queryByLabelText(/Navigate to Home/i)).toBeNull();
+
+    // Render MobileSheet and verify Home navigation item is present in the menu links
+    render(
+      <MobileSheet
+        isOpen={true}
+        onClose={() => {}}
+        links={[
+          { href: "/", label: "Home" },
+          { href: "/work", label: "Work" },
+        ]}
+        currentPath="/"
+      />,
+    );
+
+    const sheetHomeLink = screen.getByRole("link", { name: /Home/i });
+    expect(sheetHomeLink).toBeDefined();
+    expect(sheetHomeLink.getAttribute("href")).toBe("/");
+  });
 });

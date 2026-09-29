@@ -8,7 +8,15 @@ import { ThemeSwitcher } from "./ThemeSwitcher";
 import { MobileSheet } from "./MobileSheet";
 import { ProfileData } from "@/features/profile/data";
 
-const NAV_LINKS = [
+const DESKTOP_NAV_LINKS = [
+  { href: "/work", label: "Work" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+  { href: "/colophon", label: "Colophon" },
+];
+
+const MOBILE_MENU_LINKS = [
+  { href: "/", label: "Home" },
   { href: "/work", label: "Work" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -87,7 +95,7 @@ export function Header({ profile }: HeaderProps) {
             aria-label="Primary Navigation"
             className="hidden md:flex items-center gap-8 text-sm font-medium"
           >
-            {NAV_LINKS.map((link) => {
+            {DESKTOP_NAV_LINKS.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
@@ -148,7 +156,7 @@ export function Header({ profile }: HeaderProps) {
       <MobileSheet
         isOpen={isMobileOpen}
         onClose={() => setIsMobileOpen(false)}
-        links={NAV_LINKS}
+        links={MOBILE_MENU_LINKS}
         currentPath={pathname || "/"}
         profile={profile}
       />
