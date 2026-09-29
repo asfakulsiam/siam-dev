@@ -256,6 +256,25 @@ This log documents all architectural and technical decisions made for the Dev De
     - Added "Auto-Sync to CMS" action button in the ProjectForm AI panel.
 - **Rationale**: Enhances portfolio technical credibility through verified telemetry and streamlines repository maintenance with automation.
 
+### ADR-029: Hero Redesign (v9, Figma-Referenced Split Frame Spec) Resolution
+- **Date**: 2026-09-29
+- **Context**: Implement the exact Figma reference `sWN5EUTcPLsHdHuXHGW5dw` for the Split Frame Hero. Resolve the typographic collision bug where a detached absolute layer floated over previous words on wide screens, and ensure the secondary photo card displays with dedicated admin controls.
+- **Decision**:
+  - **Asymmetric Split Proportions**:
+    - Left column (~53% width, `1.24fr`), hosting metadata row, headline, subheadline narrative, and CTA actions.
+    - Right photo panel (~47% width, `1fr`), full bleed to the top and right edges with single soft corner on bottom-left (`rounded-bl-[32px] lg:rounded-bl-[40px]`) and sharp 0px corners on top and right.
+  - **In-Flow Typographic Overlap ("considered.")**:
+    - Eliminated the detached absolute coordinates calculation that caused the overlap word to drift and collide with line 1 or line 2 on large screens.
+    - Rendered the closing overlap word in true typography flow (`<span className="relative z-30 inline-block whitespace-nowrap ...">`) right after the main phrase, naturally spanning across the column boundary and sitting directly on top of the photo panel without disturbing the underlying image.
+    - Matches headline typography: 64px display / Extra Bold / −2% tracking / **104% line-height** (`leading-[1.04]`).
+  - **Dual Hero Photos (Primary & Secondary Accent Card)**:
+    - Added `defaultSecondaryPhotoSVG` and configured default static profile with both `hero-primary` (studio portrait) and `hero-secondary` (workspace candid) roles.
+    - Secondary photo card is tucked at the bottom-left corner of the primary panel (`bottom-6 -left-9`), tilted `-4deg` (`rotate-[-4deg]`) with paper border and floating shadow.
+  - **Admin Dedicated Hero Photo Slots**:
+    - Added direct, dedicated upload slots in the Admin Photo Manager for **Slot 1: Primary Hero Photo** and **Slot 2: Secondary Accent Photo** with one-click upload, alt text verification, and duotone preset tinting.
+- **Rationale**: Delivers the exact Figma design faithfully, prevents word collision bugs across all viewport widths, and gives the admin direct control over both hero photos.
+
+
 
 
 

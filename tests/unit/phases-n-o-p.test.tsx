@@ -403,7 +403,7 @@ describe("Phase S / Hero Redesign v8: Split Frame Hero & Role Management", () =>
     expect(images.length).toBeGreaterThanOrEqual(1);
 
     // Primary photo container has soft bottom-left corner class
-    expect(container.querySelector(".rounded-bl-2xl")).toBeDefined();
+    expect(container.querySelector("[class*='rounded-bl-']")).toBeDefined();
   });
 });
 

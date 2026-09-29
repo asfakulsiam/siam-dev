@@ -154,6 +154,28 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
     );
   };
 
+  const handleHeroSlotUpdate = (
+    targetRole: "hero-primary" | "hero-secondary",
+    field: keyof Photo,
+    val: string,
+  ) => {
+    setPhotos((prev) => {
+      const existsIndex = prev.findIndex((p) => p.role === targetRole);
+      if (existsIndex >= 0) {
+        return prev.map((p, i) => (i === existsIndex ? { ...p, [field]: val } : p));
+      }
+      // Create new photo with this role
+      const newPhoto: Photo = {
+        publicId: field === "publicId" ? val : "",
+        alt: field === "alt" ? val : targetRole === "hero-primary" ? "Primary hero portrait" : "Secondary hero portrait",
+        mood: field === "mood" ? val : "candid",
+        accentColor: field === "accentColor" ? val : targetRole === "hero-primary" ? "#2F4BFF" : "#8AA2FF",
+        role: targetRole,
+      };
+      return [newPhoto, ...prev];
+    });
+  };
+
   const handleRemovePhoto = (idx: number) => {
     const photoToRemove = photos[idx];
     if (photoToRemove?.publicId && !photoToRemove.publicId.startsWith("data:")) {
@@ -648,31 +670,147 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
             </button>
           </div>
 
-          {/* Current Hero Assignment Summary Banner */}
-          <div className="p-4 rounded-[var(--r-sm)] bg-[var(--surface-2)] border border-[var(--line)] flex flex-wrap items-center justify-between gap-4 text-xs">
-            <div className="space-y-1">
-              <span className="font-bold text-[var(--ink)] block">
-                Current Hero Role Assignments:
-              </span>
-              <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono">
-                <div>
-                  <span className="text-[var(--ink-muted)]">Hero Primary: </span>
-                  <span className="text-[var(--accent)] font-semibold">
-                    {photos.find((p) => p.role === "hero-primary")?.alt || "None assigned (clean text-only hero)"}
+          {/* Current Hero Assignment Summary Banner & Direct Hero Slots */}
+          <div className="space-y-4">
+            <div className="p-4 rounded-[var(--r-sm)] bg-[var(--surface-2)] border border-[var(--line)] flex flex-wrap items-center justify-between gap-4 text-xs">
+              <div className="space-y-1">
+                <span className="font-bold text-[var(--ink)] block">
+                  Current Hero Role Assignments:
+                </span>
+                <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono">
+                  <div>
+                    <span className="text-[var(--ink-muted)]">Hero Primary: </span>
+                    <span className="text-[var(--accent)] font-semibold">
+                      {photos.find((p) => p.role === "hero-primary")?.alt || "None assigned (clean text-only hero)"}
+                    </span>
+                  </div>
+                  <span className="text-[var(--line)]">•</span>
+                  <div>
+                    <span className="text-[var(--ink-muted)]">Hero Secondary (Accent Card): </span>
+                    <span className="text-[var(--ink)] font-semibold">
+                      {photos.find((p) => p.role === "hero-secondary")?.alt || "None (hidden)"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Dedicated Hero Photo Slots (Primary and Secondary) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Primary Hero Slot */}
+              <div className="p-4 rounded-[var(--r-md)] border-2 border-[var(--accent)]/60 bg-[var(--surface-2)]/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent)]" />
+                    <span className="font-bold text-xs text-[var(--ink)]">Slot 1: Primary Hero Photo (Full Bleed)</span>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold">
+                    HERO PRIMARY
                   </span>
                 </div>
-                <span className="text-[var(--line)]">•</span>
-                <div>
-                  <span className="text-[var(--ink-muted)]">Hero Accent: </span>
-                  <span className="text-[var(--ink)] font-semibold">
-                    {photos.find((p) => p.role === "hero-secondary")?.alt || "None (hidden)"}
+                <p className="text-[11px] text-[var(--ink-muted)]">
+                  The full-bleed right-column photo panel with single soft bottom-left corner.
+                </p>
+
+                <CloudinaryUploadField
+                  label="Primary Hero Photo File"
+                  value={photos.find((p) => p.role === "hero-primary")?.publicId || ""}
+                  alt={photos.find((p) => p.role === "hero-primary")?.alt || ""}
+                  accept="image/*"
+                  folder="devden/portraits"
+                  required
+                  altRequired
+                  placeholderAlt="e.g. Asfakul in studio lighting with architectural silhouette"
+                  onAltChange={(newAlt) => handleHeroSlotUpdate("hero-primary", "alt", newAlt)}
+                  onUploaded={(newId) => handleHeroSlotUpdate("hero-primary", "publicId", newId)}
+                  onDeleteOld={(oldId) => {
+                    if (!oldId.startsWith("data:")) {
+                      deleteCloudinaryAssetAction(oldId, "image");
+                    }
+                  }}
+                />
+
+                <div className="flex items-center justify-between pt-1">
+                  <label className="text-[11px] font-semibold text-[var(--ink-muted)]">
+                    Duotone Accent Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={photos.find((p) => p.role === "hero-primary")?.accentColor || "#2F4BFF"}
+                      onChange={(e) => handleHeroSlotUpdate("hero-primary", "accentColor", e.target.value)}
+                      className="w-6 h-6 rounded border border-[var(--line)] cursor-pointer bg-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={photos.find((p) => p.role === "hero-primary")?.accentColor || "#2F4BFF"}
+                      onChange={(e) => handleHeroSlotUpdate("hero-primary", "accentColor", e.target.value)}
+                      placeholder="#2F4BFF"
+                      className="w-20 px-1.5 py-0.5 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Secondary Hero Slot */}
+              <div className="p-4 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--ink-muted)]" />
+                    <span className="font-bold text-xs text-[var(--ink)]">Slot 2: Secondary Accent Photo (Tilted Card)</span>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface-2)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                    HERO SECONDARY
                   </span>
+                </div>
+                <p className="text-[11px] text-[var(--ink-muted)]">
+                  The small tilted card tucked at the bottom-left of the primary panel (optional).
+                </p>
+
+                <CloudinaryUploadField
+                  label="Secondary Photo File"
+                  value={photos.find((p) => p.role === "hero-secondary")?.publicId || ""}
+                  alt={photos.find((p) => p.role === "hero-secondary")?.alt || ""}
+                  accept="image/*"
+                  folder="devden/portraits"
+                  placeholderAlt="e.g. Asfakul candid at design workstation"
+                  onAltChange={(newAlt) => handleHeroSlotUpdate("hero-secondary", "alt", newAlt)}
+                  onUploaded={(newId) => handleHeroSlotUpdate("hero-secondary", "publicId", newId)}
+                  onDeleteOld={(oldId) => {
+                    if (!oldId.startsWith("data:")) {
+                      deleteCloudinaryAssetAction(oldId, "image");
+                    }
+                  }}
+                />
+
+                <div className="flex items-center justify-between pt-1">
+                  <label className="text-[11px] font-semibold text-[var(--ink-muted)]">
+                    Duotone Accent Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={photos.find((p) => p.role === "hero-secondary")?.accentColor || "#8AA2FF"}
+                      onChange={(e) => handleHeroSlotUpdate("hero-secondary", "accentColor", e.target.value)}
+                      className="w-6 h-6 rounded border border-[var(--line)] cursor-pointer bg-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={photos.find((p) => p.role === "hero-secondary")?.accentColor || "#8AA2FF"}
+                      onChange={(e) => handleHeroSlotUpdate("hero-secondary", "accentColor", e.target.value)}
+                      placeholder="#8AA2FF"
+                      className="w-20 px-1.5 py-0.5 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 pt-4 border-t border-[var(--line)]">
+            <h3 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">
+              All Uploaded Photos &amp; Library ({photos.length})
+            </h3>
             {photos.length === 0 && (
               <div className="p-8 text-center rounded-[var(--r-sm)] border border-dashed border-[var(--line)] space-y-2">
                 <p className="text-xs font-semibold text-[var(--ink)]">No photos uploaded yet</p>
