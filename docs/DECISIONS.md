@@ -219,21 +219,44 @@ This log documents all architectural and technical decisions made for the Dev De
   - **Responsive Table Overflow**: Wrapped in `overflow-x-auto` with responsive column hiding (`hidden md:table-cell`, `hidden lg:table-cell`, `hidden sm:table-cell`) to guarantee zero horizontal blowout on narrow mobile devices (360px–768px).
 - **Rationale**: Elevates portfolio curation, preserves access to earlier work, and adheres to semantic HTML and mobile-first rules.
 
-### ADR-025: "Split Frame" Asymmetric Hero Redesign (v8)
-- **Date**: 2026-09-27
-- **Context**: The previous blob-and-glow avatar treatment read as a generic decorative template move rather than a confident, tailored product design. The owner required a large, real photographic presence where typography and photography interact directly with zero gimmicks (no glowing borders, no blob clip-paths).
+### ADR-026: Hero Section Reconstruction & Figma v9 Real-Time Layout Geometry
+- **Date**: 2026-09-28
+- **Context**: Superseded previous hero implementations with the Figma v9 design spec. Proportions, spacing, typography, and the signature overlap interaction are now grounded in direct runtime bounding box measurements rather than static estimates.
 - **Decision**:
-  - **"Split Frame" Asymmetric Architecture (`src/components/motion/SplitHero.tsx`)**:
-    - **Desktop (`lg+`)**: 56–60% left column for meta row, headline, bio, and CTAs. Right 40–44% column for tall, full-bleed primary photograph cropped cleanly with a single soft bottom-left corner (`rounded-bl-3xl`) and duotone-treated in theme accent.
-    - **Deliberate Overlap Moment**: The closing word of the headline bridges across columns, resting directly on top of the left boundary of the primary photograph (`z-20`). Backed by an 85% opacity `--bg` blurred chip to guarantee WCAG 2.2 AA contrast in all four themes.
-    - **Optional Secondary Accent Photo**: Admin-controlled candid/action shot tucked behind the bottom-left corner of the primary frame (`-rotate-6`), evoking an intentional print.
-    - **Zero-Photo Graceful Degradation**: When zero photos hold `hero-primary`, the hero drops cleanly to a single-column, full-width text-only layout with the full headline intact.
-    - **Mobile (`< lg`)**: Stacks vertically (photo first, headline below) without the desktop overlap trick.
-  - **Admin Role Management (`src/features/profile/schema.ts`, `actions.ts`, `ProfileManager.tsx`)**:
-    - Extended `photoSchema` with `role: "hero-primary" | "hero-secondary" | "unassigned"`.
-    - Server action enforces single-holder exclusivity for `hero-primary` and `hero-secondary`.
-    - Integrated "Set as hero photo" and "Set as hero accent" controls in `/admin/profile`.
-- **Rationale**: Replaces template aesthetics with a confident, editorial design engineer signature moment while honoring accessibility and performance budgets.
+  - **Asymmetric Proportions (`src/components/motion/SplitHero.tsx`)**: Left column at ~53% width (`lg:grid-cols-[1.24fr_1fr]`), right full-bleed photo panel at ~43% width with a single soft corner (`rounded-bl-3xl`) and sharp top/right/bottom-right corners.
+  - **Figma Typography & Spacing**:
+    - Headline: Display Extra Bold, tracking -0.02em, strict `1.04` line-height (`66px` on `64px` font size).
+    - 28px vertical gap to subheadline (`max-w-[560px]`, `1.125rem`, line-height `1.5`).
+  - **Non-Negotiable Runtime Computed Overlap**:
+    - Measured bounding boxes via `ResizeObserver` and `fonts.ready`.
+    - Horizontal position: starts `~100px` before the photo panel's left edge (`photoRect.left - containerRect.left - 100px`), seating 40-45% of the word over the text column and 55-60% across the photo.
+    - Vertical position: dynamically derived from the rendered bounding rectangle of the headline's last line anchor (`anchorSpanRef.current.getBoundingClientRect().top - containerRect.top`).
+    - Sits cleanly on top of the undisturbed photo (`z-20`).
+  - **Secondary Photo Placement**: Tucked at the bottom-left inside the photo panel bounds (`left: -36px`), rotated `-4deg`, with dynamic CTA row clearance.
+  - **Theme & Reduced Motion**: Automatically adapts duotone accent tint across all 5 themes. Respects `(prefers-reduced-motion: reduce)` with zero motion.
+- **Rationale**: Eliminates text collisions, guarantees responsive precision, and faithfully executes the Figma reference direction.
+
+### ADR-028: Performance Metrics Module (D3.js) & Automated GitHub Repository Synchronization
+- **Date**: 2026-09-29
+- **Context**: The admin requested (1) a 'Performance Metrics' module in the Project CMS allowing upload and manual editing of Google Lighthouse scores and conversion funnel data to display as interactive d3.js charts in project detail views, and (2) an automated synchronization feature that fetches the latest README, dependency trees, and metadata directly from GitHub into the CMS, synthesizing updated drafts using Gemini 2.5 Flash.
+- **Decision**:
+  - **Performance Metrics Schema & Types (`src/features/projects/schema.ts`, `types.ts`)**:
+    - Defined `lighthouseScoresSchema` (`performance`, `accessibility`, `bestPractices`, `seo`, `fcp`, `lcp`, `cls`, `tbt`).
+    - Defined `conversionStepSchema` (`step`, `rate`, `count`).
+    - Added `performanceData` field to `projectSchema` and `Project` type.
+  - **Interactive D3.js Charts (`src/features/projects/components/PerformanceCharts.tsx`)**:
+    - Installed `d3` and `@types/d3`.
+    - Implemented interactive circular gauges for Google Lighthouse scores (using green/amber/red color bands aligned with standard Lighthouse scoring).
+    - Implemented interactive horizontal conversion progression funnel bar chart with hover tooltips and dynamic scale.
+    - Integrated into the public case study page (`app/work/[slug]/page.tsx`).
+  - **CMS Management Module (`src/components/admin/ProjectForm.tsx`)**:
+    - Added "Section 6: Performance Metrics & Lighthouse Module" with toggleable activation, audit score inputs, Core Web Vitals fields, and editable conversion stages.
+  - **Automated GitHub Synchronization (`src/features/projects/actions.ts`)**:
+    - Added `syncProjectFromGitHubAction(slugOrUrl, options)` allowing one-click auto-syncing of latest README, commits, and package metadata directly into the CMS database using the GitHub API and Gemini 2.5 Flash.
+    - Added "Auto-Sync to CMS" action button in the ProjectForm AI panel.
+- **Rationale**: Enhances portfolio technical credibility through verified telemetry and streamlines repository maintenance with automation.
+
+
 
 
 

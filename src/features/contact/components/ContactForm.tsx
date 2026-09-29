@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, Loader2, X } from "lucide-react";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { contactFormSchema, type ContactFormInput } from "../schema";
@@ -26,6 +26,45 @@ export function ContactForm({ memes, fallbackEmail }: ContactFormProps) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [messageLength, setMessageLength] = useState<number>(0);
+  const [showToast, setShowToast] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const modalCloseBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Auto-dismiss toast after 6 seconds
+  useEffect(() => {
+    if (!showToast) return;
+    const timer = setTimeout(() => {
+      setShowToast(false);
+    }, 6000);
+    return () => clearTimeout(timer);
+  }, [showToast]);
+
+  // Modal accessibility: lock scroll and handle Esc key
+  useEffect(() => {
+    if (!showModal) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    // Focus close button
+    const focusTimer = setTimeout(() => {
+      modalCloseBtnRef.current?.focus();
+    }, 50);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowModal(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      clearTimeout(focusTimer);
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showModal]);
 
   const memeAssets = {
     waiting: memes?.waiting || {
@@ -75,6 +114,8 @@ export function ContactForm({ memes, fallbackEmail }: ContactFormProps) {
     // Bot check
     if (data.honeypot && data.honeypot.length > 0) {
       setStatus("success");
+      setShowToast(true);
+      setShowModal(true);
       return;
     }
 
@@ -84,6 +125,8 @@ export function ContactForm({ memes, fallbackEmail }: ContactFormProps) {
       const res = await submitContactAction(data);
       if (res.ok) {
         setStatus("success");
+        setShowToast(true);
+        setShowModal(true);
         reset();
       } else {
         setStatus("error");
@@ -116,37 +159,10 @@ export function ContactForm({ memes, fallbackEmail }: ContactFormProps) {
     setStatus("idle");
     setErrorMessage("");
     setMessageLength(0);
+    setShowToast(false);
+    setShowModal(false);
     reset();
   };
-
-  if (status === "success") {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        className="p-8 sm:p-10 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] text-center space-y-6"
-      >
-        <div className="flex justify-center">
-          <MemeState asset={memeAssets.success} maxLoops={3} />
-        </div>
-        <div className="space-y-2">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--surface-2)] text-[var(--accent)] border border-[var(--line)]">
-            <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
-          </div>
-          <h3 className="text-2xl font-bold text-[var(--ink)]">Message Received</h3>
-          <p className="text-sm text-[var(--ink-muted)] max-w-md mx-auto leading-relaxed">
-            Thank you for reaching out. I review all inquiries personally and will respond to your
-            email within 24 to 48 hours.
-          </p>
-        </div>
-        <div className="pt-2">
-          <Button variant="outline" size="sm" onClick={handleReset}>
-            Send Another Message
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   const currentMemeAsset =
     status === "submitting"
@@ -156,7 +172,95 @@ export function ContactForm({ memes, fallbackEmail }: ContactFormProps) {
       : memeAssets.waiting;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Toast Notification */}
+      {showToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 right-6 z-50 max-w-sm sm:max-w-md p-4 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-[var(--shadow-floating)] flex items-start gap-3 animate-in fade-in slide-in-from-bottom-5 duration-200"
+        >
+          <div className="p-1 rounded-full bg-[var(--success)]/10 text-[var(--success)] shrink-0 mt-0.5">
+            <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <p className="text-xs font-semibold text-[var(--ink)]">Message Dispatched</p>
+            <p className="text-xs text-[var(--ink-muted)] leading-relaxed">
+              Your message was sent successfully. Average reply time is under 48 hours.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowToast(false)}
+            aria-label="Dismiss notification"
+            className="p-1 rounded-[var(--r-sm)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors"
+          >
+            <X className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
+      {/* Accessible Success Modal Dialog */}
+      {showModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="success-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowModal(false);
+          }}
+        >
+          <div className="relative w-full max-w-md rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-8 text-center space-y-5 shadow-[var(--shadow-floating)] animate-in zoom-in-95 duration-150">
+            <button
+              ref={modalCloseBtnRef}
+              type="button"
+              onClick={() => setShowModal(false)}
+              aria-label="Close success dialog"
+              className="absolute top-4 right-4 p-1.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
+            >
+              <X className="w-4 h-4" aria-hidden="true" />
+            </button>
+
+            <div className="flex justify-center">
+              <MemeState asset={memeAssets.success} maxLoops={3} />
+            </div>
+
+            <div className="space-y-2">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--surface-2)] text-[var(--accent)] border border-[var(--line)]">
+                <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <h3 id="success-modal-title" className="text-xl sm:text-2xl font-bold text-[var(--ink)]">
+                Message Received
+              </h3>
+              <p className="text-xs sm:text-sm text-[var(--ink-muted)] leading-relaxed max-w-sm mx-auto">
+                Thank you for reaching out. I review all inquiries personally and will respond to your
+                email within 24 to 48 hours.
+              </p>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setShowModal(false)}
+                className="w-full sm:w-auto"
+              >
+                Got It
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReset}
+                className="w-full sm:w-auto"
+              >
+                Send Another Note
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Reactive Meme Status Companion */}
       <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)]">
         <MemeState asset={currentMemeAsset} maxLoops={3} className="shrink-0" />

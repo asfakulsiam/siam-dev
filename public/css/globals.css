@@ -864,6 +864,9 @@
   .scale-\[1\.02\] {
     scale: 1.02;
   }
+  .-rotate-6 {
+    rotate: calc(6deg * -1);
+  }
   .rotate-\[-6deg\] {
     rotate: -6deg;
   }

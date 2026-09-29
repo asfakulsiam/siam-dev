@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -91,6 +91,16 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f6fa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0f1a" },
+  ],
+};
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [settings, profile] = await Promise.all([
     getSettings(),
@@ -108,6 +118,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night-coder' : '${fallbackTheme}';
     }
     document.documentElement.setAttribute('data-theme', theme);
+    var themeColors = {
+      'day-shift': '#f4f6fa',
+      'night-coder': '#0a0f1a',
+      'charcoal': '#151517',
+      'blueprint': '#1f33e6',
+      'mono': '#ffffff'
+    };
+    var metaTheme = document.querySelector('meta[name="theme-color"]:not([media])');
+    if (!metaTheme) {
+      metaTheme = document.createElement('meta');
+      metaTheme.setAttribute('name', 'theme-color');
+      document.head.appendChild(metaTheme);
+    }
+    if (themeColors[theme]) {
+      metaTheme.setAttribute('content', themeColors[theme]);
+    }
   } catch (e) {
     document.documentElement.setAttribute('data-theme', '${fallbackTheme}');
   }

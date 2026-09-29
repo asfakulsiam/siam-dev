@@ -12,6 +12,7 @@ import {
   getAdjacentProjects,
 } from "@/features/projects/queries";
 import { ProjectMetrics } from "@/features/projects/components/ProjectMetrics";
+import { PerformanceCharts } from "@/features/projects/components/PerformanceCharts";
 import { siteConfig } from "@/config/site";
 import { generateProjectJsonLd, JsonLd } from "@/lib/json-ld";
 
@@ -194,6 +195,15 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
         <Section spacing="compact">
           <Container>
             <ProjectMetrics metrics={project.metrics} />
+          </Container>
+        </Section>
+      )}
+
+      {/* Interactive D3.js Performance Metrics & Lighthouse Telemetry */}
+      {project.performanceData && (
+        <Section spacing="compact">
+          <Container>
+            <PerformanceCharts performanceData={project.performanceData} />
           </Container>
         </Section>
       )}

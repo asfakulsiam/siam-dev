@@ -115,7 +115,9 @@ export function Header({ profile }: HeaderProps) {
 
           {/* Actions & Theme */}
           <div className="flex items-center gap-3">
-            <ThemeSwitcher />
+            <div className="hidden md:block">
+              <ThemeSwitcher />
+            </div>
 
             {/* Resume Button */}
             <a

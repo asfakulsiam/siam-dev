@@ -122,5 +122,13 @@ describe("Phase 5: Authentication & Admin CMS", () => {
       expect(screen.getByText("Stride Design System")).toBeDefined();
       expect(screen.getByText("Pulse Analytics Platform")).toBeDefined();
     });
+
+    it("renders SyncAllProjectsButton on Admin Dashboard overview", async () => {
+      const { SyncAllProjectsButton } = await import("@/components/admin/SyncAllProjectsButton");
+      render(<SyncAllProjectsButton totalActiveProjects={5} />);
+      const btn = screen.getByRole("button", { name: /Sync with GitHub/i });
+      expect(btn).toBeDefined();
+      expect(btn.getAttribute("title")).toContain("Fetches latest README and metadata");
+    });
   });
 });

@@ -32,6 +32,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
+vi.mock("@/features/contact/actions", () => ({
+  submitContactAction: vi.fn().mockResolvedValue({ ok: true, data: { message: "ok" } }),
+}));
+
 vi.mock("@/components/motion/FooterWordmark", () => ({
   FooterWordmark: () => <div data-testid="footer-wordmark" />,
 }));
@@ -110,6 +114,29 @@ describe("Phase N: Dynamic Contact Details & Zero Hardcoding", () => {
 
     // Initial state does not render error
     expect(screen.queryByText(/direct-contact@alexdesign.io/i)).toBeNull();
+  });
+
+  it("ContactForm renders toast notification and success modal upon submission", async () => {
+    render(<ContactForm />);
+
+    // Fill in required fields
+    fireEvent.change(screen.getByLabelText(/Your Name/i), { target: { value: "Sam Wilson" } });
+    fireEvent.change(screen.getByLabelText(/Email Address/i), { target: { value: "sam@example.com" } });
+    fireEvent.change(screen.getByLabelText(/Project Details & Context/i), {
+      target: { value: "We would like to consult on a design system migration and token architecture." },
+    });
+
+    // Submit form (mock action returns ok: true)
+    fireEvent.click(screen.getByRole("button", { name: /Send Message/i }));
+
+    // Assert both toast notification and success modal are displayed
+    expect(await screen.findByText("Message Dispatched")).toBeDefined();
+    expect(screen.getByRole("dialog", { name: /Message Received/i })).toBeDefined();
+
+    // Close button dismisses modal
+    const closeBtn = screen.getByRole("button", { name: /Close success dialog/i });
+    fireEvent.click(closeBtn);
+    expect(screen.queryByRole("dialog", { name: /Message Received/i })).toBeNull();
   });
 });
 

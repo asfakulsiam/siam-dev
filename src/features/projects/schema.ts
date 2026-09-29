@@ -41,6 +41,29 @@ export const projectArchitectureSchema = z.object({
   decisions: z.array(z.string()).min(1, "At least one architectural decision is required"),
 });
 
+export const lighthouseScoresSchema = z.object({
+  performance: z.number().min(0).max(100),
+  accessibility: z.number().min(0).max(100),
+  bestPractices: z.number().min(0).max(100),
+  seo: z.number().min(0).max(100),
+  fcp: z.string().optional(), // First Contentful Paint e.g. "0.8s"
+  lcp: z.string().optional(), // Largest Contentful Paint e.g. "1.2s"
+  cls: z.string().optional(), // Cumulative Layout Shift e.g. "0.01"
+  tbt: z.string().optional(), // Total Blocking Time e.g. "20ms"
+});
+
+export const conversionStepSchema = z.object({
+  step: z.string().min(1),
+  rate: z.number().min(0).max(100), // conversion percentage e.g. 84.5
+  count: z.number().optional(),
+});
+
+export const projectPerformanceDataSchema = z.object({
+  lighthouse: lighthouseScoresSchema.optional(),
+  conversions: z.array(conversionStepSchema).optional(),
+  summary: z.string().optional(),
+});
+
 /**
  * Complete Project Schema (representing database documents and serialized representations)
  */
@@ -68,6 +91,7 @@ export const projectSchema = z.object({
   problem: z.string().min(10, "Problem statement is required"),
   solution: z.string().min(10, "Solution statement is required"),
   architecture: projectArchitectureSchema,
+  performanceData: projectPerformanceDataSchema.optional(),
   sections: z.array(projectSectionSchema).default([]),
   links: projectLinksSchema.optional(),
   createdAt: z.string().optional(),

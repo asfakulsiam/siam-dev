@@ -96,6 +96,26 @@ export function ThemeSwitcher() {
       } catch {
         // Safe storage fallback
       }
+
+      // Keep <meta name="theme-color"> in sync with current theme background
+      const themeColors: Record<string, string> = {
+        "day-shift": "#f4f6fa",
+        "night-coder": "#0a0f1a",
+        "charcoal": "#151517",
+        "night-coder-charcoal": "#151517",
+        "blueprint": "#1f33e6",
+        "mono": "#ffffff",
+      };
+      let metaTheme = document.querySelector('meta[name="theme-color"]:not([media])');
+      if (!metaTheme) {
+        metaTheme = document.createElement("meta");
+        metaTheme.setAttribute("name", "theme-color");
+        document.head.appendChild(metaTheme);
+      }
+      if (themeColors[theme]) {
+        metaTheme.setAttribute("content", themeColors[theme]);
+      }
+
       setIsOpen(false);
     };
 

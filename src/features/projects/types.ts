@@ -16,6 +16,29 @@ export interface ProjectSection {
   takeaways?: string[];
 }
 
+export interface LighthouseScores {
+  performance: number;
+  accessibility: number;
+  bestPractices: number;
+  seo: number;
+  fcp?: string;
+  lcp?: string;
+  cls?: string;
+  tbt?: string;
+}
+
+export interface ConversionStep {
+  step: string;
+  rate: number;
+  count?: number;
+}
+
+export interface ProjectPerformanceData {
+  lighthouse?: LighthouseScores;
+  conversions?: ConversionStep[];
+  summary?: string;
+}
+
 export interface Project {
   id?: string;
   slug: string;
@@ -44,6 +67,7 @@ export interface Project {
     stack: string[];
     decisions: string[];
   };
+  performanceData?: ProjectPerformanceData;
   sections: ProjectSection[];
   links?: {
     live?: string;

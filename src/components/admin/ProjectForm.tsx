@@ -13,9 +13,20 @@ import {
   Trash2,
   CheckCircle,
   AlertCircle,
+  Sparkles,
+  Github,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  Gauge,
 } from "lucide-react";
-import { Project } from "@/features/projects/types";
-import { createProjectAction, updateProjectAction } from "@/features/projects/actions";
+import { Project, ConversionStep } from "@/features/projects/types";
+import {
+  createProjectAction,
+  updateProjectAction,
+  importProjectFromGitHubAction,
+  syncProjectFromGitHubAction,
+} from "@/features/projects/actions";
 
 interface ProjectFormProps {
   initialData?: Project;
@@ -89,6 +100,43 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
   const [liveUrl, setLiveUrl] = useState(initialData?.links?.live || "");
   const [githubUrl, setGithubUrl] = useState(initialData?.links?.github || "");
 
+  // Performance Metrics State (Lighthouse & Funnel Conversions for D3.js)
+  const [hasPerfData, setHasPerfData] = useState<boolean>(
+    Boolean(initialData?.performanceData?.lighthouse || initialData?.performanceData?.conversions),
+  );
+  const [perfScores, setPerfScores] = useState({
+    performance: initialData?.performanceData?.lighthouse?.performance ?? 98,
+    accessibility: initialData?.performanceData?.lighthouse?.accessibility ?? 100,
+    bestPractices: initialData?.performanceData?.lighthouse?.bestPractices ?? 100,
+    seo: initialData?.performanceData?.lighthouse?.seo ?? 100,
+    fcp: initialData?.performanceData?.lighthouse?.fcp || "0.8s",
+    lcp: initialData?.performanceData?.lighthouse?.lcp || "1.2s",
+    cls: initialData?.performanceData?.lighthouse?.cls || "0.01",
+    tbt: initialData?.performanceData?.lighthouse?.tbt || "15ms",
+  });
+  const [conversionFunnel, setConversionFunnel] = useState<ConversionStep[]>(
+    initialData?.performanceData?.conversions && initialData.performanceData.conversions.length > 0
+      ? initialData.performanceData.conversions
+      : [
+          { step: "Homepage Visit", rate: 100, count: 12000 },
+          { step: "Case Study View", rate: 68.4, count: 8208 },
+          { step: "Architecture Deep Dive", rate: 42.1, count: 5052 },
+          { step: "Contact / Inquire", rate: 18.6, count: 2232 },
+        ],
+  );
+  const [perfSummary, setPerfSummary] = useState(
+    initialData?.performanceData?.summary ||
+      "Achieved sub-second first-contentful paint with zero client layout shift across cold mobile caches.",
+  );
+
+  // AI Project Importer & Synchronization State
+  const [showAiImport, setShowAiImport] = useState(false);
+  const [aiRepoUrl, setAiRepoUrl] = useState(initialData?.links?.github || "");
+  const [aiInstructions, setAiInstructions] = useState("");
+  const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
   // Auto-slug generator from title
   const handleTitleChange = (val: string) => {
     setTitle(val);
@@ -99,6 +147,126 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         .replace(/(^-|-$)/g, "");
       setSlug(generated);
     }
+  };
+
+  // AI Repository Analysis & Form Population
+  const handleAiImport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiRepoUrl.trim()) {
+      setAiError("Please provide a valid GitHub repository URL.");
+      return;
+    }
+
+    setAiError(null);
+    setIsAiAnalyzing(true);
+
+    try {
+      const res = await importProjectFromGitHubAction(
+        aiRepoUrl.trim(),
+        aiInstructions.trim() || undefined,
+      );
+
+      if (!res.ok) {
+        setAiError(res.error || "Failed to analyze repository.");
+        return;
+      }
+
+      const d = res.data;
+
+      // Populate existing project form fields with verified AI analysis
+      if (d.title) setTitle(d.title);
+      if (d.slug && !isEdit) setSlug(d.slug);
+      if (d.tagline) setTagline(d.tagline);
+      if (d.category) setCategory(d.category);
+      if (d.year) setYear(d.year);
+      if (d.timeline) setTimeline(d.timeline);
+      if (d.role) setRole(d.role);
+      if (d.client) setClient(d.client);
+      if (d.summary) setSummary(d.summary);
+      if (d.tags && d.tags.length > 0) setTagsInput(d.tags.join(", "));
+      if (d.problem) setProblem(d.problem);
+      if (d.solution) setSolution(d.solution);
+      if (d.techStack && d.techStack.length > 0) setTechStackInput(d.techStack.join(", "));
+      if (d.architectureDecisions && d.architectureDecisions.length > 0) {
+        setDecisions(d.architectureDecisions);
+      }
+      if (d.metrics && d.metrics.length > 0) setMetrics(d.metrics);
+      if (d.deliverables && d.deliverables.length > 0) setDeliverables(d.deliverables);
+      if (d.githubUrl) setGithubUrl(d.githubUrl);
+      if (d.liveUrl) setLiveUrl(d.liveUrl);
+      if (d.coverImageAlt) setCoverAlt(d.coverImageAlt);
+
+      setNotification({
+        message: "Repository successfully analyzed with Gemini 2.5 Flash! Review the populated fields below before saving.",
+        type: "success",
+      });
+
+      // Collapse AI panel cleanly
+      setShowAiImport(false);
+    } catch (err) {
+      setAiError(
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred while communicating with the AI service.",
+      );
+    } finally {
+      setIsAiAnalyzing(false);
+    }
+  };
+
+  // Automated GitHub Synchronization Handler
+  const handleSyncFromGitHub = async () => {
+    const targetUrl = githubUrl.trim() || aiRepoUrl.trim();
+    if (!targetUrl) {
+      setNotification({
+        message: "Please enter a GitHub repository URL to synchronize.",
+        type: "error",
+      });
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const res = await syncProjectFromGitHubAction(targetUrl, {
+        autoPublish: published,
+        instructions: aiInstructions.trim() || undefined,
+      });
+
+      if (!res.ok) {
+        setNotification({
+          message: res.error || "Failed to synchronize project with GitHub.",
+          type: "error",
+        });
+        return;
+      }
+
+      setNotification({
+        message: `Successfully synchronized "${res.data.title}" from GitHub repository!`,
+        type: "success",
+      });
+      router.refresh();
+    } catch (err) {
+      setNotification({
+        message: err instanceof Error ? err.message : "Sync error occurred.",
+        type: "error",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleConversionAdd = () => {
+    setConversionFunnel((prev) => [...prev, { step: "New Stage", rate: 50 }]);
+  };
+
+  const handleConversionRemove = (index: number) => {
+    setConversionFunnel((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleConversionChange = (index: number, field: keyof ConversionStep, val: string | number) => {
+    setConversionFunnel((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: val } : item)),
+    );
   };
 
   // Cloudinary Upload Handler
@@ -249,6 +417,26 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
       },
       metrics: cleanMetrics,
       deliverables: cleanDeliverables,
+      performanceData: hasPerfData
+        ? {
+            lighthouse: {
+              performance: Number(perfScores.performance) || 90,
+              accessibility: Number(perfScores.accessibility) || 95,
+              bestPractices: Number(perfScores.bestPractices) || 95,
+              seo: Number(perfScores.seo) || 95,
+              fcp: perfScores.fcp.trim() || undefined,
+              lcp: perfScores.lcp.trim() || undefined,
+              cls: perfScores.cls.trim() || undefined,
+              tbt: perfScores.tbt.trim() || undefined,
+            },
+            conversions: conversionFunnel.map((c) => ({
+              step: c.step.trim(),
+              rate: Number(c.rate) || 0,
+              count: c.count ? Number(c.count) : undefined,
+            })),
+            summary: perfSummary.trim() || undefined,
+          }
+        : undefined,
       links: {
         live: liveUrl.trim() || undefined,
         github: githubUrl.trim() || undefined,
@@ -373,6 +561,144 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           </button>
         </div>
       )}
+
+      {/* Optional AI Project Importer */}
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-md)] p-5 sm:p-6 shadow-xs transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-[var(--r-sm)] bg-[var(--accent)]/10 text-[var(--accent)]">
+              <Sparkles className="w-4 h-4" aria-hidden="true" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-[var(--ink)]">Import from GitHub with AI</h2>
+                <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface-2)] text-[var(--ink-muted)] border border-[var(--line)]">
+                  Optional
+                </span>
+              </div>
+              <p className="text-xs text-[var(--ink-muted)] mt-0.5">
+                Inspect a public GitHub repository with Gemini 2.5 Flash to pre-fill the form fields below.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowAiImport((prev) => !prev);
+              setAiError(null);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] hover:bg-[var(--surface)] text-[var(--ink)] transition-colors self-start sm:self-auto cursor-pointer"
+            aria-expanded={showAiImport}
+          >
+            <Github className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>{showAiImport ? "Close AI Importer" : "Generate with AI"}</span>
+            {showAiImport ? (
+              <ChevronUp className="w-3.5 h-3.5 opacity-60" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 opacity-60" aria-hidden="true" />
+            )}
+          </button>
+        </div>
+
+        {showAiImport && (
+          <div className="mt-5 pt-4 border-t border-[var(--line)] space-y-4 animate-in fade-in duration-150">
+            {aiError && (
+              <div
+                role="alert"
+                className="p-3 rounded-[var(--r-sm)] text-xs font-medium bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/30 flex items-start gap-2"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="flex-1">
+                  <p className="font-semibold">Import Issue</p>
+                  <p className="mt-0.5">{aiError}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label
+                  htmlFor="ai-repo-url"
+                  className="block text-xs font-semibold text-[var(--ink-muted)] mb-1"
+                >
+                  GitHub Repository URL *
+                </label>
+                <div className="relative">
+                  <input
+                    id="ai-repo-url"
+                    type="url"
+                    value={aiRepoUrl}
+                    onChange={(e) => setAiRepoUrl(e.target.value)}
+                    disabled={isAiAnalyzing}
+                    placeholder="https://github.com/username/project-name"
+                    className="w-full pl-9 pr-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono focus:border-[var(--accent)] focus:outline-none disabled:opacity-50"
+                  />
+                  <Github
+                    className="w-4 h-4 text-[var(--ink-muted)] absolute left-3 top-2.5 pointer-events-none"
+                    aria-hidden="true"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="ai-instructions"
+                  className="block text-xs font-semibold text-[var(--ink-muted)] mb-1"
+                >
+                  Additional Instructions <span className="text-[10px] text-[var(--ink-muted)]/60 font-normal">(optional)</span>
+                </label>
+                <input
+                  id="ai-instructions"
+                  type="text"
+                  value={aiInstructions}
+                  onChange={(e) => setAiInstructions(e.target.value)}
+                  disabled={isAiAnalyzing}
+                  placeholder="e.g. Keep the description concise and focus on the main technical features."
+                  className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none disabled:opacity-50"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[var(--line)]">
+                <p className="text-[11px] text-[var(--ink-muted)]">
+                  Inspect README, metadata, and dependencies with Gemini 2.5 Flash to populate form fields or synchronize directly to CMS.
+                </p>
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={handleSyncFromGitHub}
+                    disabled={isSyncing || isAiAnalyzing || !aiRepoUrl.trim()}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] hover:bg-[var(--surface)] text-[var(--ink)] transition-colors disabled:opacity-50 cursor-pointer"
+                    title="Automatically sync latest GitHub README and metadata directly into CMS database"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} aria-hidden="true" />
+                    <span>{isSyncing ? "Syncing..." : "Auto-Sync to CMS"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleAiImport}
+                    disabled={isAiAnalyzing || isSyncing || !aiRepoUrl.trim()}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    {isAiAnalyzing ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+                        <span>Analyzing repository...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                        <span>Populate Form Fields</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Section 1: Core Metadata */}
       <div className="bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-md)] p-5 sm:p-6 space-y-4 shadow-xs">
@@ -839,6 +1165,251 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             />
           </div>
         </div>
+      </div>
+
+      {/* Section 6: Performance Metrics & Lighthouse Telemetry Module */}
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-md)] p-5 sm:p-6 space-y-4 shadow-xs">
+        <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
+          <div className="flex items-center gap-2">
+            <Gauge className="w-4 h-4 text-[var(--accent)]" aria-hidden="true" />
+            <h2 className="text-sm font-bold text-[var(--ink)]">
+              6. Performance Metrics &amp; Lighthouse Module
+            </h2>
+          </div>
+          <label className="flex items-center gap-2 text-xs text-[var(--ink)] cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={hasPerfData}
+              onChange={(e) => setHasPerfData(e.target.checked)}
+              className="rounded-[var(--r-sm)] accent-[var(--accent)]"
+            />
+            <span className="font-semibold">Enable D3.js Charts on Case Study</span>
+          </label>
+        </div>
+
+        {hasPerfData ? (
+          <div className="space-y-6 pt-2 animate-in fade-in duration-150">
+            {/* Lighthouse Scores */}
+            <div className="space-y-3">
+              <span className="text-xs font-semibold text-[var(--ink)]">
+                Google Lighthouse Audit Scores (0–100)
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label htmlFor="lh-perf" className="block text-[11px] font-semibold text-[var(--ink-muted)] mb-1">
+                    Performance
+                  </label>
+                  <input
+                    id="lh-perf"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={perfScores.performance}
+                    onChange={(e) =>
+                      setPerfScores((p) => ({ ...p, performance: Number(e.target.value) }))
+                    }
+                    className="w-full px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="lh-a11y" className="block text-[11px] font-semibold text-[var(--ink-muted)] mb-1">
+                    Accessibility
+                  </label>
+                  <input
+                    id="lh-a11y"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={perfScores.accessibility}
+                    onChange={(e) =>
+                      setPerfScores((p) => ({ ...p, accessibility: Number(e.target.value) }))
+                    }
+                    className="w-full px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="lh-bp" className="block text-[11px] font-semibold text-[var(--ink-muted)] mb-1">
+                    Best Practices
+                  </label>
+                  <input
+                    id="lh-bp"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={perfScores.bestPractices}
+                    onChange={(e) =>
+                      setPerfScores((p) => ({ ...p, bestPractices: Number(e.target.value) }))
+                    }
+                    className="w-full px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="lh-seo" className="block text-[11px] font-semibold text-[var(--ink-muted)] mb-1">
+                    SEO
+                  </label>
+                  <input
+                    id="lh-seo"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={perfScores.seo}
+                    onChange={(e) =>
+                      setPerfScores((p) => ({ ...p, seo: Number(e.target.value) }))
+                    }
+                    className="w-full px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Core Web Vitals */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                <div>
+                  <label htmlFor="cwv-fcp" className="block text-[11px] font-semibold text-[var(--ink-muted)] mb-1">
+                    First Contentful Paint (FCP)
+                  </label>
+                  <input
+                    id="cwv-fcp"
+                    type="text"
+                    value={perfScores.fcp}
+                    onChange={(e) => setPerfScores((p) => ({ ...p, fcp: e.target.value }))}
+                    placeholder="0.8s"
+                    className="w-full px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="cwv-lcp" className="block text-[11px] font-semibold text-[var(--ink-muted)] mb-1">
+                    Largest Contentful Paint (LCP)
+                  </label>
+                  <input
+                    id="cwv-lcp"
+                    type="text"
+                    value={perfScores.lcp}
+                    onChange={(e) => setPerfScores((p) => ({ ...p, lcp: e.target.value }))}
+                    placeholder="1.2s"
+                    className="w-full px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="cwv-cls" className="block text-[11px] font-semibold text-[var(--ink-muted)] mb-1">
+                    Cumulative Layout Shift (CLS)
+                  </label>
+                  <input
+                    id="cwv-cls"
+                    type="text"
+                    value={perfScores.cls}
+                    onChange={(e) => setPerfScores((p) => ({ ...p, cls: e.target.value }))}
+                    placeholder="0.01"
+                    className="w-full px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="cwv-tbt" className="block text-[11px] font-semibold text-[var(--ink-muted)] mb-1">
+                    Total Blocking Time (TBT)
+                  </label>
+                  <input
+                    id="cwv-tbt"
+                    type="text"
+                    value={perfScores.tbt}
+                    onChange={(e) => setPerfScores((p) => ({ ...p, tbt: e.target.value }))}
+                    placeholder="15ms"
+                    className="w-full px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Funnel Conversions */}
+            <div className="space-y-3 pt-3 border-t border-[var(--line)]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[var(--ink)]">
+                  Funnel Conversion Progression (D3.js Bar Chart)
+                </span>
+                <button
+                  type="button"
+                  onClick={handleConversionAdd}
+                  className="inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline"
+                >
+                  <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Add Funnel Stage</span>
+                </button>
+              </div>
+
+              {conversionFunnel.map((step, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center bg-[var(--surface-2)]/60 p-2.5 rounded-[var(--r-sm)] border border-[var(--line)]"
+                >
+                  <input
+                    type="text"
+                    value={step.step}
+                    onChange={(e) => handleConversionChange(idx, "step", e.target.value)}
+                    placeholder="Stage Name (e.g. Sign up)"
+                    className="px-2.5 py-1 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
+                  />
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] text-[var(--ink-muted)] font-mono">Rate:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={step.rate}
+                      onChange={(e) =>
+                        handleConversionChange(idx, "rate", parseFloat(e.target.value) || 0)
+                      }
+                      className="w-20 px-2 py-1 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono font-bold"
+                    />
+                    <span className="text-xs text-[var(--ink-muted)]">%</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      value={step.count || ""}
+                      onChange={(e) =>
+                        handleConversionChange(idx, "count", parseInt(e.target.value, 10) || 0)
+                      }
+                      placeholder="Count (optional)"
+                      className="flex-1 px-2.5 py-1 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleConversionRemove(idx)}
+                      className="p-1 text-[var(--ink-muted)] hover:text-[var(--danger)] transition-colors"
+                      title="Remove stage"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Performance Summary */}
+            <div className="space-y-1.5 pt-2">
+              <label htmlFor="perf-summary" className="block text-xs font-semibold text-[var(--ink)]">
+                Performance Executive Summary
+              </label>
+              <textarea
+                id="perf-summary"
+                rows={2}
+                value={perfSummary}
+                onChange={(e) => setPerfSummary(e.target.value)}
+                placeholder="Key takeaways from performance optimizations and funnel improvements..."
+                className="w-full px-3 py-2 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-[var(--ink-muted)] py-1">
+            Toggle above to input Lighthouse audit scores and conversion rates to display interactive D3.js gauges and funnel charts on the case study.
+          </p>
+        )}
       </div>
 
       {/* Bottom Action Bar */}

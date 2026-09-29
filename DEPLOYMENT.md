@@ -90,6 +90,18 @@ This guide walks you through the entire lifecycle: local setup, third-party prov
 2. Add and verify your custom domain (e.g. `yourdomain.com`) with DNS TXT/MX records.
 3. Under **API Keys**, create an API key with sending permissions (starts with `re_`).
 
+### D. Google Gemini AI (Automated Case Study Synthesis)
+1. Navigate to **Google AI Studio**: [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey).
+2. Sign in with your Google account.
+3. Click **"Create API Key"** (choose or create a Google Cloud project).
+4. Copy your generated key (`AIzaSy...`).
+5. Set `GEMINI_API_KEY` in your environment (server-side only; never expose with `NEXT_PUBLIC_`).
+
+### E. GitHub API Token (Repository Synchronization)
+1. In your GitHub account, go to **Settings** $\to$ **Developer settings** $\to$ **Personal access tokens**: [https://github.com/settings/tokens](https://github.com/settings/tokens).
+2. Generate a fine-grained or classic token with public repository read permissions.
+3. Setting `GITHUB_TOKEN` increases your rate limit from 60 req/hr to 5,000 req/hr during automated sync.
+
 ---
 
 ## Step 3: Security & Credentials Generation
@@ -133,6 +145,8 @@ Configure the following variables in your hosting provider's dashboard or produc
 | `RESEND_API_KEY` | Resend API key | Optional | `re_123456789` |
 | `RESEND_FROM` | Sender email address | Optional | `contact@yourdomain.com` |
 | `CONTACT_TO_EMAIL` | Inbound notification recipient | Optional | `you@yourdomain.com` |
+| `GEMINI_API_KEY` | Google Gemini AI key (Server-only) | Optional (Recommended) | `AIzaSy...` from AI Studio |
+| `GITHUB_TOKEN` | GitHub Personal Access Token | Optional | `ghp_...` (boosts API rate limit) |
 
 ---
 
@@ -178,13 +192,21 @@ pnpm build
 
 ### Option A: Deploy to Vercel (Recommended)
 
+> 📘 **Full Step-by-Step Vercel Guide**: For a dedicated walkthrough with complete dashboard configuration screenshots and secrets setup, see [`docs/VERCEL_DEPLOYMENT.md`](docs/VERCEL_DEPLOYMENT.md).
+
 1. Push your repository to GitHub or GitLab.
 2. Go to [Vercel](https://vercel.com/) and click **New Project** $\to$ **Import Repository**.
 3. Framework Preset: **Next.js** (automatically detected).
-4. In the **Environment Variables** section, add all production variables listed in Step 4.
+4. In the **Environment Variables** section, configure:
+   - `MONGODB_URI` & `MONGODB_DB` (Atlas connection string with IP `0.0.0.0/0` allowed)
+   - `AUTH_SECRET` (HMAC signing secret generated via `crypto.randomBytes(32)`)
+   - `ADMIN_EMAIL` & `ADMIN_PASSWORD_HASH` (Bcrypt hash of your admin password)
+   - `GEMINI_API_KEY` (from [Google AI Studio](https://aistudio.google.com/app/apikey) for automated case study synthesis)
+   - `IP_HASH_SALT` & `NEXT_PUBLIC_SITE_URL`
+   - *(Optional)* `GITHUB_TOKEN`, Cloudinary, and Resend credentials
 5. Click **Deploy**.
 6. Under **Settings** $\to$ **Domains**, add your custom domain (e.g. `yourname.com`).
-7. Update `NEXT_PUBLIC_SITE_URL` to match your production domain.
+7. Update `NEXT_PUBLIC_SITE_URL` and `AUTH_URL` to match your production domain.
 
 ---
 

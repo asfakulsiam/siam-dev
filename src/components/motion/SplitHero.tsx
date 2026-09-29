@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
@@ -30,39 +30,128 @@ export function SplitHero({
   actions,
 }: SplitHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const leftColRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
-  const textRef = useRef<HTMLParagraphElement>(null);
+  const subheadRef = useRef<HTMLParagraphElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
   const photoContainerRef = useRef<HTMLDivElement>(null);
   const primaryImgRef = useRef<HTMLDivElement>(null);
   const secondaryImgRef = useRef<HTMLDivElement>(null);
-  const overlapWordRef = useRef<HTMLSpanElement>(null);
+  const overlapWordRef = useRef<HTMLDivElement>(null);
+  const anchorSpanRef = useRef<HTMLSpanElement>(null);
 
-  // Compute main phrase and overlap word
+  // Extract main phrase and target overlap word from headline
   const { mainPhrase, targetOverlapWord } = useMemo(() => {
-    const trimmedHeadline = (headline || "").trim();
+    const trimmed = (headline || "").trim();
     if (!primaryPhoto) {
-      return { mainPhrase: trimmedHeadline, targetOverlapWord: "" };
+      return { mainPhrase: trimmed, targetOverlapWord: "" };
     }
 
     if (overlapWord && overlapWord.trim()) {
-      const explicitWord = overlapWord.trim();
-      const main = trimmedHeadline.endsWith(explicitWord)
-        ? trimmedHeadline.slice(0, -explicitWord.length).trim()
-        : trimmedHeadline;
-      return { mainPhrase: main, targetOverlapWord: explicitWord };
+      const explicit = overlapWord.trim();
+      const main = trimmed.endsWith(explicit)
+        ? trimmed.slice(0, -explicit.length).trim()
+        : trimmed;
+      return { mainPhrase: main, targetOverlapWord: explicit };
     }
 
-    // Default to the last word of the headline
-    const words = trimmedHeadline.split(/\s+/);
+    // Default to the final word of the headline (e.g. "considered." or "products.")
+    const words = trimmed.split(/\s+/);
     if (words.length > 1) {
       const last = words[words.length - 1];
       const rest = words.slice(0, -1).join(" ");
       return { mainPhrase: rest, targetOverlapWord: last };
     }
 
-    return { mainPhrase: trimmedHeadline, targetOverlapWord: "" };
+    return { mainPhrase: trimmed, targetOverlapWord: "" };
   }, [headline, overlapWord, primaryPhoto]);
 
+  // Non-negotiable: compute the overlap position from real measured layout at runtime
+  const updateMeasuredLayout = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    const isDesktop = window.innerWidth >= 1024;
+    if (!containerRef.current) return;
+
+    if (!isDesktop) {
+      if (overlapWordRef.current) {
+        overlapWordRef.current.style.display = "none";
+      }
+      return;
+    }
+
+    if (!photoContainerRef.current) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const photoRect = photoContainerRef.current.getBoundingClientRect();
+
+    // 1. Horizontal: Starts ~100px before the photo panel's left edge
+    // (~40-45% rests on text column, ~55-60% lands on photo)
+    const computedLeft = Math.round(photoRect.left - containerRect.left - 100);
+
+    // 2. Vertical: Aligned to the top of the headline's actual last rendered line
+    let computedTop = 0;
+    if (anchorSpanRef.current) {
+      const anchorRect = anchorSpanRef.current.getBoundingClientRect();
+      computedTop = Math.round(anchorRect.top - containerRect.top);
+    } else if (headlineRef.current) {
+      const hRect = headlineRef.current.getBoundingClientRect();
+      const computedLineHeight = 66; // 64px * 1.04 line-height
+      computedTop = Math.max(0, Math.round(hRect.bottom - containerRect.top - computedLineHeight));
+    }
+
+    if (overlapWordRef.current) {
+      overlapWordRef.current.style.display = "block";
+      overlapWordRef.current.style.top = `${computedTop}px`;
+      overlapWordRef.current.style.left = `${computedLeft}px`;
+      overlapWordRef.current.style.visibility = "visible";
+    }
+
+    // 3. Secondary Photo placement clearance: verify against real CTA row bottom edge
+    if (secondaryImgRef.current && actionsRef.current) {
+      const actionsRect = actionsRef.current.getBoundingClientRect();
+      const clearanceFromCta = Math.max(24, Math.round(photoRect.bottom - actionsRect.bottom));
+      const computedBottom = clearanceFromCta > 120 ? 32 : 16;
+      secondaryImgRef.current.style.bottom = `${computedBottom}px`;
+      secondaryImgRef.current.style.left = `-36px`;
+    }
+  }, []);
+
+  // Set up measurement observers (ResizeObserver, fonts.ready, and window resize)
+  useEffect(() => {
+    // Schedule initial layout computation via requestAnimationFrame
+    const rafId = requestAnimationFrame(() => {
+      updateMeasuredLayout();
+    });
+
+    if (typeof document !== "undefined" && "fonts" in document) {
+      document.fonts.ready.then(() => {
+        updateMeasuredLayout();
+      });
+    }
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        updateMeasuredLayout();
+      });
+
+      if (containerRef.current) resizeObserver.observe(containerRef.current);
+      if (headlineRef.current) resizeObserver.observe(headlineRef.current);
+      if (photoContainerRef.current) resizeObserver.observe(photoContainerRef.current);
+      if (actionsRef.current) resizeObserver.observe(actionsRef.current);
+    }
+
+    window.addEventListener("resize", updateMeasuredLayout, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", updateMeasuredLayout);
+      if (resizeObserver) resizeObserver.disconnect();
+    };
+  }, [updateMeasuredLayout, headline, subheadline, bio]);
+
+  // Motion Orchestration with GSAP
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
@@ -87,11 +176,11 @@ export function SplitHero({
           },
         });
 
-        // 2. Subhead & Bio fade-in
-        if (textRef.current) {
+        // 2. Subheadline & Bio entrance
+        if (subheadRef.current) {
           gsap.fromTo(
-            textRef.current,
-            { opacity: 0, y: 10 },
+            subheadRef.current,
+            { opacity: 0, y: 12 },
             { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "expo.out" },
           );
         }
@@ -100,49 +189,50 @@ export function SplitHero({
         if (primaryImgRef.current) {
           gsap.fromTo(
             primaryImgRef.current,
-            { opacity: 0, scale: 1.04 },
+            { opacity: 0, scale: 1.03 },
             {
               opacity: 1,
               scale: 1.0,
               duration: 0.75,
               delay: 0.18,
               ease: "expo.out",
+              onComplete: updateMeasuredLayout,
             },
           );
         }
 
-        // 4. Secondary Photo subtle tilt entrance
+        // 4. Secondary Photo subtle entrance
         if (secondaryImgRef.current) {
           gsap.fromTo(
             secondaryImgRef.current,
-            { opacity: 0, y: 20, rotate: -10 },
+            { opacity: 0, y: 16, rotate: -8 },
             {
               opacity: 1,
               y: 0,
-              rotate: -6,
-              duration: 0.8,
-              delay: 0.35,
+              rotate: -4,
+              duration: 0.7,
+              delay: 0.32,
               ease: "expo.out",
             },
           );
         }
 
-        // 5. Overlap Word entrance (lands visibly after photo settles)
+        // 5. Overlap Word entrance (lands cleanly on top of photo)
         if (overlapWordRef.current) {
           gsap.fromTo(
             overlapWordRef.current,
-            { opacity: 0, x: -16 },
+            { opacity: 0, x: -14 },
             {
               opacity: 1,
               x: 0,
-              duration: 0.65,
-              delay: 0.45,
+              duration: 0.6,
+              delay: 0.4,
               ease: "expo.out",
             },
           );
         }
 
-        // 6. ScrollTrigger compress on scroll: unified composition recedes together
+        // 6. ScrollTrigger unified hero parallax compress
         if (containerRef.current) {
           const targets = [headlineRef.current, photoContainerRef.current].filter(Boolean);
           if (targets.length > 0) {
@@ -154,23 +244,23 @@ export function SplitHero({
                 scrub: 0.6,
               },
               opacity: 0.3,
-              yPercent: -10,
+              yPercent: -8,
               ease: "none",
             });
           }
         }
       });
 
-      // Accessible reduced motion mode: render immediately in final static state with zero animations
+      // Accessible reduced motion: render immediately in final static state with zero motion
       mm.add("(prefers-reduced-motion: reduce)", () => {
         if (headlineRef.current) {
           headlineRef.current.style.fontVariationSettings = "'wght' 800, 'wdth' 100";
           headlineRef.current.style.opacity = "1";
           headlineRef.current.style.transform = "none";
         }
-        if (textRef.current) {
-          textRef.current.style.opacity = "1";
-          textRef.current.style.transform = "none";
+        if (subheadRef.current) {
+          subheadRef.current.style.opacity = "1";
+          subheadRef.current.style.transform = "none";
         }
         if (primaryImgRef.current) {
           primaryImgRef.current.style.opacity = "1";
@@ -178,7 +268,7 @@ export function SplitHero({
         }
         if (secondaryImgRef.current) {
           secondaryImgRef.current.style.opacity = "1";
-          secondaryImgRef.current.style.transform = "rotate(-6deg)";
+          secondaryImgRef.current.style.transform = "rotate(-4deg)";
         }
         if (overlapWordRef.current) {
           overlapWordRef.current.style.opacity = "1";
@@ -194,38 +284,53 @@ export function SplitHero({
   return (
     <div ref={containerRef} className="w-full relative">
       {/* 
-        Single-column clean fallback when zero photos are assigned;
-        Two-column asymmetric Split Frame on lg+ when primary photo is present.
+        Asymmetric split based on Figma v9 spec:
+        - Left column: ~53% width (meta, headline, subheadline, CTAs)
+        - Right column: ~43% width (full-bleed photo with single bottom-left soft corner)
+        - Single column fallback when zero photos are assigned
       */}
       <div
         className={
           hasPhoto
-            ? "grid grid-cols-1 lg:grid-cols-[1.25fr_1fr] xl:grid-cols-[1.35fr_1fr] gap-8 lg:gap-0 items-stretch"
+            ? "grid grid-cols-1 lg:grid-cols-[1.24fr_1fr] xl:grid-cols-[1.32fr_1fr] gap-8 lg:gap-0 items-stretch"
             : "max-w-4xl space-y-8"
         }
       >
-        {/* Left Column: Metadata, Headline, Subhead, CTAs */}
-        <div className="relative z-10 flex flex-col justify-end lg:pr-8 xl:pr-12 space-y-8">
+        {/* Left Column: Metadata, Headline, Subheadline, CTAs */}
+        <div
+          ref={leftColRef}
+          className="relative z-10 flex flex-col justify-end lg:pr-8 xl:pr-14 space-y-7"
+        >
           {/* Metadata Row */}
           <div>{metaRow}</div>
 
-          {/* Main Headline */}
-          <div className="space-y-6">
+          {/* Headline & Narrative Block */}
+          <div className="space-y-[28px]">
             <h1
               ref={headlineRef}
               aria-label={`${name} — ${headline}`}
-              className="text-[var(--text-display)] font-extrabold tracking-tight text-[var(--ink)] leading-[0.92] text-balance transition-colors duration-[var(--duration-base)]"
+              className="text-[clamp(2.75rem,5.2vw,4rem)] font-extrabold tracking-[-0.02em] text-[var(--ink)] leading-[1.04] text-balance transition-colors duration-[var(--duration-base)]"
               style={
                 {
                   fontVariationSettings: "'wght' 800, 'wdth' 100",
+                  lineHeight: "1.04",
                   willChange: "transform, opacity",
                 } as React.CSSProperties
               }
             >
-              {/* On desktop lg+ with photo, render mainPhrase without the overlap word; on mobile or no-photo, render full headline */}
+              {/* On desktop lg+ with photo, render mainPhrase and keep an invisible measuring anchor span for the last word */}
               {hasPhoto && targetOverlapWord ? (
                 <>
-                  <span className="hidden lg:inline">{mainPhrase}</span>
+                  <span className="hidden lg:inline">
+                    {mainPhrase}{" "}
+                    <span
+                      ref={anchorSpanRef}
+                      aria-hidden="true"
+                      className="inline-block opacity-0 select-none pointer-events-none"
+                    >
+                      {targetOverlapWord}
+                    </span>
+                  </span>
                   <span className="lg:hidden">{headline}</span>
                 </>
               ) : (
@@ -235,29 +340,33 @@ export function SplitHero({
 
             {(subheadline || bio) && (
               <p
-                ref={textRef}
-                className="text-[var(--text-xl)] text-[var(--ink-muted)] max-w-2xl text-pretty leading-relaxed"
+                ref={subheadRef}
+                className="text-[1.125rem] text-[var(--ink-muted)] max-w-[560px] text-pretty leading-[1.5] font-normal"
+                style={{ lineHeight: "1.5" }}
               >
                 {subheadline} {bio}
               </p>
             )}
           </div>
 
-          {/* Action CTAs */}
-          <div className="pt-2">{actions}</div>
+          {/* Action CTAs Row */}
+          <div ref={actionsRef} className="pt-2">
+            {actions}
+          </div>
         </div>
 
-        {/* Right Column: Full-Bleed Split Photo with Desktop Overlap */}
+        {/* Right Column: Full-Bleed Photo Panel with Single Soft Corner & Overlap */}
         {hasPhoto && primaryPhoto && (
           <div ref={photoContainerRef} className="relative w-full order-first lg:order-last">
             {/* 
-              Primary Photo: Full-bleed to top and right edges on desktop,
-              clean architectural crop with a soft bottom-left corner only (rounded-bl-3xl).
-              Zero blobs, zero glows, zero clip-path gimmicks.
+              Primary Photo Panel:
+              - Bleeds to top and right edges on desktop
+              - Exact single soft corner: rounded-bl-3xl (bottom-left only), all other corners sharp (0px)
+              - Restraint: no glow, no drop shadow as decoration, no gradient border
             */}
             <div
               ref={primaryImgRef}
-              className="relative w-full h-[52vh] sm:h-[64vh] lg:h-[calc(100svh-4rem)] lg:-mr-[max(0px,calc((100vw-1440px)/2))] overflow-hidden rounded-bl-2xl lg:rounded-bl-3xl bg-[var(--surface-2)] select-none"
+              className="relative w-full h-[48vh] sm:h-[58vh] lg:h-[calc(100svh-4rem)] lg:-mr-[max(0px,calc((100vw-1440px)/2))] overflow-hidden rounded-bl-2xl lg:rounded-bl-3xl bg-[var(--surface-2)] select-none border-b border-l lg:border-t-0 lg:border-r-0 border-[var(--line)]"
             >
               {primaryPhoto.publicId.startsWith("data:") ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -275,28 +384,28 @@ export function SplitHero({
                   alt={primaryPhoto.alt}
                   fill
                   priority
-                  sizes="(max-width: 1024px) 100vw, 44vw"
+                  sizes="(max-width: 1024px) 100vw, 43vw"
                   className="object-cover"
                   referrerPolicy="no-referrer"
                 />
               )}
-
-              {/* Subtle edge depth tint preserving image recognition while framing border */}
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[var(--bg)]/40 via-transparent to-transparent lg:hidden"
-              />
             </div>
 
             {/* 
-              Optional Secondary Action/Candid Photo:
-              Tucked behind the bottom-left corner of the primary photo.
-              Rotated -6deg with subtle paper border and shadow.
+              Optional Secondary Photo Card:
+              - Tucked at the photo panel's own bottom-left corner
+              - Inside the panel bounds, inset roughly 36px to the left of the panel's edge
+              - Absent entirely when no secondary photo is assigned
+              - Rotated -4deg with clean paper border
             */}
             {secondaryPhoto && secondaryPhoto.publicId && (
               <div
                 ref={secondaryImgRef}
-                className="hidden lg:block absolute -bottom-6 -left-8 xl:-left-12 w-36 h-48 xl:w-44 xl:h-56 rotate-[-6deg] rounded-[var(--r-md)] overflow-hidden border-4 border-[var(--bg)] shadow-[var(--shadow-floating)] z-15 bg-[var(--surface-2)] select-none transition-transform duration-500 hover:rotate-[-2deg] hover:scale-105"
+                style={{
+                  bottom: "24px",
+                  left: "-36px",
+                }}
+                className="hidden lg:block absolute w-36 h-48 xl:w-42 xl:h-54 rotate-[-4deg] rounded-[var(--r-md)] overflow-hidden border-2 border-[var(--bg)] shadow-[var(--shadow-floating)] z-15 bg-[var(--surface-2)] select-none transition-transform duration-300 hover:rotate-0 hover:scale-105"
               >
                 {secondaryPhoto.publicId.startsWith("data:") ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -313,40 +422,45 @@ export function SplitHero({
                     })}
                     alt={secondaryPhoto.alt || ""}
                     fill
-                    sizes="180px"
+                    sizes="170px"
                     className="object-cover"
                     referrerPolicy="no-referrer"
                   />
                 )}
               </div>
             )}
-
-            {/* 
-              The Split-Frame Overlap Word:
-              Positioned on the photo's left edge on lg+.
-              Sits ON TOP of the photo (z-20) via layout overlap.
-              Includes a subtle 80% blurred backdrop chip behind the text
-              to guarantee WCAG 2.2 AA contrast (>= 4.5:1) in all four themes.
-            */}
-            {targetOverlapWord && (
-              <div
-                aria-hidden="true"
-                className="hidden lg:flex absolute z-20 bottom-12 xl:bottom-16 -left-6 xl:-left-10 items-center pointer-events-none"
-              >
-                <span
-                  ref={overlapWordRef}
-                  className="px-3.5 py-1.5 rounded-[var(--r-sm)] bg-[var(--bg)]/85 backdrop-blur-md border border-[var(--line)]/60 text-[var(--text-display)] font-extrabold tracking-tight text-[var(--ink)] leading-[0.92] whitespace-nowrap shadow-sm"
-                  style={{
-                    fontVariationSettings: "'wght' 800, 'wdth' 100",
-                  }}
-                >
-                  {targetOverlapWord}
-                </span>
-              </div>
-            )}
           </div>
         )}
       </div>
+
+      {/* 
+        The Signature Overlap Moment (Figma v9 Spec):
+        - Same size and weight as headline: 64px display / Extra Bold / -2% tracking / 104% line-height
+        - Sits ON TOP of the photo (z-20), photo stays completely visible underneath
+        - Position is dynamically computed at runtime relative to containerRef (top & left)
+        - Rendered only on desktop lg+ when photo is present
+      */}
+      {hasPhoto && targetOverlapWord && (
+        <div
+          ref={overlapWordRef}
+          aria-hidden="true"
+          style={{
+            lineHeight: "1.04",
+          }}
+          className="hidden lg:block absolute z-20 pointer-events-none select-none invisible"
+        >
+          <span
+            className="text-[clamp(2.75rem,5.2vw,4rem)] font-extrabold tracking-[-0.02em] text-[var(--ink)] whitespace-nowrap"
+            style={{
+              fontVariationSettings: "'wght' 800, 'wdth' 100",
+              lineHeight: "1.04",
+            }}
+          >
+            {targetOverlapWord}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
+

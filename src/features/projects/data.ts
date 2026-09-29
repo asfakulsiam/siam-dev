@@ -65,6 +65,26 @@ export const staticProjects: Project[] = [
         "Separated layout structural containers from presentational components to prevent unexpected horizontal overflow.",
       ],
     },
+    performanceData: {
+      lighthouse: {
+        performance: 99,
+        accessibility: 100,
+        bestPractices: 100,
+        seo: 100,
+        fcp: "0.6s",
+        lcp: "1.1s",
+        cls: "0.00",
+        tbt: "0ms",
+      },
+      conversions: [
+        { step: "Documentation Visit", rate: 100, count: 18400 },
+        { step: "Component Playground", rate: 74.2, count: 13652 },
+        { step: "NPM Package Install", rate: 46.8, count: 8611 },
+        { step: "Production Adoption", rate: 28.5, count: 5244 },
+      ],
+      summary:
+        "Sub-second initial paint and perfect accessibility scores verified across 12 product squads without layout shifts.",
+    },
     sections: [
       {
         title: "The Token Architecture",

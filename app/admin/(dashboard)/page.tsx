@@ -17,6 +17,7 @@ import { getProjects } from "@/features/projects/queries";
 import { getContactMessages } from "@/features/contact/queries";
 import { getProfile } from "@/features/profile/queries";
 import { getExperience } from "@/features/experience/queries";
+import { SyncAllProjectsButton } from "@/components/admin/SyncAllProjectsButton";
 
 export const dynamic = "force-dynamic";
 
@@ -73,10 +74,11 @@ export default async function AdminOverviewPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <SyncAllProjectsButton totalActiveProjects={totalProjects} />
           <Link
             href="/admin/projects/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius-sm)] text-sm font-medium bg-[var(--accent)] text-[var(--bg)] hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius-sm)] text-sm font-medium bg-[var(--accent)] text-[var(--bg)] hover:opacity-90 transition-opacity shadow-2xs"
           >
             <PlusCircle className="w-4 h-4" />
             New Project
@@ -84,7 +86,7 @@ export default async function AdminOverviewPage() {
           <Link
             href="/"
             target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius-sm)] text-sm font-medium border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-hover)] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius-sm)] text-sm font-medium border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-hover)] transition-colors shadow-2xs"
           >
             <ExternalLink className="w-4 h-4" />
             Live Site

@@ -36,6 +36,10 @@ const envSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
   IP_HASH_SALT: z.string().min(8).default("default_dev_salt_string"),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+
+  // AI & GitHub Synchronization
+  GEMINI_API_KEY: z.string().optional().default(""),
+  GITHUB_TOKEN: z.string().optional().default(""),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
