@@ -16,6 +16,7 @@ async function fetchSettingsData(): Promise<SettingsDocument> {
       if (sanitized) {
         return {
           defaultTheme: sanitized.defaultTheme || staticSettings.defaultTheme,
+          heroStyle: sanitized.heroStyle || staticSettings.heroStyle || "cutout",
           memes: {
             waiting: sanitized.memes?.waiting || staticSettings.memes.waiting,
             sending: sanitized.memes?.sending || staticSettings.memes.sending,

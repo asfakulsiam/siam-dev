@@ -10,6 +10,9 @@ export const themeEnum = z.enum([
 ]);
 export type Theme = z.infer<typeof themeEnum>;
 
+export const heroStyleEnum = z.enum(["cutout", "split-frame"]).default("cutout");
+export type HeroStyle = z.infer<typeof heroStyleEnum>;
+
 export const memeAssetSchema = z.object({
   type: z.enum(["image", "video"]),
   publicId: z.string().min(1, "Asset public ID or URL is required"),
@@ -19,6 +22,7 @@ export const memeAssetSchema = z.object({
 
 export const settingsInputSchema = z.object({
   defaultTheme: themeEnum,
+  heroStyle: z.enum(["cutout", "split-frame"]).default("cutout").optional(),
   memes: z.object({
     waiting: memeAssetSchema,
     sending: memeAssetSchema,

@@ -5,6 +5,39 @@ Format based on Keep a Changelog.
 
 ---
 
+## [Phase T] - Theme-Aware Hero Photos & Adaptive Duotone Engine (2026-10-01)
+
+### Added & Enhanced
+
+- **Theme-Aware Duotone Engine (`src/hooks/useTheme.ts`, `src/lib/cloudinary.ts`)**:
+  - Replaced hardcoded `#2F4BFF` fallback with dynamic accent resolution mapping each theme to its design token accent: Day Shift (`#2F4BFF`), Night Coder / Charcoal (`#8AA2FF`), Blueprint (`#FFE14D`), and Mono (`#000000`).
+  - Upgraded Cloudinary transforms to generate pure grayscale (`e_grayscale`) when rendering in Mono theme without color casting.
+- **Theme-Calibrated Default Vector Artwork (`src/features/profile/data.ts`)**:
+  - Built `getDefaultIdentityPhotoSVG(theme)` and `getDefaultSecondaryPhotoSVG(theme)` to dynamically adapt default vector artwork palettes and accents to the visitor's selected theme.
+- **Real-Time SplitHero Adaptation (`src/components/motion/SplitHero.tsx`)**:
+  - Split Frame hero photo panel and secondary tilted card now react instantaneously to theme switcher toggles without page reloads.
+- **Admin Photo Controls (`src/components/admin/ProfileManager.tsx`)**:
+  - Added "Auto (Theme-Adaptive)" tint button for Hero Primary, Hero Secondary, and Library photos.
+  - Added live multi-theme preview tabs ("Day | Night | Blue | Mono") directly on photo cards so admins can verify photo tints across all themes prior to saving.
+
+## [Phase S] - Full-Bleed Cutout Hero Mode & Theme-Aware Cutout Slots (2026-10-01)
+
+### Added & Enhanced
+
+- **Full-Bleed Cutout Hero Component (`src/components/motion/CutoutHero.tsx`)**:
+  - Implemented the second hero presentation style: photo-dominant, unboxed portrait fading smoothly into the canvas background (`mask-image: linear-gradient(to bottom, black 65%, transparent 100%)`).
+  - Layered headline, subhead/bio with micro backdrop blur, and CTA action buttons over the lower portion of the portrait.
+  - GSAP entrance orchestration with variable font axis loading, subtle scale settle (`1.03 -> 1.0`), and smooth scroll compression.
+  - Accessible reduced-motion fallback rendering static layout instantly.
+- **Theme-Aware Cutout System (`src/hooks/useTheme.ts`, `src/features/profile/schema.ts`)**:
+  - Added dedicated `heroCutout` schema with `light` and `dark` variant slots.
+  - `useTheme()` hook subscribes to `data-theme` changes via `useSyncExternalStore` and seamlessly switches between the light-tuned and dark-tuned cutouts.
+- **Admin Presentation & Photo Management (`/admin/appearance` & `/admin/profile`)**:
+  - Appearance Manager: Switch between "Full-Bleed Cutout (New Default)" and "Split Frame".
+  - Profile Manager: Dedicated upload cards for Light Theme Cutout (Day Shift & Mono) and Dark Theme Cutout (Night Coder, Blueprint & Charcoal) with live canvas previews demonstrating the bottom fade gradient.
+- **Home Page Integration (`app/page.tsx`)**:
+  - Dynamically renders either `CutoutHero` (default) or `SplitHero` according to admin appearance settings with identical props.
+
 ## [Phase Q] - Hero Photo Consolidation & PortraitFrame Polish (2026-09-27)
 
 ### Added & Fixed

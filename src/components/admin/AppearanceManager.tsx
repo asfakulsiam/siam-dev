@@ -126,6 +126,9 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
   }>({ type: null, message: "" });
 
   const [currentTheme, setCurrentTheme] = useState<Theme>(initialSettings.defaultTheme);
+  const [currentHeroStyle, setCurrentHeroStyle] = useState<"cutout" | "split-frame">(
+    initialSettings.heroStyle || "cutout",
+  );
   const [currentMemes, setCurrentMemes] = useState(initialSettings.memes);
 
   const {
@@ -137,6 +140,7 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
     resolver: zodResolver(settingsInputSchema),
     defaultValues: {
       defaultTheme: initialSettings.defaultTheme,
+      heroStyle: initialSettings.heroStyle || "cutout",
       memes: initialSettings.memes,
     },
   });
@@ -298,6 +302,92 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
               </label>
             );
           })}
+        </div>
+      </section>
+
+      {/* Section 2: Hero Presentation Style (Phase S) */}
+      <section className="space-y-4 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] p-6">
+        <div className="flex items-center justify-between border-b border-[var(--line)] pb-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
+            <Palette className="w-4 h-4 text-[var(--accent)]" />
+            <h2>Hero Presentation Style</h2>
+          </div>
+          <span className="text-[11px] font-mono text-[var(--ink-muted)]">
+            ACTIVE: {currentHeroStyle === "cutout" ? "FULL-BLEED CUTOUT" : "SPLIT FRAME"}
+          </span>
+        </div>
+        <p className="text-xs text-[var(--muted)]">
+          Select between the full-bleed transparent cutout hero or the architectural split frame two-photo composition.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          {/* Option 1: Full-Bleed Cutout */}
+          <label
+            className={`relative flex flex-col justify-between p-5 rounded-[var(--r-md)] border cursor-pointer transition-all ${
+              currentHeroStyle === "cutout"
+                ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/30 bg-[var(--surface-hover)]"
+                : "border-[var(--line)] hover:border-[var(--line-strong)] bg-[var(--surface)]"
+            }`}
+          >
+            <input
+              type="radio"
+              value="cutout"
+              {...register("heroStyle", {
+                onChange: (e) => setCurrentHeroStyle(e.target.value as "cutout" | "split-frame"),
+              })}
+              className="sr-only"
+            />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm text-[var(--ink)]">
+                  Full-Bleed Cutout (New Default)
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold">
+                  RECOMMENDED
+                </span>
+              </div>
+              <p className="text-xs text-[var(--muted)] leading-relaxed">
+                Large, confident photo-dominant hero with transparent background cutout. Subject extends past the fold with soft structural fade into whichever theme is active.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[var(--line)] text-[11px] font-mono text-[var(--accent)]">
+              Managed in: Profile → Identity Photos → Hero Cutout Slots
+            </div>
+          </label>
+
+          {/* Option 2: Split Frame */}
+          <label
+            className={`relative flex flex-col justify-between p-5 rounded-[var(--r-md)] border cursor-pointer transition-all ${
+              currentHeroStyle === "split-frame"
+                ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/30 bg-[var(--surface-hover)]"
+                : "border-[var(--line)] hover:border-[var(--line-strong)] bg-[var(--surface)]"
+            }`}
+          >
+            <input
+              type="radio"
+              value="split-frame"
+              {...register("heroStyle", {
+                onChange: (e) => setCurrentHeroStyle(e.target.value as "cutout" | "split-frame"),
+              })}
+              className="sr-only"
+            />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm text-[var(--ink)]">
+                  Split Frame (Two-Photo)
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface-2)] text-[var(--ink)] border border-[var(--line)] font-semibold">
+                  FIGMA V9 SPEC
+                </span>
+              </div>
+              <p className="text-xs text-[var(--muted)] leading-relaxed">
+                Asymmetric split (~53% editorial text, ~47% bleed photo panel with single soft bottom-left corner), signature measured overlap word, and optional tilted secondary card.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[var(--line)] text-[11px] font-mono text-[var(--ink-muted)]">
+              Managed in: Profile → Identity Photos → Split Frame Slots
+            </div>
+          </label>
         </div>
       </section>
 

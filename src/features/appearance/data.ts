@@ -121,6 +121,7 @@ export const defaultMemeSVGs = {
 
 export const staticSettings: SettingsDocument = {
   defaultTheme: "day-shift",
+  heroStyle: "cutout",
   memes: {
     waiting: {
       type: "image",

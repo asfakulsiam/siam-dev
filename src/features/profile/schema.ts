@@ -27,6 +27,16 @@ export const photoSchema = z.object({
     .default("unassigned"),
 });
 
+export const cutoutVariantSchema = z.object({
+  publicId: z.string().min(1, "Cutout public ID or URL is required"),
+  alt: z.string().min(1, "Cutout alt text is required"),
+});
+
+export const heroCutoutSchema = z.object({
+  light: cutoutVariantSchema.optional(),
+  dark: cutoutVariantSchema.optional(),
+});
+
 export const profileSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, "Name is required"),
@@ -49,6 +59,7 @@ export const profileSchema = z.object({
   now: nowSchema,
   toolbox: z.array(toolboxGroupSchema).default([]),
   photos: z.array(photoSchema).default([]),
+  heroCutout: heroCutoutSchema.optional(),
   activePhotoId: z.string().optional(),
   updatedAt: z.string().optional(),
 });

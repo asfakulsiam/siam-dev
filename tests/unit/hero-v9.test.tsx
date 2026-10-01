@@ -3,16 +3,15 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 import { SplitHero } from "@/components/motion/SplitHero";
 
-describe("Hero Redesign v9 (Figma-Referenced Split Frame): Typographic Overlap & Secondary Photo", () => {
+describe("Phase R: Measured Signature Overlap & Contrast Fallback", () => {
   const baseProps = {
     name: "Asfakul",
     metaRow: <span data-testid="meta">Available</span>,
     actions: <div data-testid="cta-row"><button type="button">Explore Work</button></div>,
   };
 
-  it("handles variable headline lengths and renders overlap word in desktop typography flow without floating collision", () => {
-    // Short headline
-    const { container, rerender } = render(
+  it("renders measured overlap word as an absolute sibling with contrast chip for short headline", () => {
+    const { container } = render(
       <SplitHero
         {...baseProps}
         headline="Crafting web applications."
@@ -25,13 +24,20 @@ describe("Hero Redesign v9 (Figma-Referenced Split Frame): Typographic Overlap &
       />,
     );
 
-    // Overlap word rendered with z-30 in desktop flow
+    // Overlap word rendered as absolute sibling with z-30 and contrast chip
     const overlapEl = container.querySelector(".z-30.whitespace-nowrap");
     expect(overlapEl).toBeDefined();
     expect(overlapEl?.textContent).toBe("applications.");
+    expect(overlapEl?.className).toContain("absolute");
+    expect(overlapEl?.className).toContain("backdrop-blur-sm");
+    expect(overlapEl?.className).toContain("bg-[var(--bg)]/80");
 
-    // Rerender with significantly longer headline
-    rerender(
+    // Main phrase is rendered in h1 desktop view
+    expect(screen.getByText("Crafting web")).toBeDefined();
+  });
+
+  it("recomputes correctly for longer copy without collision", () => {
+    const { container } = render(
       <SplitHero
         {...baseProps}
         headline="I design and engineer performant, accessible digital products and systems that feel considered."
@@ -44,9 +50,10 @@ describe("Hero Redesign v9 (Figma-Referenced Split Frame): Typographic Overlap &
       />,
     );
 
-    // Overlap word correctly extracted for longer headline
-    const overlapEl2 = container.querySelector(".z-30.whitespace-nowrap");
-    expect(overlapEl2?.textContent).toBe("considered.");
+    const overlapEl = container.querySelector(".z-30.whitespace-nowrap");
+    expect(overlapEl).toBeDefined();
+    expect(overlapEl?.textContent).toBe("considered.");
+
     // Accessible heading still matches complete full headline
     expect(
       screen.getByRole("heading", {

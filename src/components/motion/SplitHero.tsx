@@ -5,6 +5,12 @@ import Image from "next/image";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { cldUrl } from "@/lib/cloudinary";
+import { useOverlapPosition } from "./useOverlapPosition";
+import { useTheme, getThemeAccent } from "@/hooks/useTheme";
+import {
+  getDefaultIdentityPhotoSVG,
+  getDefaultSecondaryPhotoSVG,
+} from "@/features/profile/data";
 
 export interface SplitHeroProps {
   name: string;
@@ -38,6 +44,11 @@ export function SplitHero({
   const primaryImgRef = useRef<HTMLDivElement>(null);
   const secondaryImgRef = useRef<HTMLDivElement>(null);
 
+  // Phase T: Theme-Aware Photo Resolution
+  const { theme } = useTheme();
+  const primaryAccent = getThemeAccent(theme, primaryPhoto?.accentColor);
+  const secondaryAccent = getThemeAccent(theme, secondaryPhoto?.accentColor);
+
   // Extract main phrase and target overlap word from headline
   const { mainPhrase, targetOverlapWord } = useMemo(() => {
     const trimmed = (headline || "").trim();
@@ -63,6 +74,9 @@ export function SplitHero({
 
     return { mainPhrase: trimmed, targetOverlapWord: "" };
   }, [headline, overlapWord, primaryPhoto]);
+
+  // Measured position for signature overlap word (Phase R)
+  const overlapPos = useOverlapPosition(containerRef, headlineRef, primaryImgRef);
 
   // Motion Orchestration with GSAP
   useGSAP(
@@ -211,20 +225,10 @@ export function SplitHero({
                 } as React.CSSProperties
               }
             >
-              {/* On desktop lg+ with photo, render main phrase and target overlap word in flow with z-30 overlap */}
+              {/* On desktop lg+ with photo, render mainPhrase. On mobile, render full headline. */}
               {hasPhoto && targetOverlapWord ? (
                 <>
-                  <span className="hidden lg:inline">
-                    {mainPhrase}{" "}
-                    <span
-                      className="relative z-30 inline-block font-extrabold tracking-[-0.02em] text-[var(--ink)] whitespace-nowrap"
-                      style={{
-                        lineHeight: "1.04",
-                      }}
-                    >
-                      {targetOverlapWord}
-                    </span>
-                  </span>
+                  <span className="hidden lg:inline">{mainPhrase}</span>
                   <span className="lg:hidden">{headline}</span>
                 </>
               ) : (
@@ -265,7 +269,7 @@ export function SplitHero({
               {primaryPhoto.publicId.startsWith("data:") ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={primaryPhoto.publicId}
+                  src={getDefaultIdentityPhotoSVG(theme)}
                   alt={primaryPhoto.alt}
                   className="w-full h-full object-cover object-center"
                 />
@@ -273,7 +277,7 @@ export function SplitHero({
                 <Image
                   src={cldUrl(primaryPhoto.publicId, {
                     duotone: true,
-                    accent: primaryPhoto.accentColor,
+                    accent: primaryAccent,
                   })}
                   alt={primaryPhoto.alt}
                   fill
@@ -300,7 +304,7 @@ export function SplitHero({
                 {secondaryPhoto.publicId.startsWith("data:") ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={secondaryPhoto.publicId}
+                    src={getDefaultSecondaryPhotoSVG(theme)}
                     alt={secondaryPhoto.alt || ""}
                     className="w-full h-full object-cover object-center"
                   />
@@ -308,7 +312,7 @@ export function SplitHero({
                   <Image
                     src={cldUrl(secondaryPhoto.publicId, {
                       duotone: true,
-                      accent: secondaryPhoto.accentColor,
+                      accent: secondaryAccent,
                     })}
                     alt={secondaryPhoto.alt || ""}
                     fill
@@ -322,6 +326,31 @@ export function SplitHero({
           </div>
         )}
       </div>
+
+      {/* 
+        Phase R: The Measured Signature Overlap Moment (Figma v9/v10 Spec)
+        - Rendered as an absolute sibling inside containerRef
+        - Measured accurately via useOverlapPosition hook
+        - Sits on top of the photo panel's left edge (z-30)
+        - Starts invisible until ready to eliminate flash-in-wrong-spot
+        - Uses small solid backing chip (bg-[var(--bg)]/80 backdrop-blur-sm) to guarantee WCAG AA contrast against any photo
+      */}
+      {hasPhoto && targetOverlapWord && (
+        <span
+          aria-hidden="true"
+          className="hidden lg:inline-flex items-center absolute z-30 font-extrabold tracking-[-0.02em] text-[var(--ink)] whitespace-nowrap pointer-events-none transition-opacity duration-200 px-2.5 py-0.5 rounded-[var(--r-sm)] bg-[var(--bg)]/80 backdrop-blur-sm shadow-xs border border-[var(--line)]/50"
+          style={{
+            top: overlapPos.top,
+            left: overlapPos.left,
+            fontSize: "clamp(2.5rem, 4.8vw, 4rem)",
+            lineHeight: 1.04,
+            fontVariationSettings: "'wght' 800, 'wdth' 100",
+            opacity: overlapPos.ready ? 1 : 0,
+          }}
+        >
+          {targetOverlapWord}
+        </span>
+      )}
     </div>
   );
 }

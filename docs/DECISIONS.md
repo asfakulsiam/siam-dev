@@ -274,6 +274,44 @@ This log documents all architectural and technical decisions made for the Dev De
     - Added direct, dedicated upload slots in the Admin Photo Manager for **Slot 1: Primary Hero Photo** and **Slot 2: Secondary Accent Photo** with one-click upload, alt text verification, and duotone preset tinting.
 - **Rationale**: Delivers the exact Figma design faithfully, prevents word collision bugs across all viewport widths, and gives the admin direct control over both hero photos.
 
+### ADR-030: Full-Bleed Cutout Hero Mode & Theme-Aware Alpha Cutout System (Phase S)
+- **Date**: 2026-10-01
+- **Context**: Add a second hero presentation style matching the reference portfolio design (large, confident, photo-dominant, no boxed panel, transparent cutout fading into page background, text layered over/around the portrait). Ensure both Split Frame and Cutout Hero styles are switchable from `/admin/appearance`, with dedicated upload slots in `/admin/profile`.
+- **Decision**:
+  - **Component (`src/components/motion/CutoutHero.tsx`)**:
+    - Full-bleed alpha-transparent cutout portrait layer positioned behind the foreground text with vertical fade mask (`maskImage: linear-gradient(to bottom, black 65%, transparent 100%)`).
+    - Foreground narrative grid overlays over the bottom portion of the cutout: display headline on the left (`text-[clamp(2.75rem,5.2vw,4.5rem)] font-extrabold tracking-[-0.02em] leading-[1.04]`), and subhead/bio with subtle backdrop blur and action CTA buttons on the right.
+    - GSAP entrance orchestration: variable font axis load, subtle scale-fade settle (`1.03 -> 1.0`), and smooth scroll compression. Fully respects `prefers-reduced-motion: reduce`.
+  - **Theme-Aware Cutout Slots (`heroCutout.light` & `heroCutout.dark`)**:
+    - Solves background contrast differences across dark and light themes without clumsy CSS masks or force-adapted filters.
+    - Admin uploads pre-cut transparent PNG/WebP files tailored for light and dark backdrops.
+    - `useTheme()` hook dynamically selects the appropriate variant (`cutout.light` for Day Shift & Mono; `cutout.dark` for Night Coder, Blueprint & Charcoal).
+  - **Admin Integration (`/admin/appearance` & `/admin/profile`)**:
+    - `AppearanceManager.tsx`: Toggle between "Full-Bleed Cutout (New Default)" and "Split Frame".
+    - `ProfileManager.tsx`: Dedicated upload slots for Light Theme Cutout and Dark Theme Cutout with live canvas previews showing bottom fade.
+  - **Home Page Delivery (`app/page.tsx`)**:
+    - Dynamically evaluates `settings.heroStyle` and renders either `CutoutHero` or `SplitHero` with identical metadata and action props.
+- **Rationale**: Provides maximum visual impact, ensures crisp silhouette contrast across all 5 themes, and gives the owner complete self-managed control over both presentation styles.
+
+### ADR-031: Theme-Aware Hero Photos & Adaptive Duotone Engine (Phase T)
+- **Date**: 2026-10-01
+- **Context**: Hero photos previously defaulted to a hardcoded `#2F4BFF` cobalt duotone tint regardless of active theme, causing color discordance in Blueprint (where the theme accent is yellow `#FFE14D` and background is blue) and Mono (where the theme is strict grayscale).
+- **Decision**:
+  - **Dynamic Theme Accent Hook (`src/hooks/useTheme.ts`)**:
+    - Exported `THEME_ACCENTS` mapping each theme to its design token accent: Day Shift (`#2F4BFF`), Night Coder / Charcoal (`#8AA2FF`), Blueprint (`#FFE14D`), and Mono (`#000000`).
+    - Provided `getThemeAccent(theme, customAccent)` utility that defaults to "auto" (theme-derived) while respecting custom hex overrides if explicitly configured.
+  - **Adaptive Duotone Cloudinary Transforms (`src/lib/cloudinary.ts`)**:
+    - Enhanced `cldUrl` and `getDuotonePhotoUrl` to recognize `#000000` / `mono` and produce pure grayscale (`e_grayscale`) without unwanted color casting.
+    - Accents dynamically follow the active theme across page browsing.
+  - **Theme-Calibrated Default SVGs (`src/features/profile/data.ts`)**:
+    - Created `getDefaultIdentityPhotoSVG(theme)` and `getDefaultSecondaryPhotoSVG(theme)` to dynamically generate vector artwork calibrated for each theme's palette, contrast ratios, and stroke colors.
+  - **SplitHero Component (`src/components/motion/SplitHero.tsx`)**:
+    - Subscribed to `useTheme()` to update both primary panel photo and secondary accent photo duotone tints in real-time when visitors switch themes.
+  - **Admin Photo Controls (`src/components/admin/ProfileManager.tsx`)**:
+    - Added "Auto (Theme-Adaptive)" tint buttons for Slot 1 (Primary), Slot 2 (Secondary), and Library photos.
+    - Integrated multi-theme preview tabs ("Day | Night | Blue | Mono") on photo cards so admins can preview duotone output across all themes prior to saving.
+- **Rationale**: Guarantees visual harmony across all 5 themes, eliminates color clashes, and elevates the portfolio's craftsmanship proof.
+
 
 
 

@@ -18,21 +18,26 @@ import {
   Palette,
 } from "lucide-react";
 import { ProfileDocument, Photo } from "@/features/profile/schema";
-import { defaultIdentityPhotoSVG } from "@/features/profile/data";
+import {
+  defaultIdentityPhotoSVG,
+  getDefaultIdentityPhotoSVG,
+  getDefaultSecondaryPhotoSVG,
+} from "@/features/profile/data";
 import { updateProfileAction, updateNowAction } from "@/features/profile/actions";
 import { cldUrl, getDuotonePhotoUrl } from "@/lib/cloudinary";
 import { CloudinaryUploadField } from "@/components/admin/CloudinaryUploadField";
 import { deleteCloudinaryAssetAction } from "@/lib/cloudinary-actions";
 import { PortraitFrame, DEFAULT_AVATAR_PUBLIC_ID } from "@/components/ui/PortraitFrame";
+import { ThemeId, getThemeAccent } from "@/hooks/useTheme";
 
 const PRESET_ACCENTS = [
-  { label: "Cobalt", hex: "#2F4BFF" },
-  { label: "Periwinkle", hex: "#8AA2FF" },
-  { label: "Yellow", hex: "#FFE14D" },
-  { label: "Mono", hex: "#0033FF" },
+  { label: "Auto (Theme-Adaptive)", hex: "auto" },
+  { label: "Day Shift (Cobalt)", hex: "#2F4BFF" },
+  { label: "Night Coder (Periwinkle)", hex: "#8AA2FF" },
+  { label: "Blueprint (Yellow)", hex: "#FFE14D" },
+  { label: "Mono (Grayscale)", hex: "#000000" },
   { label: "Emerald", hex: "#10B981" },
   { label: "Amber", hex: "#F59E0B" },
-  { label: "Coral", hex: "#F43F5E" },
   { label: "Slate", hex: "#64748B" },
 ];
 
@@ -47,6 +52,9 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
 
   // Tab
   const [activeTab, setActiveTab] = useState<"profile" | "photos" | "now" | "toolbox">("profile");
+
+  // Admin Theme Preview state for checking duotone tints across themes
+  const [previewTheme, setPreviewTheme] = useState<ThemeId>("day-shift");
 
   // Profile fields
   const [name, setName] = useState(initialProfile.name || "Asfakul");
@@ -93,6 +101,31 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       initialProfile.photos?.[0]?.publicId ||
       DEFAULT_AVATAR_PUBLIC_ID,
   );
+
+  // Hero Cutout Slots (Light & Dark Variants for Full-Bleed Cutout Mode)
+  const [heroCutout, setHeroCutout] = useState<{
+    light?: { publicId: string; alt: string };
+    dark?: { publicId: string; alt: string };
+  }>(
+    initialProfile.heroCutout || {
+      light: { publicId: "", alt: "" },
+      dark: { publicId: "", alt: "" },
+    },
+  );
+
+  const handleCutoutUpdate = (
+    variant: "light" | "dark",
+    field: "publicId" | "alt",
+    val: string,
+  ) => {
+    setHeroCutout((prev) => ({
+      ...prev,
+      [variant]: {
+        publicId: field === "publicId" ? val : prev?.[variant]?.publicId || "",
+        alt: field === "alt" ? val : prev?.[variant]?.alt || "",
+      },
+    }));
+  };
 
   // "Now" fields
   const [nowTitle, setNowTitle] = useState(initialProfile.now?.title || "What I am building now");
@@ -219,6 +252,25 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       .map((s) => ({ label: s.label.trim(), url: s.url.trim() }))
       .filter((s) => s.label.length > 0 && s.url.length > 0);
 
+    const cleanHeroCutout = {
+      ...(heroCutout?.light?.publicId?.trim()
+        ? {
+            light: {
+              publicId: heroCutout.light.publicId.trim(),
+              alt: heroCutout.light.alt?.trim() || "Light theme cutout portrait",
+            },
+          }
+        : {}),
+      ...(heroCutout?.dark?.publicId?.trim()
+        ? {
+            dark: {
+              publicId: heroCutout.dark.publicId.trim(),
+              alt: heroCutout.dark.alt?.trim() || "Dark theme cutout portrait",
+            },
+          }
+        : {}),
+    };
+
     const payload = {
       name: name.trim(),
       headline: headline.trim(),
@@ -243,6 +295,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       },
       toolbox,
       photos,
+      heroCutout: Object.keys(cleanHeroCutout).length > 0 ? cleanHeroCutout : undefined,
       activePhotoId: activePhotoId || (photos.length > 0 ? photos[0]?.publicId : DEFAULT_AVATAR_PUBLIC_ID),
     };
 
@@ -730,22 +783,38 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                   }}
                 />
 
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                   <label className="text-[11px] font-semibold text-[var(--ink-muted)]">
                     Duotone Accent Color
                   </label>
                   <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleHeroSlotUpdate("hero-primary", "accentColor", "auto")}
+                      className={`px-2 py-0.5 text-[10px] font-mono rounded border transition-colors ${
+                        (photos.find((p) => p.role === "hero-primary")?.accentColor || "auto") === "auto"
+                          ? "bg-[var(--accent)] text-[var(--accent-ink)] border-[var(--accent)] font-bold"
+                          : "bg-[var(--surface)] text-[var(--ink-muted)] border-[var(--line)] hover:text-[var(--ink)]"
+                      }`}
+                    >
+                      Auto (Theme-Adaptive)
+                    </button>
                     <input
                       type="color"
-                      value={photos.find((p) => p.role === "hero-primary")?.accentColor || "#2F4BFF"}
+                      value={
+                        photos.find((p) => p.role === "hero-primary")?.accentColor &&
+                        photos.find((p) => p.role === "hero-primary")?.accentColor !== "auto"
+                          ? photos.find((p) => p.role === "hero-primary")?.accentColor
+                          : "#2F4BFF"
+                      }
                       onChange={(e) => handleHeroSlotUpdate("hero-primary", "accentColor", e.target.value)}
                       className="w-6 h-6 rounded border border-[var(--line)] cursor-pointer bg-transparent"
                     />
                     <input
                       type="text"
-                      value={photos.find((p) => p.role === "hero-primary")?.accentColor || "#2F4BFF"}
+                      value={photos.find((p) => p.role === "hero-primary")?.accentColor || "auto"}
                       onChange={(e) => handleHeroSlotUpdate("hero-primary", "accentColor", e.target.value)}
-                      placeholder="#2F4BFF"
+                      placeholder="auto"
                       className="w-20 px-1.5 py-0.5 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
                     />
                   </div>
@@ -783,25 +852,195 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                   }}
                 />
 
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                   <label className="text-[11px] font-semibold text-[var(--ink-muted)]">
                     Duotone Accent Color
                   </label>
                   <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleHeroSlotUpdate("hero-secondary", "accentColor", "auto")}
+                      className={`px-2 py-0.5 text-[10px] font-mono rounded border transition-colors ${
+                        (photos.find((p) => p.role === "hero-secondary")?.accentColor || "auto") === "auto"
+                          ? "bg-[var(--accent)] text-[var(--accent-ink)] border-[var(--accent)] font-bold"
+                          : "bg-[var(--surface)] text-[var(--ink-muted)] border-[var(--line)] hover:text-[var(--ink)]"
+                      }`}
+                    >
+                      Auto (Theme-Adaptive)
+                    </button>
                     <input
                       type="color"
-                      value={photos.find((p) => p.role === "hero-secondary")?.accentColor || "#8AA2FF"}
+                      value={
+                        photos.find((p) => p.role === "hero-secondary")?.accentColor &&
+                        photos.find((p) => p.role === "hero-secondary")?.accentColor !== "auto"
+                          ? photos.find((p) => p.role === "hero-secondary")?.accentColor
+                          : "#8AA2FF"
+                      }
                       onChange={(e) => handleHeroSlotUpdate("hero-secondary", "accentColor", e.target.value)}
                       className="w-6 h-6 rounded border border-[var(--line)] cursor-pointer bg-transparent"
                     />
                     <input
                       type="text"
-                      value={photos.find((p) => p.role === "hero-secondary")?.accentColor || "#8AA2FF"}
+                      value={photos.find((p) => p.role === "hero-secondary")?.accentColor || "auto"}
                       onChange={(e) => handleHeroSlotUpdate("hero-secondary", "accentColor", e.target.value)}
-                      placeholder="#8AA2FF"
+                      placeholder="auto"
                       className="w-20 px-1.5 py-0.5 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
                     />
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Dedicated Hero Cutout Slots (Full-Bleed Cutout Hero Mode - Phase S) */}
+            <div className="p-5 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--line)] pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[var(--accent)]" />
+                    <h3 className="text-sm font-bold text-[var(--ink)]">
+                      Hero Cutout Slots (Full-Bleed Cutout Mode)
+                    </h3>
+                  </div>
+                  <p className="text-xs text-[var(--ink-muted)] mt-1">
+                    Upload transparent-background PNG or WebP cutouts (subject only, no background). Providing separate Light and Dark uploads ensures optimal contrast, grading, and crisp silhouettes across both light and dark themes.
+                  </p>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold shrink-0">
+                  CUTOUT HERO
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                {/* Light Theme Cutout */}
+                <div className="p-4 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface-2)] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#2F4BFF]" />
+                      <span className="font-bold text-xs text-[var(--ink)]">
+                        Light Theme Cutout
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                      DAY SHIFT &amp; MONO
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[var(--ink-muted)]">
+                    Graded for light background themes. Alpha transparent cutout required.
+                  </p>
+
+                  <CloudinaryUploadField
+                    label="Light Cutout Image (PNG/WebP)"
+                    value={heroCutout?.light?.publicId || ""}
+                    alt={heroCutout?.light?.alt || ""}
+                    accept="image/*"
+                    folder="devden/portraits"
+                    placeholderAlt="e.g. Asfakul architectural silhouette portrait (light)"
+                    onAltChange={(newAlt) => handleCutoutUpdate("light", "alt", newAlt)}
+                    onUploaded={(newId) => handleCutoutUpdate("light", "publicId", newId)}
+                    onDeleteOld={(oldId) => {
+                      if (!oldId.startsWith("data:")) {
+                        deleteCloudinaryAssetAction(oldId, "image");
+                      }
+                    }}
+                  />
+
+                  {/* Light Canvas Live Preview with Bottom Fade */}
+                  {heroCutout?.light?.publicId && (
+                    <div className="pt-2 flex flex-col items-center">
+                      <span className="text-[10px] font-mono text-[var(--ink-muted)] mb-1">
+                        LIGHT CANVAS PREVIEW (BOTTOM FADE)
+                      </span>
+                      <div
+                        className="relative w-36 h-48 bg-[#f4f6fa] rounded-[var(--r-sm)] border border-[var(--line)] overflow-hidden flex items-end justify-center"
+                        style={{
+                          maskImage: "linear-gradient(to bottom, black 65%, transparent 100%)",
+                          WebkitMaskImage: "linear-gradient(to bottom, black 65%, transparent 100%)",
+                        }}
+                      >
+                        {heroCutout.light.publicId.startsWith("data:") ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={heroCutout.light.publicId}
+                            alt={heroCutout.light.alt || "Light cutout preview"}
+                            className="w-full h-full object-contain object-bottom"
+                          />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={cldUrl(heroCutout.light.publicId)}
+                            alt={heroCutout.light.alt || "Light cutout preview"}
+                            className="w-full h-full object-contain object-bottom"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Dark Theme Cutout */}
+                <div className="p-4 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface-2)] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#FFE14D]" />
+                      <span className="font-bold text-xs text-[var(--ink)]">
+                        Dark Theme Cutout
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                      NIGHT CODER &amp; BLUEPRINT
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[var(--ink-muted)]">
+                    Graded for dark background themes. Alpha transparent cutout required.
+                  </p>
+
+                  <CloudinaryUploadField
+                    label="Dark Cutout Image (PNG/WebP)"
+                    value={heroCutout?.dark?.publicId || ""}
+                    alt={heroCutout?.dark?.alt || ""}
+                    accept="image/*"
+                    folder="devden/portraits"
+                    placeholderAlt="e.g. Asfakul architectural silhouette portrait (dark)"
+                    onAltChange={(newAlt) => handleCutoutUpdate("dark", "alt", newAlt)}
+                    onUploaded={(newId) => handleCutoutUpdate("dark", "publicId", newId)}
+                    onDeleteOld={(oldId) => {
+                      if (!oldId.startsWith("data:")) {
+                        deleteCloudinaryAssetAction(oldId, "image");
+                      }
+                    }}
+                  />
+
+                  {/* Dark Canvas Live Preview with Bottom Fade */}
+                  {heroCutout?.dark?.publicId && (
+                    <div className="pt-2 flex flex-col items-center">
+                      <span className="text-[10px] font-mono text-[var(--ink-muted)] mb-1">
+                        DARK CANVAS PREVIEW (BOTTOM FADE)
+                      </span>
+                      <div
+                        className="relative w-36 h-48 bg-[#0a0f1a] rounded-[var(--r-sm)] border border-[var(--line)] overflow-hidden flex items-end justify-center"
+                        style={{
+                          maskImage: "linear-gradient(to bottom, black 65%, transparent 100%)",
+                          WebkitMaskImage: "linear-gradient(to bottom, black 65%, transparent 100%)",
+                        }}
+                      >
+                        {heroCutout.dark.publicId.startsWith("data:") ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={heroCutout.dark.publicId}
+                            alt={heroCutout.dark.alt || "Dark cutout preview"}
+                            className="w-full h-full object-contain object-bottom"
+                          />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={cldUrl(heroCutout.dark.publicId)}
+                            alt={heroCutout.dark.alt || "Dark cutout preview"}
+                            className="w-full h-full object-contain object-bottom"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -983,15 +1222,31 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
 
                     {/* Previews Column: Split-Frame Sharp Rectangular Preview */}
                     <div className="flex flex-col items-center justify-center p-3 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] space-y-2">
-                      <span className="text-[10px] font-mono text-[var(--ink-muted)]">
-                        SPLIT FRAME PREVIEW
-                      </span>
+                      <div className="flex items-center justify-between w-full text-[9px] font-mono text-[var(--ink-muted)]">
+                        <span>PREVIEW IN:</span>
+                        <div className="flex items-center gap-1">
+                          {(["day-shift", "night-coder", "blueprint", "mono"] as const).map((t) => (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => setPreviewTheme(t)}
+                              className={`px-1 py-0.5 rounded uppercase text-[8px] ${
+                                previewTheme === t
+                                  ? "bg-[var(--accent)] text-[var(--accent-ink)] font-bold"
+                                  : "bg-[var(--surface-2)] text-[var(--ink-muted)] hover:text-[var(--ink)]"
+                              }`}
+                            >
+                              {t === "day-shift" ? "Day" : t === "night-coder" ? "Night" : t === "blueprint" ? "Blue" : "Mono"}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                       {photo.publicId ? (
                         <div className="relative w-32 h-40 rounded-bl-xl overflow-hidden border border-[var(--line)] bg-[var(--surface-2)]">
                           {photo.publicId.startsWith("data:") ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={photo.publicId}
+                              src={getDefaultIdentityPhotoSVG(previewTheme)}
                               alt={photo.alt}
                               className="w-full h-full object-cover"
                             />
@@ -1000,7 +1255,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                             <img
                               src={cldUrl(photo.publicId, {
                                 duotone: true,
-                                accent: photo.accentColor,
+                                accent: getThemeAccent(previewTheme, photo.accentColor),
                               })}
                               alt={photo.alt}
                               className="w-full h-full object-cover"
@@ -1013,7 +1268,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                         </div>
                       )}
                       <span className="text-[9px] font-mono text-[var(--ink-muted)]">
-                        Duotone Tinted
+                        Tint: {getThemeAccent(previewTheme, photo.accentColor)}
                       </span>
                     </div>
                   </div>

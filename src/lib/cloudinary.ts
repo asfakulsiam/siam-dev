@@ -90,8 +90,12 @@ export function getOptimizedCloudinaryUrl(
   const transforms: string[] = [];
 
   if (duotone) {
-    const cleanTint = (accent || "2f4bff").replace("#", "").trim();
-    transforms.push("e_grayscale", `e_tint:70:${cleanTint}`);
+    const rawTint = (accent || "2f4bff").replace("#", "").trim().toLowerCase();
+    if (rawTint === "000000" || rawTint === "mono" || rawTint === "grayscale") {
+      transforms.push("e_grayscale");
+    } else {
+      transforms.push("e_grayscale", `e_tint:70:${rawTint}`);
+    }
   }
 
   if (format) transforms.push(`f_${format}`);

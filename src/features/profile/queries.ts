@@ -32,6 +32,7 @@ async function fetchProfileData(): Promise<ProfileData> {
             ...p,
             role: (p.role as "hero-primary" | "hero-secondary" | "unassigned") || "unassigned",
           })),
+          heroCutout: sanitized.heroCutout || staticProfile.heroCutout,
           activePhotoId:
             sanitized.activePhotoId !== undefined
               ? sanitized.activePhotoId
