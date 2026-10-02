@@ -1,8 +1,9 @@
 "use client";
 
 import { useTransition } from "react";
-import { LogOut, Loader2 } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { logoutAction } from "@/lib/auth-actions";
+import { Button } from "@/components/ui/Button";
 
 export function AdminSignOutButton() {
   const [isPending, startTransition] = useTransition();
@@ -14,20 +15,19 @@ export function AdminSignOutButton() {
   };
 
   return (
-    <button
+    <Button
       type="button"
+      size="sm"
+      variant="outline"
       onClick={handleSignOut}
       disabled={isPending}
+      isLoading={isPending}
       title="Sign out of admin session"
       aria-label="Sign out"
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] hover:text-[var(--danger)] hover:border-[var(--danger)]/50 hover:bg-[var(--surface-2)] transition-colors disabled:opacity-50 cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--focus)]"
+      className="text-[var(--ink-muted)] hover:text-[var(--danger)] hover:border-[var(--danger)]/50"
     >
-      {isPending ? (
-        <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-      ) : (
-        <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
-      )}
+      <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
       <span className="hidden sm:inline">Sign out</span>
-    </button>
+    </Button>
   );
 }

@@ -137,3 +137,83 @@ The overlapping word is backed by a subtle inline frosted glass chip (`bg-[var(-
 - **1280px (Compact Desktop)**: Grid tracks gracefully adjust (`lg:grid-cols-[1.24fr_1fr]`), maintaining >= 48px clearance for CTAs.
 - **390px (Mobile)**: Clean vertical stack — photo renders first at full-width; headline and actions follow below. Desktop overlap word is suppressed on mobile to prevent layout collision.
 
+---
+
+## 6. Theme-Aware Photo Slots (Split Frame & Cutout — Phase U)
+
+- **Light/Dark Variant Pairs**: Both `heroPrimary` and `heroSecondary` photo slots (Split Frame) and `heroCutout` (Cutout mode) support distinct Light (`day-shift`, `mono`) and Dark (`night-coder`, `charcoal`, `blueprint`) photo uploads.
+- **Fallback Chain**:
+  - Dark themes: `slot.dark ?? slot.light ?? null`
+  - Light themes: `slot.light ?? slot.dark ?? null`
+  - Zero photos assigned: Gracefully renders clean text-only hero without blank panels or broken layout.
+- **Duotone Tint Resolution**: Resolved via `getThemeAccent(theme, photo.accentColor)`.
+  - Admin custom accent takes highest priority.
+  - "auto" resolves to the current theme's token accent (`#2F4BFF` for Day Shift, `#8AA2FF` for Night Coder / Charcoal, `#FFE14D` for Blueprint).
+  - For Mono (`#000000`), pure grayscale (`e_grayscale`) is preserved without applying an artificial colored tint.
+
+---
+
+## 7. Two-Component Interactive & Label System (Phase V)
+
+Every clickable element and small label/tag across the public site and admin traces back to one of two central design-system components, with zero arbitrary one-off dimensions:
+- **`Button` (`src/components/ui/Button.tsx`)**: For all interactive actions (clicks, submits, navigations, toggles, dismissals).
+- **`Badge` (`src/components/ui/Badge.tsx`)**: For all non-interactive small labels, categories, status indicators, and tags.
+
+> **Rule:** *If you need a small clickable or labeled element and neither of these fits, that's a sign to extend one of them, not to write new Tailwind classes inline.*
+
+### Button Component (`Button.tsx`)
+- Exports `<Button>` component and `buttonVariants()` helper for polymorphic elements (`<Link>`, `<a>`).
+- All sizes enforce standard touch/visual targets, token-driven typography, and `rounded-[var(--r-sm)]`.
+
+| Size | Height | Padding | Font Size | Gap | Usage |
+|---|---|---|---|---|---|
+| `xs` | `h-6` (24px) | `px-2.5` | `text-[11px]` | `gap-1` | Compact utility controls (copy email, dismiss, table action, close) |
+| `sm` | `h-8` (32px) | `px-3` | `text-xs` | `gap-1.5` | Secondary CTAs, header buttons, admin actions, filter tabs |
+| `md` | `h-10` (40px) | `px-4 py-2` | `text-sm` | `gap-2` | Default primary CTAs, form submissions, modal actions |
+| `lg` | `h-12` (48px) | `px-6 py-3` | `text-base` | `gap-2.5` | Hero primary showcase CTAs |
+
+| Variant | Styling / Tokens |
+|---|---|
+| `primary` | `bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90` |
+| `secondary` | `bg-[var(--surface-2)] text-[var(--ink)] hover:bg-[var(--line)]` |
+| `outline` | `border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)]` |
+| `ghost` | `text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-2)]` |
+| `danger` | `bg-[var(--danger)] text-[var(--danger-ink)] hover:opacity-90` |
+
+### Badge Component (`Badge.tsx`)
+- Semantic `<span>` with `rounded-[var(--r-pill)]`, tabular numerals, and monospace font.
+
+| Size | Padding | Font Size | Usage |
+|---|---|---|---|
+| `xs` | `px-1.5 py-0.2` | `text-[10px]` | Micro-indicators, slot badges, compact table metadata |
+| `sm` | `px-2.5 py-0.5` | `text-xs` | Default tags, categories, year indicators, project metrics |
+
+| Variant | Styling / Tokens |
+|---|---|
+| `default` | `bg-[var(--surface-2)] text-[var(--ink)] border border-[var(--line)]` |
+| `outline` | `border border-[var(--line)] text-[var(--ink-muted)] bg-transparent` |
+| `tag` | `bg-[var(--surface-2)] text-[var(--ink-muted)] border border-[var(--line)]` |
+| `success` | `bg-[var(--surface-2)] text-[var(--success)] border border-[var(--success)]/30` |
+| `warning` | `bg-[var(--surface-2)] text-[var(--warning)] border border-[var(--warning)]/30` |
+| `danger` | `bg-[var(--surface-2)] text-[var(--danger)] border border-[var(--danger)]/30` |
+| `text` | `text-[var(--ink-muted)] border-0 bg-transparent p-0` |
+
+---
+
+## 8. Smooth Color Theme Transitions via CSS Custom Properties
+
+When users switch between themes in `ThemeSwitcher`, colors interpolate mathematically rather than jumping abruptly or performing crude snapshot cross-fades:
+- **CSS Properties and Values API (`@property`)**:
+  - Registered core semantic tokens (`--bg`, `--surface`, `--surface-2`, `--ink`, `--ink-muted`, `--line`, `--accent`, `--accent-ink`, `--focus`, `--header-bg`, `--success`, `--warning`, `--danger`) with `syntax: "<color>"` and `inherits: true`.
+  - Enables the browser's CSS compositing engine to calculate intermediate in-between color values across all themes (e.g. Day Shift `#f4f6fa` transitioning through neutral gray into Charcoal `#151517`; Cobalt `#2f4bff` into Periwinkle `#8aa2ff`).
+- **Activation Lifecycle**:
+  - Triggered exclusively during explicit user theme switching in `ThemeSwitcher` by setting `data-theme-transitioning="true"` on `<html>`.
+  - Zero initial paint/hydration flash: Initial page load applies `data-theme` without `data-theme-transitioning`, preventing unwanted transitions during first paint.
+  - Duration: `var(--duration-base)` (400ms) with `var(--ease-out-expo)` easing (`cubic-bezier(0.16, 1, 0.3, 1)`).
+  - Automatically cleaned up after 450ms timeout.
+- **Accessibility & Reduced Motion**:
+  - Checks `(prefers-reduced-motion: reduce)` in both JS and CSS media queries.
+  - When reduced motion is preferred, transitions are omitted (`transition: none !important`), delivering instantaneous theme updates without motion.
+
+
+

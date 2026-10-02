@@ -18,6 +18,14 @@ export interface SplitHeroProps {
   overlapWord?: string;
   subheadline?: string;
   bio?: string;
+  heroPrimary?: {
+    light?: { publicId: string; alt: string; accentColor?: string };
+    dark?: { publicId: string; alt: string; accentColor?: string };
+  } | null;
+  heroSecondary?: {
+    light?: { publicId: string; alt: string; accentColor?: string };
+    dark?: { publicId: string; alt: string; accentColor?: string };
+  } | null;
   primaryPhoto?: { publicId: string; alt: string; accentColor?: string } | null;
   secondaryPhoto?: { publicId: string; alt: string; accentColor?: string } | null;
   metaRow: React.ReactNode;
@@ -30,6 +38,8 @@ export function SplitHero({
   overlapWord,
   subheadline,
   bio,
+  heroPrimary,
+  heroSecondary,
   primaryPhoto,
   secondaryPhoto,
   metaRow,
@@ -44,15 +54,42 @@ export function SplitHero({
   const primaryImgRef = useRef<HTMLDivElement>(null);
   const secondaryImgRef = useRef<HTMLDivElement>(null);
 
-  // Phase T: Theme-Aware Photo Resolution
-  const { theme } = useTheme();
-  const primaryAccent = getThemeAccent(theme, primaryPhoto?.accentColor);
-  const secondaryAccent = getThemeAccent(theme, secondaryPhoto?.accentColor);
+  // Phase U: Theme-Aware Photo Resolution using useTheme().isDark
+  // Mirror CutoutHero's exact fallback order:
+  // Dark theme → slot.dark ?? slot.light; Light theme → slot.light ?? slot.dark
+  const { theme, isDark } = useTheme();
+
+  const resolvedPrimary = isDark
+    ? heroPrimary?.dark?.publicId
+      ? heroPrimary.dark
+      : heroPrimary?.light?.publicId
+        ? heroPrimary.light
+        : primaryPhoto
+    : heroPrimary?.light?.publicId
+      ? heroPrimary.light
+      : heroPrimary?.dark?.publicId
+        ? heroPrimary.dark
+        : primaryPhoto;
+
+  const resolvedSecondary = isDark
+    ? heroSecondary?.dark?.publicId
+      ? heroSecondary.dark
+      : heroSecondary?.light?.publicId
+        ? heroSecondary.light
+        : secondaryPhoto
+    : heroSecondary?.light?.publicId
+      ? heroSecondary.light
+      : heroSecondary?.dark?.publicId
+        ? heroSecondary.dark
+        : secondaryPhoto;
+
+  const primaryAccent = getThemeAccent(theme, resolvedPrimary?.accentColor);
+  const secondaryAccent = getThemeAccent(theme, resolvedSecondary?.accentColor);
 
   // Extract main phrase and target overlap word from headline
   const { mainPhrase, targetOverlapWord } = useMemo(() => {
     const trimmed = (headline || "").trim();
-    if (!primaryPhoto) {
+    if (!resolvedPrimary?.publicId) {
       return { mainPhrase: trimmed, targetOverlapWord: "" };
     }
 
@@ -73,7 +110,7 @@ export function SplitHero({
     }
 
     return { mainPhrase: trimmed, targetOverlapWord: "" };
-  }, [headline, overlapWord, primaryPhoto]);
+  }, [headline, overlapWord, resolvedPrimary]);
 
   // Measured position for signature overlap word (Phase R)
   const overlapPos = useOverlapPosition(containerRef, headlineRef, primaryImgRef);
@@ -186,7 +223,7 @@ export function SplitHero({
     { scope: containerRef },
   );
 
-  const hasPhoto = Boolean(primaryPhoto?.publicId);
+  const hasPhoto = Boolean(resolvedPrimary?.publicId);
 
   return (
     <div ref={containerRef} className="w-full relative">
@@ -254,7 +291,7 @@ export function SplitHero({
         </div>
 
         {/* Right Column: Full-Bleed Photo Panel with Single Soft Corner & Overlap */}
-        {hasPhoto && primaryPhoto && (
+        {hasPhoto && resolvedPrimary && (
           <div ref={photoContainerRef} className="relative w-full order-first lg:order-last z-10">
             {/* 
               Primary Photo Panel:
@@ -266,20 +303,20 @@ export function SplitHero({
               ref={primaryImgRef}
               className="relative w-full h-[48vh] sm:h-[58vh] lg:h-[calc(100svh-4.5rem)] lg:-mr-[max(0px,calc((100vw-1440px)/2))] overflow-hidden rounded-bl-[32px] lg:rounded-bl-[40px] bg-[var(--surface-2)] select-none border-b border-l lg:border-t-0 lg:border-r-0 border-[var(--line)]"
             >
-              {primaryPhoto.publicId.startsWith("data:") ? (
+              {resolvedPrimary.publicId.startsWith("data:") ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={getDefaultIdentityPhotoSVG(theme)}
-                  alt={primaryPhoto.alt}
+                  alt={resolvedPrimary.alt}
                   className="w-full h-full object-cover object-center"
                 />
               ) : (
                 <Image
-                  src={cldUrl(primaryPhoto.publicId, {
+                  src={cldUrl(resolvedPrimary.publicId, {
                     duotone: true,
                     accent: primaryAccent,
                   })}
-                  alt={primaryPhoto.alt}
+                  alt={resolvedPrimary.alt}
                   fill
                   priority
                   sizes="(max-width: 1024px) 100vw, 47vw"
@@ -296,25 +333,25 @@ export function SplitHero({
               - Absent entirely when no secondary photo is assigned
               - Rotated -4deg with clean paper border
             */}
-            {secondaryPhoto && secondaryPhoto.publicId && (
+            {resolvedSecondary && resolvedSecondary.publicId && (
               <div
                 ref={secondaryImgRef}
                 className="hidden lg:block absolute bottom-6 -left-9 w-36 h-48 xl:w-44 xl:h-56 rotate-[-4deg] rounded-[var(--r-md)] overflow-hidden border-2 border-[var(--bg)] shadow-[var(--shadow-floating)] z-20 bg-[var(--surface-2)] select-none transition-transform duration-300 hover:rotate-0 hover:scale-105"
               >
-                {secondaryPhoto.publicId.startsWith("data:") ? (
+                {resolvedSecondary.publicId.startsWith("data:") ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={getDefaultSecondaryPhotoSVG(theme)}
-                    alt={secondaryPhoto.alt || ""}
+                    alt={resolvedSecondary.alt || ""}
                     className="w-full h-full object-cover object-center"
                   />
                 ) : (
                   <Image
-                    src={cldUrl(secondaryPhoto.publicId, {
+                    src={cldUrl(resolvedSecondary.publicId, {
                       duotone: true,
                       accent: secondaryAccent,
                     })}
-                    alt={secondaryPhoto.alt || ""}
+                    alt={resolvedSecondary.alt || ""}
                     fill
                     sizes="(max-width: 1280px) 150px, 180px"
                     className="object-cover object-center"

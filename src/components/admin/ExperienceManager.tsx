@@ -18,6 +18,8 @@ import {
   updateExperienceAction,
   deleteExperienceAction,
 } from "@/features/experience/actions";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 interface ExperienceManagerProps {
   initialItems: ExperienceDocument[];
@@ -210,14 +212,15 @@ export function ExperienceManager({
         </div>
 
         {activeTab === "experience" && (
-          <button
+          <Button
             type="button"
+            size="sm"
+            variant="primary"
             onClick={openCreateModal}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 transition-opacity cursor-pointer"
           >
-            <PlusCircle className="w-3.5 h-3.5" aria-hidden="true" />
+            <PlusCircle className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" />
             <span>Add Experience</span>
-          </button>
+          </Button>
         )}
       </div>
 
@@ -240,43 +243,41 @@ export function ExperienceManager({
             )}
             <span>{notification.message}</span>
           </div>
-          <button
+          <Button
             type="button"
+            size="xs"
+            variant="ghost"
             onClick={() => setNotification(null)}
-            className="underline hover:opacity-80 text-xs ml-4"
+            className="text-xs ml-4 h-auto p-1"
           >
             Dismiss
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Tab Switcher */}
       <div className="flex items-center gap-2 border-b border-[var(--line)] pb-2 text-xs">
-        <button
+        <Button
           type="button"
+          size="sm"
+          variant={activeTab === "experience" ? "secondary" : "ghost"}
           onClick={() => setActiveTab("experience")}
-          className={`px-3 py-1.5 rounded-[var(--r-sm)] font-semibold transition-colors flex items-center gap-1.5 ${
-            activeTab === "experience"
-              ? "bg-[var(--surface-2)] text-[var(--ink)] border border-[var(--line)]"
-              : "text-[var(--ink-muted)] hover:text-[var(--ink)]"
-          }`}
+          className="gap-1.5"
         >
           <Briefcase className="w-3.5 h-3.5" aria-hidden="true" />
           <span>Timeline Milestones ({items.length})</span>
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
+          size="sm"
+          variant={activeTab === "principles" ? "secondary" : "ghost"}
           onClick={() => setActiveTab("principles")}
-          className={`px-3 py-1.5 rounded-[var(--r-sm)] font-semibold transition-colors flex items-center gap-1.5 ${
-            activeTab === "principles"
-              ? "bg-[var(--surface-2)] text-[var(--ink)] border border-[var(--line)]"
-              : "text-[var(--ink-muted)] hover:text-[var(--ink)]"
-          }`}
+          className="gap-1.5"
         >
           <Lightbulb className="w-3.5 h-3.5" aria-hidden="true" />
           <span>Principles of Craft ({initialPrinciples.length})</span>
-        </button>
+        </Button>
       </div>
 
       {/* Tab 1: Experience Items */}
@@ -302,9 +303,9 @@ export function ExperienceManager({
                       <span className="text-xs font-semibold text-[var(--accent)]">
                         {item.organization}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--surface-2)] border border-[var(--line)] text-[var(--ink-muted)]">
+                      <Badge variant="tag">
                         {item.type}
-                      </span>
+                      </Badge>
                     </div>
 
                     <div className="flex items-center gap-3 text-xs text-[var(--ink-muted)] font-mono">
@@ -320,36 +321,41 @@ export function ExperienceManager({
                     {item.skills && item.skills.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 pt-1">
                         {item.skills.map((skill) => (
-                          <span
+                          <Badge
                             key={skill}
-                            className="px-2 py-0.5 rounded-[var(--r-sm)] bg-[var(--surface-2)] text-[10px] text-[var(--ink-muted)]"
+                            variant="tag"
+                            className="text-[10px]"
                           >
                             {skill}
-                          </span>
+                          </Badge>
                         ))}
                       </div>
                     )}
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0 self-end sm:self-start">
-                    <button
+                    <Button
                       type="button"
+                      size="xs"
+                      variant="outline"
                       onClick={() => openEditModal(item)}
                       title="Edit experience"
                       aria-label={`Edit ${item.role} at ${item.organization}`}
-                      className="p-1.5 rounded-[var(--r-sm)] border border-[var(--line)] hover:bg-[var(--surface-2)] text-[var(--ink)] transition-colors cursor-pointer"
+                      className="px-2"
                     >
                       <Edit3 className="w-3.5 h-3.5" aria-hidden="true" />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      size="xs"
+                      variant="outline"
                       onClick={() => setDeleteTarget(item)}
                       title="Delete experience"
                       aria-label={`Delete ${item.role} at ${item.organization}`}
-                      className="p-1.5 rounded-[var(--r-sm)] border border-[var(--line)] hover:bg-[var(--danger)]/10 text-[var(--ink-muted)] hover:text-[var(--danger)] hover:border-[var(--danger)]/40 transition-colors cursor-pointer"
+                      className="px-2 hover:text-[var(--danger)] hover:border-[var(--danger)]/40"
                     >
                       <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -560,22 +566,23 @@ export function ExperienceManager({
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--line)]">
-                <button
+                <Button
                   type="button"
+                  size="sm"
+                  variant="outline"
                   onClick={() => setIsCreatingNew(false)}
                   disabled={isSubmitting}
-                  className="px-3.5 py-2 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] hover:bg-[var(--surface-2)] text-[var(--ink)] transition-colors"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+                  size="sm"
+                  variant="primary"
+                  isLoading={isSubmitting}
                 >
-                  {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />}
-                  <span>{isSubmitting ? "Saving..." : editingItem ? "Update Milestone" : "Add Milestone"}</span>
-                </button>
+                  <span>{editingItem ? "Update Milestone" : "Add Milestone"}</span>
+                </Button>
               </div>
             </form>
           </div>
@@ -605,23 +612,24 @@ export function ExperienceManager({
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--line)]">
-              <button
+              <Button
                 type="button"
+                size="sm"
+                variant="outline"
                 onClick={() => setDeleteTarget(null)}
                 disabled={isDeleting}
-                className="px-3.5 py-2 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] hover:bg-[var(--surface-2)] text-[var(--ink)] transition-colors cursor-pointer disabled:opacity-50"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                size="sm"
+                variant="danger"
                 onClick={handleDeleteConfirm}
-                disabled={isDeleting}
-                className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--danger)] text-white hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+                isLoading={isDeleting}
               >
-                {isDeleting && <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />}
-                <span>{isDeleting ? "Deleting..." : "Confirm Delete"}</span>
-              </button>
+                <span>Confirm Delete</span>
+              </Button>
             </div>
           </div>
         </div>

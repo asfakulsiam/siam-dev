@@ -30,9 +30,9 @@ export function ProjectCard({ project, priority = false }: ProjectCardProps) {
           <Badge variant="outline" className="bg-[var(--surface)]/90 backdrop-blur-sm">
             {project.category}
           </Badge>
-          <span className="rounded-full bg-[var(--surface)]/90 backdrop-blur-sm px-2.5 py-0.5 text-xs font-mono text-[var(--ink-muted)] border border-[var(--line)]">
+          <Badge variant="outline" className="bg-[var(--surface)]/90 backdrop-blur-sm">
             {project.year}
-          </span>
+          </Badge>
         </div>
       </div>
 
@@ -70,17 +70,14 @@ export function ProjectCard({ project, priority = false }: ProjectCardProps) {
 
           <div className="flex flex-wrap items-center gap-1.5">
             {project.tags.slice(0, 4).map((tag) => (
-              <span
-                key={tag}
-                className="text-xs text-[var(--ink-muted)] font-mono bg-[var(--bg)] px-2 py-0.5 rounded-[var(--r-sm)] border border-[var(--line)]"
-              >
+              <Badge key={tag} variant="tag">
                 {tag}
-              </span>
+              </Badge>
             ))}
             {project.tags.length > 4 && (
-              <span className="text-xs text-[var(--ink-muted)] font-mono px-1">
+              <Badge variant="text">
                 +{project.tags.length - 4}
-              </span>
+              </Badge>
             )}
           </div>
         </div>

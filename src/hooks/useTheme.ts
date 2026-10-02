@@ -5,7 +5,6 @@ import { useSyncExternalStore } from "react";
 export type ThemeId =
   | "day-shift"
   | "charcoal"
-  | "night-coder-charcoal"
   | "night-coder"
   | "blueprint"
   | "mono";
@@ -36,10 +35,30 @@ function subscribeTheme(callback: () => void) {
   return () => observer.disconnect();
 }
 
+/**
+ * Normalizes any stored or legacy theme alias to one of the 5 canonical ThemeIds.
+ */
+export function normalizeThemeId(raw: string | null | undefined): ThemeId {
+  if (!raw) return "day-shift";
+  if (raw === "night-coder-charcoal" || raw === "charcoal-dark") {
+    return "charcoal";
+  }
+  if (
+    raw === "day-shift" ||
+    raw === "charcoal" ||
+    raw === "night-coder" ||
+    raw === "blueprint" ||
+    raw === "mono"
+  ) {
+    return raw;
+  }
+  return "day-shift";
+}
+
 function getThemeSnapshot(): ThemeId {
   if (typeof document === "undefined") return "day-shift";
-  const active = document.documentElement.getAttribute("data-theme") as ThemeId;
-  return active || "day-shift";
+  const active = document.documentElement.getAttribute("data-theme");
+  return normalizeThemeId(active);
 }
 
 function getServerThemeSnapshot(): ThemeId {

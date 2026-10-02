@@ -1,6 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 export type ProjectCategoryFilter =
   "All" | "Design Systems" | "Full-Stack" | "Web Applications" | "Open Source";
@@ -31,32 +33,31 @@ export function ProjectFilter({
         const count = counts[category] ?? 0;
 
         return (
-          <button
+          <Button
             key={category}
             role="tab"
             aria-selected={isSelected}
+            size="sm"
+            variant={isSelected ? "primary" : "outline"}
             onClick={() => {
               startTransition(() => {
                 onSelectCategory(category);
               });
             }}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-[var(--r-sm)] text-xs font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] ${
-              isSelected
-                ? "bg-[var(--accent)] text-[var(--accent-ink)] font-semibold shadow-sm"
-                : "bg-[var(--surface)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-2)] border border-[var(--line)]"
-            }`}
           >
             <span>{category}</span>
-            <span
-              className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+            <Badge
+              size="xs"
+              variant={isSelected ? "default" : "outline"}
+              className={
                 isSelected
-                  ? "bg-[var(--accent-ink)]/20 text-[var(--accent-ink)]"
-                  : "bg-[var(--bg)] text-[var(--ink-muted)]"
-              }`}
+                  ? "bg-[var(--accent-ink)]/20 text-[var(--accent-ink)] border-transparent"
+                  : "bg-[var(--bg)] text-[var(--ink-muted)] border-[var(--line)]"
+              }
             >
               {count}
-            </span>
-          </button>
+            </Badge>
+          </Button>
         );
       })}
     </div>

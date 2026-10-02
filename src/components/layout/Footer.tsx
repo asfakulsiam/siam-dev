@@ -7,6 +7,7 @@ import { ArrowUp, Copy, Check } from "lucide-react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { FooterWordmark } from "@/components/motion/FooterWordmark";
 import { ProfileData } from "@/features/profile/data";
+import { Button } from "@/components/ui/Button";
 
 interface FooterProps {
   profile?: ProfileData;
@@ -87,11 +88,12 @@ export function Footer({ profile }: FooterProps) {
               >
                 {email}
               </a>
-              <button
+              <Button
                 type="button"
+                size="xs"
+                variant="secondary"
                 onClick={handleCopyEmail}
                 aria-label="Copy email address to clipboard"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:bg-[var(--surface)] transition-colors"
               >
                 {copied ? (
                   <>
@@ -104,7 +106,7 @@ export function Footer({ profile }: FooterProps) {
                     <span>Copy email</span>
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           ) : null}
         </div>
@@ -241,15 +243,16 @@ export function Footer({ profile }: FooterProps) {
 
           <div className="flex items-center gap-4">
             <ThemeSwitcher />
-            <button
+            <Button
               type="button"
+              size="xs"
+              variant="outline"
               onClick={scrollToTop}
               aria-label="Back to top of page"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-[var(--r-sm)] border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors"
             >
               <span>Top</span>
               <ArrowUp className="w-3 h-3" aria-hidden="true" />
-            </button>
+            </Button>
           </div>
         </div>
       </div>

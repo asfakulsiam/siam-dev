@@ -27,6 +27,8 @@ import {
   importProjectFromGitHubAction,
   syncProjectFromGitHubAction,
 } from "@/features/projects/actions";
+import { Button, buttonVariants } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 interface ProjectFormProps {
   initialData?: Project;
@@ -514,22 +516,20 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/projects"
-            className="px-3.5 py-2 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-2)] text-[var(--ink)] transition-colors"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             Cancel
           </Link>
-          <button
+          <Button
             type="submit"
+            size="sm"
+            variant="primary"
             disabled={isPending}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-50 cursor-pointer"
+            isLoading={isPending}
           >
-            {isPending ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-            ) : (
-              <Save className="w-3.5 h-3.5" aria-hidden="true" />
-            )}
+            <Save className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
             <span>{isPending ? "Saving..." : isEdit ? "Save Changes" : "Create Project"}</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -552,13 +552,15 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             )}
             <span>{notification.message}</span>
           </div>
-          <button
+          <Button
             type="button"
+            size="xs"
+            variant="ghost"
             onClick={() => setNotification(null)}
-            className="underline hover:opacity-80 text-xs ml-4"
+            className="ml-4"
           >
             Dismiss
-          </button>
+          </Button>
         </div>
       )}
 
@@ -572,9 +574,9 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-bold text-[var(--ink)]">Import from GitHub with AI</h2>
-                <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface-2)] text-[var(--ink-muted)] border border-[var(--line)]">
+                <Badge variant="outline" size="xs" className="uppercase font-semibold">
                   Optional
-                </span>
+                </Badge>
               </div>
               <p className="text-xs text-[var(--ink-muted)] mt-0.5">
                 Inspect a public GitHub repository with Gemini 2.5 Flash to pre-fill the form fields below.
@@ -582,23 +584,25 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
+            size="sm"
+            variant="secondary"
             onClick={() => {
               setShowAiImport((prev) => !prev);
               setAiError(null);
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] hover:bg-[var(--surface)] text-[var(--ink)] transition-colors self-start sm:self-auto cursor-pointer"
             aria-expanded={showAiImport}
+            className="self-start sm:self-auto"
           >
-            <Github className="w-3.5 h-3.5" aria-hidden="true" />
+            <Github className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
             <span>{showAiImport ? "Close AI Importer" : "Generate with AI"}</span>
             {showAiImport ? (
-              <ChevronUp className="w-3.5 h-3.5 opacity-60" aria-hidden="true" />
+              <ChevronUp className="w-3.5 h-3.5 opacity-60 ml-1" aria-hidden="true" />
             ) : (
-              <ChevronDown className="w-3.5 h-3.5 opacity-60" aria-hidden="true" />
+              <ChevronDown className="w-3.5 h-3.5 opacity-60 ml-1" aria-hidden="true" />
             )}
-          </button>
+          </Button>
         </div>
 
         {showAiImport && (
@@ -664,35 +668,30 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                   Inspect README, metadata, and dependencies with Gemini 2.5 Flash to populate form fields or synchronize directly to CMS.
                 </p>
                 <div className="flex items-center gap-2 self-end sm:self-auto">
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
+                    variant="secondary"
                     onClick={handleSyncFromGitHub}
                     disabled={isSyncing || isAiAnalyzing || !aiRepoUrl.trim()}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] hover:bg-[var(--surface)] text-[var(--ink)] transition-colors disabled:opacity-50 cursor-pointer"
+                    isLoading={isSyncing}
                     title="Automatically sync latest GitHub README and metadata directly into CMS database"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} aria-hidden="true" />
+                    {!isSyncing && <RefreshCw className="w-3.5 h-3.5 mr-1" aria-hidden="true" />}
                     <span>{isSyncing ? "Syncing..." : "Auto-Sync to CMS"}</span>
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
+                    variant="primary"
                     onClick={handleAiImport}
                     disabled={isAiAnalyzing || isSyncing || !aiRepoUrl.trim()}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-50 cursor-pointer"
+                    isLoading={isAiAnalyzing}
                   >
-                    {isAiAnalyzing ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-                        <span>Analyzing repository...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-                        <span>Populate Form Fields</span>
-                      </>
-                    )}
-                  </button>
+                    {!isAiAnalyzing && <Sparkles className="w-3.5 h-3.5 mr-1" aria-hidden="true" />}
+                    <span>{isAiAnalyzing ? "Analyzing repository..." : "Populate Form Fields"}</span>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1042,14 +1041,16 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             <span className="text-xs font-semibold text-[var(--ink-muted)]">
               Architecture Decisions
             </span>
-            <button
+            <Button
               type="button"
+              size="xs"
+              variant="ghost"
               onClick={handleDecisionAdd}
-              className="inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline"
+              className="text-[var(--accent)]"
             >
-              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <Plus className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
               <span>Add Decision</span>
-            </button>
+            </Button>
           </div>
 
           {decisions.map((decision, index) => (
@@ -1080,14 +1081,16 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             <span className="text-xs font-semibold text-[var(--ink-muted)]">
               Measurable Metrics
             </span>
-            <button
+            <Button
               type="button"
+              size="xs"
+              variant="ghost"
               onClick={handleMetricAdd}
-              className="inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline"
+              className="text-[var(--accent)]"
             >
-              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <Plus className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
               <span>Add Metric</span>
-            </button>
+            </Button>
           </div>
 
           {metrics.map((m, index) => (
@@ -1330,14 +1333,16 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                 <span className="text-xs font-semibold text-[var(--ink)]">
                   Funnel Conversion Progression (D3.js Bar Chart)
                 </span>
-                <button
+                <Button
                   type="button"
+                  size="xs"
+                  variant="ghost"
                   onClick={handleConversionAdd}
-                  className="inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline"
+                  className="text-[var(--accent)]"
                 >
-                  <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+                  <Plus className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
                   <span>Add Funnel Stage</span>
-                </button>
+                </Button>
               </div>
 
               {conversionFunnel.map((step, idx) => (
@@ -1416,22 +1421,20 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
       <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--line)]">
         <Link
           href="/admin/projects"
-          className="px-4 py-2 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-2)] text-[var(--ink)] transition-colors"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
         >
           Cancel
         </Link>
-        <button
+        <Button
           type="submit"
+          size="sm"
+          variant="primary"
           disabled={isPending}
-          className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-50 cursor-pointer"
+          isLoading={isPending}
         >
-          {isPending ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-          ) : (
-            <Save className="w-3.5 h-3.5" aria-hidden="true" />
-          )}
+          <Save className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
           <span>{isPending ? "Saving..." : isEdit ? "Save Changes" : "Create Project"}</span>
-        </button>
+        </Button>
       </div>
     </form>
   );

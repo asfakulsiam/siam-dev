@@ -2,14 +2,10 @@
 
 import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { Palette, Check } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { ThemeId, normalizeThemeId } from "@/hooks/useTheme";
 
-export type ThemeId =
-  | "day-shift"
-  | "charcoal"
-  | "night-coder-charcoal"
-  | "night-coder"
-  | "blueprint"
-  | "mono";
+export type { ThemeId };
 
 interface ThemeOption {
   id: ThemeId;
@@ -46,8 +42,8 @@ function subscribeTheme(callback: () => void) {
 
 function getThemeSnapshot(): ThemeId {
   if (typeof document === "undefined") return "day-shift";
-  const active = document.documentElement.getAttribute("data-theme") as ThemeId;
-  return active && THEMES.some((t) => t.id === active) ? active : "day-shift";
+  const active = document.documentElement.getAttribute("data-theme");
+  return normalizeThemeId(active);
 }
 
 function getServerThemeSnapshot(): ThemeId {
@@ -62,6 +58,16 @@ export function ThemeSwitcher() {
   );
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up any pending transition timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Close dropdown on outside click or escape
   useEffect(() => {
@@ -89,62 +95,76 @@ export function ThemeSwitcher() {
   }, [isOpen]);
 
   const switchTheme = (theme: ThemeId) => {
-    const apply = () => {
-      document.documentElement.setAttribute("data-theme", theme);
-      try {
-        localStorage.setItem("devden-theme", theme);
-      } catch {
-        // Safe storage fallback
-      }
-
-      // Keep <meta name="theme-color"> in sync with current theme background
-      const themeColors: Record<string, string> = {
-        "day-shift": "#f4f6fa",
-        "night-coder": "#0a0f1a",
-        "charcoal": "#151517",
-        "night-coder-charcoal": "#151517",
-        "blueprint": "#1f33e6",
-        "mono": "#ffffff",
-      };
-      let metaTheme = document.querySelector('meta[name="theme-color"]:not([media])');
-      if (!metaTheme) {
-        metaTheme = document.createElement("meta");
-        metaTheme.setAttribute("name", "theme-color");
-        document.head.appendChild(metaTheme);
-      }
-      if (themeColors[theme]) {
-        metaTheme.setAttribute("content", themeColors[theme]);
-      }
-
+    if (theme === currentTheme) {
       setIsOpen(false);
-    };
-
-    // Progressive enhancement with View Transitions API if supported
-    if ("startViewTransition" in document && typeof document.startViewTransition === "function") {
-      document.startViewTransition(() => {
-        apply();
-      });
-    } else {
-      apply();
+      return;
     }
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Trigger smooth custom property color interpolation if reduced motion is not preferred
+    if (!prefersReducedMotion && typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme-transitioning", "true");
+
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+
+      // 400ms matches --duration-base, 450ms allows full settle before cleanup
+      transitionTimeoutRef.current = setTimeout(() => {
+        document.documentElement.removeAttribute("data-theme-transitioning");
+        transitionTimeoutRef.current = null;
+      }, 450);
+    }
+
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem("devden-theme", theme);
+    } catch {
+      // Safe storage fallback
+    }
+
+    // Keep <meta name="theme-color"> in sync with current theme background
+    const themeColors: Record<string, string> = {
+      "day-shift": "#f4f6fa",
+      "night-coder": "#0a0f1a",
+      "charcoal": "#151517",
+      "night-coder-charcoal": "#151517",
+      "blueprint": "#1f33e6",
+      "mono": "#ffffff",
+    };
+    let metaTheme = document.querySelector('meta[name="theme-color"]:not([media])');
+    if (!metaTheme) {
+      metaTheme = document.createElement("meta");
+      metaTheme.setAttribute("name", "theme-color");
+      document.head.appendChild(metaTheme);
+    }
+    if (themeColors[theme]) {
+      metaTheme.setAttribute("content", themeColors[theme]);
+    }
+
+    setIsOpen(false);
   };
 
   return (
     <div ref={containerRef} className="relative inline-block text-left">
-      <button
+      <Button
         type="button"
+        size="sm"
+        variant="outline"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-expanded={isOpen}
         aria-haspopup="true"
         aria-label={`Current theme is ${currentTheme}. Click to switch theme.`}
-        className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors focus-visible:outline-2"
         data-cursor-text="Theme"
       >
         <Palette className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
         <span className="hidden sm:inline capitalize font-medium">
           {currentTheme.replace("-", " ")}
         </span>
-      </button>
+      </Button>
 
       {isOpen && (
         <div

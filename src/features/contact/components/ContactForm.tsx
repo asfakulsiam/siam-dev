@@ -189,14 +189,16 @@ export function ContactForm({ memes, fallbackEmail }: ContactFormProps) {
               Your message was sent successfully. Average reply time is under 48 hours.
             </p>
           </div>
-          <button
+          <Button
             type="button"
+            size="xs"
+            variant="ghost"
             onClick={() => setShowToast(false)}
             aria-label="Dismiss notification"
-            className="p-1 rounded-[var(--r-sm)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors"
+            className="p-1 h-auto"
           >
             <X className="w-4 h-4" aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -212,15 +214,17 @@ export function ContactForm({ memes, fallbackEmail }: ContactFormProps) {
           }}
         >
           <div className="relative w-full max-w-md rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-8 text-center space-y-5 shadow-[var(--shadow-floating)] animate-in zoom-in-95 duration-150">
-            <button
+            <Button
               ref={modalCloseBtnRef}
               type="button"
+              size="xs"
+              variant="outline"
               onClick={() => setShowModal(false)}
               aria-label="Close success dialog"
-              className="absolute top-4 right-4 p-1.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
+              className="absolute top-4 right-4 p-1.5 h-auto"
             >
               <X className="w-4 h-4" aria-hidden="true" />
-            </button>
+            </Button>
 
             <div className="flex justify-center">
               <MemeState asset={memeAssets.success} maxLoops={3} />

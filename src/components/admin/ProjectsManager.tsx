@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { Project } from "@/features/projects/types";
 import { togglePublishAction, deleteProjectAction } from "@/features/projects/actions";
+import { Button, buttonVariants } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 interface ProjectsManagerProps {
   initialProjects: Project[];
@@ -134,7 +136,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
 
         <Link
           href="/admin/projects/new"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 transition-opacity focus-visible:outline-2 focus-visible:outline-[var(--focus)]"
+          className={buttonVariants({ variant: "primary", size: "sm", className: "gap-1.5" })}
         >
           <PlusCircle className="w-3.5 h-3.5" aria-hidden="true" />
           <span>New Project</span>
@@ -287,9 +289,9 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
 
                       {/* Category */}
                       <td className="py-3 px-4 text-[var(--ink-muted)]">
-                        <span className="px-2 py-0.5 rounded-[var(--r-sm)] bg-[var(--surface-2)] border border-[var(--line)] text-[11px]">
+                        <Badge variant="tag">
                           {project.category}
-                        </span>
+                        </Badge>
                       </td>
 
                       {/* Year */}
@@ -314,16 +316,18 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
 
                       {/* Visibility Toggle Switch */}
                       <td className="py-3 px-4">
-                        <button
+                        <Button
                           type="button"
+                          size="xs"
+                          variant="outline"
                           role="switch"
                           aria-checked={isPublished}
                           disabled={isPending}
                           onClick={() => handleTogglePublish(project.slug, isPublished)}
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer disabled:opacity-50 ${
+                          className={`rounded-[var(--r-pill)] font-semibold ${
                             isPublished
-                              ? "bg-[var(--success)]/15 text-[var(--success)] border border-[var(--success)]/30 hover:bg-[var(--success)]/25"
-                              : "bg-[var(--ink-muted)]/15 text-[var(--ink-muted)] border border-[var(--line)] hover:bg-[var(--ink-muted)]/25"
+                              ? "bg-[var(--success)]/15 text-[var(--success)] border-[var(--success)]/30 hover:bg-[var(--success)]/25"
+                              : "bg-[var(--ink-muted)]/15 text-[var(--ink-muted)] border-[var(--line)] hover:bg-[var(--ink-muted)]/25"
                           }`}
                         >
                           {isPending ? (
@@ -337,7 +341,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
                             />
                           )}
                           <span>{isPublished ? "Published" : "Draft"}</span>
-                        </button>
+                        </Button>
                       </td>
 
                       {/* Actions */}
@@ -350,7 +354,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
                               rel="noopener noreferrer"
                               title="View on live site"
                               aria-label={`View ${project.title} on site`}
-                              className="p-1.5 rounded-[var(--r-sm)] border border-[var(--line)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors"
+                              className={buttonVariants({ variant: "outline", size: "xs", className: "px-2" })}
                             >
                               <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                             </Link>
@@ -360,20 +364,22 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
                             href={`/admin/projects/${project.slug}`}
                             title="Edit project details"
                             aria-label={`Edit ${project.title}`}
-                            className="p-1.5 rounded-[var(--r-sm)] border border-[var(--line)] text-[var(--ink)] hover:text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[var(--surface-2)] transition-colors"
+                            className={buttonVariants({ variant: "outline", size: "xs", className: "px-2" })}
                           >
                             <Edit3 className="w-3.5 h-3.5" aria-hidden="true" />
                           </Link>
 
-                          <button
+                          <Button
                             type="button"
+                            size="xs"
+                            variant="outline"
                             onClick={() => setDeleteTarget(project)}
                             title="Delete project"
                             aria-label={`Delete ${project.title}`}
-                            className="p-1.5 rounded-[var(--r-sm)] border border-[var(--line)] text-[var(--ink-muted)] hover:text-[var(--danger)] hover:border-[var(--danger)]/50 hover:bg-[var(--danger)]/10 transition-colors cursor-pointer"
+                            className="px-2 text-[var(--ink-muted)] hover:text-[var(--danger)] hover:border-[var(--danger)]/50"
                           >
                             <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -411,23 +417,25 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--line)]">
-              <button
+              <Button
                 type="button"
+                size="sm"
+                variant="outline"
                 onClick={() => setDeleteTarget(null)}
                 disabled={isDeleting}
-                className="px-3.5 py-2 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] hover:bg-[var(--surface-2)] text-[var(--ink)] transition-colors cursor-pointer disabled:opacity-50"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                size="sm"
+                variant="danger"
                 onClick={handleDeleteConfirm}
                 disabled={isDeleting}
-                className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--danger)] text-white hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+                isLoading={isDeleting}
               >
-                {isDeleting && <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />}
-                <span>{isDeleting ? "Deleting..." : "Confirm Delete"}</span>
-              </button>
+                <span>Confirm Delete</span>
+              </Button>
             </div>
           </div>
         </div>

@@ -27,6 +27,8 @@ import { updateSettingsAction } from "@/features/appearance/actions";
 import { MemeState } from "@/components/motion/MemeState";
 import { CloudinaryUploadField } from "@/components/admin/CloudinaryUploadField";
 import { deleteCloudinaryAssetAction } from "@/lib/cloudinary-actions";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 interface AppearanceManagerProps {
   initialSettings: SettingsDocument;
@@ -214,23 +216,15 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
           </p>
         </div>
 
-        <button
+        <Button
           type="submit"
-          disabled={isSubmitting}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-[var(--focus)]"
+          variant="primary"
+          size="md"
+          isLoading={isSubmitting}
         >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Saving Changes...</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4" />
-              <span>Save Appearance</span>
-            </>
-          )}
-        </button>
+          <Save className="w-4 h-4 mr-1.5" />
+          <span>Save Appearance</span>
+        </Button>
       </div>
 
       {/* Live Feedback Alert */}
@@ -240,13 +234,13 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
           className={`flex items-center gap-3 p-4 rounded-[var(--r-sm)] border text-sm ${
             feedback.type === "success"
               ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--ink)]"
-              : "bg-red-500/10 border-red-500 text-red-400"
+              : "bg-[var(--danger)]/10 border-[var(--danger)] text-[var(--danger)]"
           }`}
         >
           {feedback.type === "success" ? (
             <CheckCircle2 className="w-5 h-5 text-[var(--accent)] shrink-0" />
           ) : (
-            <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+            <AlertCircle className="w-5 h-5 text-[var(--danger)] shrink-0" />
           )}
           <p className="font-medium">{feedback.message}</p>
         </div>
@@ -342,9 +336,9 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
                 <span className="font-bold text-sm text-[var(--ink)]">
                   Full-Bleed Cutout (New Default)
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold">
+                <Badge variant="default" className="bg-[var(--accent)] text-[var(--accent-ink)] border-[var(--accent)] font-bold text-[10px]">
                   RECOMMENDED
-                </span>
+                </Badge>
               </div>
               <p className="text-xs text-[var(--muted)] leading-relaxed">
                 Large, confident photo-dominant hero with transparent background cutout. Subject extends past the fold with soft structural fade into whichever theme is active.
@@ -376,9 +370,9 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
                 <span className="font-bold text-sm text-[var(--ink)]">
                   Split Frame (Two-Photo)
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface-2)] text-[var(--ink)] border border-[var(--line)] font-semibold">
+                <Badge variant="default" className="text-[10px] font-semibold">
                   FIGMA V9 SPEC
-                </span>
+                </Badge>
               </div>
               <p className="text-xs text-[var(--muted)] leading-relaxed">
                 Asymmetric split (~53% editorial text, ~47% bleed photo panel with single soft bottom-left corner), signature measured overlap word, and optional tilted secondary card.
@@ -419,24 +413,26 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
                       <span className="font-bold text-sm text-[var(--ink)]">
                         {slot.label}
                       </span>
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-[var(--r-sm)] bg-[var(--surface-hover)] border border-[var(--line)] text-[var(--muted)]">
+                      <Badge variant="outline" className="text-[10px] uppercase font-mono">
                         {slot.context}
-                      </span>
+                      </Badge>
                     </div>
                     <p className="text-xs text-[var(--muted)] mt-0.5">
                       {slot.description}
                     </p>
                   </div>
 
-                  <button
+                  <Button
                     type="button"
+                    size="xs"
+                    variant="ghost"
                     onClick={() => resetToDefaultMeme(slot.key)}
-                    className="inline-flex items-center gap-1 text-[11px] font-mono text-[var(--accent)] hover:underline shrink-0"
+                    className="text-[var(--accent)] hover:underline shrink-0 font-mono text-[11px]"
                     title="Reset to default vector SVG"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>Reset</span>
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Main Inputs & Preview Grid */}
@@ -468,7 +464,7 @@ export function AppearanceManager({ initialSettings }: AppearanceManagerProps) {
                             },
                           }));
                         }}
-                        className="w-full text-xs rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--bg)] px-2.5 py-1.5 text-[var(--ink)] focus:outline-[var(--focus)]"
+                        className="w-full px-2.5 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:outline-[var(--focus)]"
                       >
                         <option value="image">Image / SVG / Still</option>
                         <option value="video">Short Video Loop (MP4/WebM ≤3s)</option>

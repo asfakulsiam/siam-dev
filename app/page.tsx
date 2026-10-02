@@ -64,7 +64,7 @@ export default async function HomePage() {
   );
 
   const heroActions = (
-    <div className="flex flex-wrap items-center gap-4 pt-2">
+    <div className="flex flex-wrap items-center gap-3.5 pt-1">
       <Link href="/work">
         <Button size="lg" variant="primary" data-cursor-text="View">
           <span>Explore Work</span>
@@ -76,25 +76,21 @@ export default async function HomePage() {
           Get in Touch
         </Button>
       </Link>
-      <Link href="/about">
-        <Button size="lg" variant="ghost">
-          About &amp; Experience
-        </Button>
-      </Link>
     </div>
   );
 
   return (
     <main id="main-content" className="flex-1 flex flex-col">
       {/* 1. Hero Section (100svh) — Admin-Switchable Presentation (Cutout vs Split Frame) */}
-      <section className="min-h-[100svh] flex flex-col justify-between pt-24 pb-8 relative overflow-hidden">
-        <Container className="flex-1 flex flex-col justify-end pb-4 relative z-10">
+      <section className="min-h-[100svh] flex flex-col justify-between pt-16 sm:pt-20 pb-4 sm:pb-6 relative overflow-hidden">
+        <Container className="flex-1 flex flex-col justify-center pb-2 sm:pb-4 relative z-10">
           {heroStyle === "cutout" ? (
             <CutoutHero
               name={profile.name}
               headline={profile.headline}
               subheadline={profile.subheadline}
               bio={profile.bio}
+              heroProfiles={profile.heroProfiles}
               cutout={profile.heroCutout}
               cutoutPhoto={profile.heroCutout?.light ?? null}
               metaRow={heroMetaRow}
@@ -106,6 +102,8 @@ export default async function HomePage() {
               headline={profile.headline}
               subheadline={profile.subheadline}
               bio={profile.bio}
+              heroPrimary={profile.heroPrimary}
+              heroSecondary={profile.heroSecondary}
               primaryPhoto={primaryPhoto}
               secondaryPhoto={secondaryPhoto}
               metaRow={heroMetaRow}
@@ -115,7 +113,7 @@ export default async function HomePage() {
         </Container>
 
         {/* Scroll Cue */}
-        <Container className="pt-8 border-t border-[var(--line)] flex items-center justify-between text-xs text-[var(--ink-muted)]">
+        <Container className="pt-4 sm:pt-6 border-t border-[var(--line)] flex items-center justify-between text-xs text-[var(--ink-muted)]">
           <div className="flex items-center gap-2 font-mono">
             <ArrowDown
               className="w-3.5 h-3.5 animate-bounce text-[var(--accent)]"

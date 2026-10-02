@@ -7,6 +7,7 @@ import { Menu, ArrowUpRight } from "lucide-react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { MobileSheet } from "./MobileSheet";
 import { ProfileData } from "@/features/profile/data";
+import { Button, buttonVariants } from "@/components/ui/Button";
 
 const DESKTOP_NAV_LINKS = [
   { href: "/work", label: "Work" },
@@ -132,7 +133,11 @@ export function Header({ profile }: HeaderProps) {
               href={profile?.resume?.url || "https://drive.google.com"}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)] hover:border-[var(--ink)] transition-colors"
+              className={buttonVariants({
+                variant: "outline",
+                size: "sm",
+                className: "hidden sm:inline-flex gap-1.5",
+              })}
               data-cursor-text="Resume"
             >
               <span>Resume</span>
@@ -140,14 +145,16 @@ export function Header({ profile }: HeaderProps) {
             </a>
 
             {/* Mobile Menu Trigger */}
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant="outline"
               onClick={() => setIsMobileOpen(true)}
               aria-label="Open navigation menu"
-              className="md:hidden p-2 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors"
+              className="md:hidden px-2"
             >
               <Menu className="w-4 h-4" aria-hidden="true" />
-            </button>
+            </Button>
           </div>
         </div>
       </header>

@@ -3,6 +3,7 @@
 import { useState, useRef, useId } from "react";
 import { UploadCloud, CheckCircle2, AlertCircle, Loader2, Image as ImageIcon, Video, X, Copy } from "lucide-react";
 import { cldUrl } from "@/lib/cloudinary";
+import { Button } from "@/components/ui/Button";
 
 function getDisplayPublicId(val: string): string {
   if (!val) return "";
@@ -213,24 +214,17 @@ export function CloudinaryUploadField({
 
           {/* Trigger Button & State */}
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant="primary"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 disabled:opacity-50 transition-opacity focus-visible:outline-2 focus-visible:outline-[var(--focus)]"
+              isLoading={isUploading}
             >
-              {isUploading ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-                  <span>Uploading to Cloudinary...</span>
-                </>
-              ) : (
-                <>
-                  <UploadCloud className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>{value ? "Replace File" : "Choose File to Upload"}</span>
-                </>
-              )}
-            </button>
+              <UploadCloud className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
+              <span>{value ? "Replace File" : "Choose File to Upload"}</span>
+            </Button>
 
             <span className="text-[11px] text-[var(--ink-muted)]">
               {accept.includes("video") ? "MP4/WebM ≤100MB" : "Images ≤10MB"}
@@ -238,13 +232,15 @@ export function CloudinaryUploadField({
           </div>
 
           {/* Quick toggle for manual publicId / URL entry */}
-          <button
+          <Button
             type="button"
+            size="xs"
+            variant="ghost"
             onClick={() => setShowManualInput((prev) => !prev)}
-            className="text-[11px] text-[var(--accent)] hover:underline shrink-0 font-mono"
+            className="text-[var(--accent)] font-mono text-[11px]"
           >
             {showManualInput ? "Hide manual ID" : "Paste ID / URL"}
-          </button>
+          </Button>
         </div>
 
         {/* Upload Progress Bar */}
@@ -335,8 +331,10 @@ export function CloudinaryUploadField({
                 style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}
               />
               {value && (
-                <button
+                <Button
                   type="button"
+                  size="xs"
+                  variant="ghost"
                   onClick={() => {
                     navigator.clipboard.writeText(value);
                     setCopied(true);
@@ -344,14 +342,14 @@ export function CloudinaryUploadField({
                   }}
                   title="Copy full value"
                   aria-label="Copy full value"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--ink-muted)] hover:text-[var(--ink)]"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1 h-auto"
                 >
                   {copied ? (
                     <CheckCircle2 className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                   )}
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -363,22 +361,25 @@ export function CloudinaryUploadField({
             className={`flex items-center gap-2 p-2 rounded-[var(--r-sm)] text-xs ${
               statusMessage.type === "success"
                 ? "bg-[var(--accent)]/10 text-[var(--ink)] border border-[var(--accent)]/30"
-                : "bg-red-500/10 text-red-400 border border-red-500/30"
+                : "bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/30"
             }`}
           >
             {statusMessage.type === "success" ? (
               <CheckCircle2 className="w-4 h-4 text-[var(--accent)] shrink-0" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+              <AlertCircle className="w-4 h-4 text-[var(--danger)] shrink-0" />
             )}
             <span className="flex-1">{statusMessage.text}</span>
-            <button
+            <Button
               type="button"
+              size="xs"
+              variant="ghost"
               onClick={() => setStatusMessage(null)}
-              className="p-0.5 hover:opacity-70"
+              className="p-0.5 h-auto hover:opacity-70"
+              aria-label="Dismiss status message"
             >
               <X className="w-3 h-3" />
-            </button>
+            </Button>
           </div>
         )}
       </div>

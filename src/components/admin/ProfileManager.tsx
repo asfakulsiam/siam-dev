@@ -29,6 +29,8 @@ import { CloudinaryUploadField } from "@/components/admin/CloudinaryUploadField"
 import { deleteCloudinaryAssetAction } from "@/lib/cloudinary-actions";
 import { PortraitFrame, DEFAULT_AVATAR_PUBLIC_ID } from "@/components/ui/PortraitFrame";
 import { ThemeId, getThemeAccent } from "@/hooks/useTheme";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 const PRESET_ACCENTS = [
   { label: "Auto (Theme-Adaptive)", hex: "auto" },
@@ -125,6 +127,80 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         alt: field === "alt" ? val : prev?.[variant]?.alt || "",
       },
     }));
+  };
+
+  // Hero Photo Slots (Light & Dark Variants for Split Frame Mode - Phase U)
+  const [heroPrimary, setHeroPrimary] = useState<{
+    light?: { publicId: string; alt: string; accentColor?: string };
+    dark?: { publicId: string; alt: string; accentColor?: string };
+  }>(() => {
+    const legacyPrimary = initialProfile.photos?.find((p) => p.role === "hero-primary");
+    return (
+      initialProfile.heroPrimary || {
+        light: {
+          publicId: legacyPrimary?.publicId || "",
+          alt: legacyPrimary?.alt || "",
+          accentColor: legacyPrimary?.accentColor || "auto",
+        },
+        dark: { publicId: "", alt: "", accentColor: "auto" },
+      }
+    );
+  });
+
+  const [heroSecondary, setHeroSecondary] = useState<{
+    light?: { publicId: string; alt: string; accentColor?: string };
+    dark?: { publicId: string; alt: string; accentColor?: string };
+  }>(() => {
+    const legacySecondary = initialProfile.photos?.find((p) => p.role === "hero-secondary");
+    return (
+      initialProfile.heroSecondary || {
+        light: {
+          publicId: legacySecondary?.publicId || "",
+          alt: legacySecondary?.alt || "",
+          accentColor: legacySecondary?.accentColor || "auto",
+        },
+        dark: { publicId: "", alt: "", accentColor: "auto" },
+      }
+    );
+  });
+
+  const handleHeroSlotVariantUpdate = (
+    slot: "heroPrimary" | "heroSecondary",
+    variant: "light" | "dark",
+    field: "publicId" | "alt" | "accentColor",
+    val: string,
+  ) => {
+    const setter = slot === "heroPrimary" ? setHeroPrimary : setHeroSecondary;
+    setter((prev) => ({
+      ...prev,
+      [variant]: {
+        publicId: field === "publicId" ? val : prev?.[variant]?.publicId || "",
+        alt: field === "alt" ? val : prev?.[variant]?.alt || "",
+        accentColor: field === "accentColor" ? val : prev?.[variant]?.accentColor || "auto",
+      },
+    }));
+
+    // If updating light variant, sync into legacy photos array for backward compatibility
+    if (variant === "light") {
+      const targetRole = slot === "heroPrimary" ? "hero-primary" : "hero-secondary";
+      setPhotos((prev) => {
+        const existsIndex = prev.findIndex((p) => p.role === targetRole);
+        if (existsIndex >= 0) {
+          return prev.map((p, i) => (i === existsIndex ? { ...p, [field]: val } : p));
+        }
+        if (field === "publicId" && val) {
+          const newPhoto: Photo = {
+            publicId: val,
+            alt: targetRole === "hero-primary" ? "Primary hero portrait" : "Secondary hero portrait",
+            mood: "candid",
+            accentColor: "auto",
+            role: targetRole,
+          };
+          return [newPhoto, ...prev];
+        }
+        return prev;
+      });
+    }
   };
 
   // "Now" fields
@@ -271,6 +347,48 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         : {}),
     };
 
+    const cleanHeroPrimary = {
+      ...(heroPrimary?.light?.publicId?.trim()
+        ? {
+            light: {
+              publicId: heroPrimary.light.publicId.trim(),
+              alt: heroPrimary.light.alt?.trim() || "Primary hero photo (light)",
+              accentColor: heroPrimary.light.accentColor?.trim() || "auto",
+            },
+          }
+        : {}),
+      ...(heroPrimary?.dark?.publicId?.trim()
+        ? {
+            dark: {
+              publicId: heroPrimary.dark.publicId.trim(),
+              alt: heroPrimary.dark.alt?.trim() || "Primary hero photo (dark)",
+              accentColor: heroPrimary.dark.accentColor?.trim() || "auto",
+            },
+          }
+        : {}),
+    };
+
+    const cleanHeroSecondary = {
+      ...(heroSecondary?.light?.publicId?.trim()
+        ? {
+            light: {
+              publicId: heroSecondary.light.publicId.trim(),
+              alt: heroSecondary.light.alt?.trim() || "Secondary hero photo (light)",
+              accentColor: heroSecondary.light.accentColor?.trim() || "auto",
+            },
+          }
+        : {}),
+      ...(heroSecondary?.dark?.publicId?.trim()
+        ? {
+            dark: {
+              publicId: heroSecondary.dark.publicId.trim(),
+              alt: heroSecondary.dark.alt?.trim() || "Secondary hero photo (dark)",
+              accentColor: heroSecondary.dark.accentColor?.trim() || "auto",
+            },
+          }
+        : {}),
+    };
+
     const payload = {
       name: name.trim(),
       headline: headline.trim(),
@@ -295,6 +413,8 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       },
       toolbox,
       photos,
+      heroPrimary: Object.keys(cleanHeroPrimary).length > 0 ? cleanHeroPrimary : undefined,
+      heroSecondary: Object.keys(cleanHeroSecondary).length > 0 ? cleanHeroSecondary : undefined,
       heroCutout: Object.keys(cleanHeroCutout).length > 0 ? cleanHeroCutout : undefined,
       activePhotoId: activePhotoId || (photos.length > 0 ? photos[0]?.publicId : DEFAULT_AVATAR_PUBLIC_ID),
     };
@@ -373,19 +493,17 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
           </p>
         </div>
 
-        <button
+        <Button
           type="button"
+          size="sm"
+          variant="primary"
           onClick={handleSaveProfile}
           disabled={isPending}
-          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-50 cursor-pointer"
+          isLoading={isPending}
         >
-          {isPending ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-          ) : (
-            <Save className="w-3.5 h-3.5" aria-hidden="true" />
-          )}
-          <span>{isPending ? "Saving..." : "Save All Changes"}</span>
-        </button>
+          <Save className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
+          <span>Save All Changes</span>
+        </Button>
       </div>
 
       {/* Notification Toast */}
@@ -653,14 +771,15 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                   Rendered in the public footer, mobile sheet, and direct contact card.
                 </p>
               </div>
-              <button
+              <Button
                 type="button"
+                size="xs"
+                variant="outline"
                 onClick={handleAddSocial}
-                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5 mr-1" />
                 <span>Add Link</span>
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-2">
@@ -713,14 +832,15 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
               </p>
             </div>
 
-            <button
+            <Button
               type="button"
+              size="xs"
+              variant="secondary"
               onClick={handleAddPhoto}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:bg-[var(--surface)] transition-colors shrink-0 cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5 mr-1" />
               <span>Add Portrait Photo</span>
-            </button>
+            </Button>
           </div>
 
           {/* Current Hero Assignment Summary Banner & Direct Hero Slots */}
@@ -734,158 +854,312 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                   <div>
                     <span className="text-[var(--ink-muted)]">Hero Primary: </span>
                     <span className="text-[var(--accent)] font-semibold">
-                      {photos.find((p) => p.role === "hero-primary")?.alt || "None assigned (clean text-only hero)"}
+                      {heroPrimary.light?.alt || heroPrimary.dark?.alt || photos.find((p) => p.role === "hero-primary")?.alt || "None assigned (clean text-only hero)"}
                     </span>
                   </div>
                   <span className="text-[var(--line)]">•</span>
                   <div>
                     <span className="text-[var(--ink-muted)]">Hero Secondary (Accent Card): </span>
                     <span className="text-[var(--ink)] font-semibold">
-                      {photos.find((p) => p.role === "hero-secondary")?.alt || "None (hidden)"}
+                      {heroSecondary.light?.alt || heroSecondary.dark?.alt || photos.find((p) => p.role === "hero-secondary")?.alt || "None (hidden)"}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Dedicated Hero Photo Slots (Primary and Secondary) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Primary Hero Slot */}
-              <div className="p-4 rounded-[var(--r-md)] border-2 border-[var(--accent)]/60 bg-[var(--surface-2)]/40 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent)]" />
-                    <span className="font-bold text-xs text-[var(--ink)]">Slot 1: Primary Hero Photo (Full Bleed)</span>
+            {/* Dedicated Hero Photo Slots (Primary and Secondary - Phase U Light & Dark Pairs) */}
+            <div className="p-5 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-6">
+              {/* Slot 1: Primary Hero Photo */}
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--line)] pb-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent)]" />
+                      <h3 className="font-bold text-xs text-[var(--ink)]">
+                        Slot 1: Primary Hero Photo (Full Bleed)
+                      </h3>
+                    </div>
+                    <p className="text-[11px] text-[var(--ink-muted)] mt-0.5">
+                      The full-bleed right-column photo panel with single soft bottom-left corner. Providing separate Light and Dark uploads ensures optimal contrast and grading across both light and dark themes.
+                    </p>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold shrink-0">
                     HERO PRIMARY
                   </span>
                 </div>
-                <p className="text-[11px] text-[var(--ink-muted)]">
-                  The full-bleed right-column photo panel with single soft bottom-left corner.
-                </p>
 
-                <CloudinaryUploadField
-                  label="Primary Hero Photo File"
-                  value={photos.find((p) => p.role === "hero-primary")?.publicId || ""}
-                  alt={photos.find((p) => p.role === "hero-primary")?.alt || ""}
-                  accept="image/*"
-                  folder="devden/portraits"
-                  required
-                  altRequired
-                  placeholderAlt="e.g. Asfakul in studio lighting with architectural silhouette"
-                  onAltChange={(newAlt) => handleHeroSlotUpdate("hero-primary", "alt", newAlt)}
-                  onUploaded={(newId) => handleHeroSlotUpdate("hero-primary", "publicId", newId)}
-                  onDeleteOld={(oldId) => {
-                    if (!oldId.startsWith("data:")) {
-                      deleteCloudinaryAssetAction(oldId, "image");
-                    }
-                  }}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Primary Light Variant */}
+                  <div className="p-4 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface-2)] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#2F4BFF]" />
+                        <span className="font-bold text-xs text-[var(--ink)]">Light Themes</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                        DAY SHIFT &amp; MONO
+                      </span>
+                    </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                  <label className="text-[11px] font-semibold text-[var(--ink-muted)]">
-                    Duotone Accent Color
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleHeroSlotUpdate("hero-primary", "accentColor", "auto")}
-                      className={`px-2 py-0.5 text-[10px] font-mono rounded border transition-colors ${
-                        (photos.find((p) => p.role === "hero-primary")?.accentColor || "auto") === "auto"
-                          ? "bg-[var(--accent)] text-[var(--accent-ink)] border-[var(--accent)] font-bold"
-                          : "bg-[var(--surface)] text-[var(--ink-muted)] border-[var(--line)] hover:text-[var(--ink)]"
-                      }`}
-                    >
-                      Auto (Theme-Adaptive)
-                    </button>
-                    <input
-                      type="color"
-                      value={
-                        photos.find((p) => p.role === "hero-primary")?.accentColor &&
-                        photos.find((p) => p.role === "hero-primary")?.accentColor !== "auto"
-                          ? photos.find((p) => p.role === "hero-primary")?.accentColor
-                          : "#2F4BFF"
-                      }
-                      onChange={(e) => handleHeroSlotUpdate("hero-primary", "accentColor", e.target.value)}
-                      className="w-6 h-6 rounded border border-[var(--line)] cursor-pointer bg-transparent"
+                    <CloudinaryUploadField
+                      label="Primary Photo (Light)"
+                      value={heroPrimary?.light?.publicId || ""}
+                      alt={heroPrimary?.light?.alt || ""}
+                      accept="image/*"
+                      folder="devden/portraits"
+                      required
+                      altRequired
+                      placeholderAlt="e.g. Asfakul in studio lighting with architectural silhouette"
+                      onAltChange={(newAlt) => handleHeroSlotVariantUpdate("heroPrimary", "light", "alt", newAlt)}
+                      onUploaded={(newId) => handleHeroSlotVariantUpdate("heroPrimary", "light", "publicId", newId)}
+                      onDeleteOld={(oldId) => {
+                        if (!oldId.startsWith("data:")) {
+                          deleteCloudinaryAssetAction(oldId, "image");
+                        }
+                      }}
                     />
-                    <input
-                      type="text"
-                      value={photos.find((p) => p.role === "hero-primary")?.accentColor || "auto"}
-                      onChange={(e) => handleHeroSlotUpdate("hero-primary", "accentColor", e.target.value)}
-                      placeholder="auto"
-                      className="w-20 px-1.5 py-0.5 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                      <label className="text-[11px] font-semibold text-[var(--ink-muted)]">
+                        Duotone Accent Color
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          size="xs"
+                          variant={(heroPrimary?.light?.accentColor || "auto") === "auto" ? "primary" : "outline"}
+                          onClick={() => handleHeroSlotVariantUpdate("heroPrimary", "light", "accentColor", "auto")}
+                        >
+                          Auto
+                        </Button>
+                        <input
+                          type="color"
+                          value={
+                            heroPrimary?.light?.accentColor && heroPrimary.light.accentColor !== "auto"
+                              ? heroPrimary.light.accentColor
+                              : "#2F4BFF"
+                          }
+                          onChange={(e) => handleHeroSlotVariantUpdate("heroPrimary", "light", "accentColor", e.target.value)}
+                          className="w-6 h-6 rounded border border-[var(--line)] cursor-pointer bg-transparent"
+                        />
+                        <input
+                          type="text"
+                          value={heroPrimary?.light?.accentColor || "auto"}
+                          onChange={(e) => handleHeroSlotVariantUpdate("heroPrimary", "light", "accentColor", e.target.value)}
+                          placeholder="auto"
+                          className="w-20 px-1.5 py-0.5 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Primary Dark Variant */}
+                  <div className="p-4 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface-2)] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#8AA2FF]" />
+                        <span className="font-bold text-xs text-[var(--ink)]">Dark Themes</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                        NIGHT CODER, CHARCOAL &amp; BLUEPRINT
+                      </span>
+                    </div>
+
+                    <CloudinaryUploadField
+                      label="Primary Photo (Dark)"
+                      value={heroPrimary?.dark?.publicId || ""}
+                      alt={heroPrimary?.dark?.alt || ""}
+                      accept="image/*"
+                      folder="devden/portraits"
+                      placeholderAlt="e.g. Asfakul in deep midnight lighting silhouette"
+                      onAltChange={(newAlt) => handleHeroSlotVariantUpdate("heroPrimary", "dark", "alt", newAlt)}
+                      onUploaded={(newId) => handleHeroSlotVariantUpdate("heroPrimary", "dark", "publicId", newId)}
+                      onDeleteOld={(oldId) => {
+                        if (!oldId.startsWith("data:")) {
+                          deleteCloudinaryAssetAction(oldId, "image");
+                        }
+                      }}
                     />
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                      <label className="text-[11px] font-semibold text-[var(--ink-muted)]">
+                        Duotone Accent Color
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          size="xs"
+                          variant={(heroPrimary?.dark?.accentColor || "auto") === "auto" ? "primary" : "outline"}
+                          onClick={() => handleHeroSlotVariantUpdate("heroPrimary", "dark", "accentColor", "auto")}
+                        >
+                          Auto
+                        </Button>
+                        <input
+                          type="color"
+                          value={
+                            heroPrimary?.dark?.accentColor && heroPrimary.dark.accentColor !== "auto"
+                              ? heroPrimary.dark.accentColor
+                              : "#8AA2FF"
+                          }
+                          onChange={(e) => handleHeroSlotVariantUpdate("heroPrimary", "dark", "accentColor", e.target.value)}
+                          className="w-6 h-6 rounded border border-[var(--line)] cursor-pointer bg-transparent"
+                        />
+                        <input
+                          type="text"
+                          value={heroPrimary?.dark?.accentColor || "auto"}
+                          onChange={(e) => handleHeroSlotVariantUpdate("heroPrimary", "dark", "accentColor", e.target.value)}
+                          placeholder="auto"
+                          className="w-20 px-1.5 py-0.5 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Secondary Hero Slot */}
-              <div className="p-4 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--ink-muted)]" />
-                    <span className="font-bold text-xs text-[var(--ink)]">Slot 2: Secondary Accent Photo (Tilted Card)</span>
+              {/* Slot 2: Secondary Accent Photo */}
+              <div className="space-y-3 pt-3 border-t border-[var(--line)]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--line)] pb-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[var(--ink-muted)]" />
+                      <h3 className="font-bold text-xs text-[var(--ink)]">
+                        Slot 2: Secondary Accent Photo (Tilted Card)
+                      </h3>
+                    </div>
+                    <p className="text-[11px] text-[var(--ink-muted)] mt-0.5">
+                      The small tilted card tucked at the bottom-left of the primary panel (optional).
+                    </p>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface-2)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface-2)] border border-[var(--line)] text-[var(--ink)] font-bold shrink-0">
                     HERO SECONDARY
                   </span>
                 </div>
-                <p className="text-[11px] text-[var(--ink-muted)]">
-                  The small tilted card tucked at the bottom-left of the primary panel (optional).
-                </p>
 
-                <CloudinaryUploadField
-                  label="Secondary Photo File"
-                  value={photos.find((p) => p.role === "hero-secondary")?.publicId || ""}
-                  alt={photos.find((p) => p.role === "hero-secondary")?.alt || ""}
-                  accept="image/*"
-                  folder="devden/portraits"
-                  placeholderAlt="e.g. Asfakul candid at design workstation"
-                  onAltChange={(newAlt) => handleHeroSlotUpdate("hero-secondary", "alt", newAlt)}
-                  onUploaded={(newId) => handleHeroSlotUpdate("hero-secondary", "publicId", newId)}
-                  onDeleteOld={(oldId) => {
-                    if (!oldId.startsWith("data:")) {
-                      deleteCloudinaryAssetAction(oldId, "image");
-                    }
-                  }}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Secondary Light Variant */}
+                  <div className="p-4 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface-2)] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#2F4BFF]" />
+                        <span className="font-bold text-xs text-[var(--ink)]">Light Themes</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                        DAY SHIFT &amp; MONO
+                      </span>
+                    </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                  <label className="text-[11px] font-semibold text-[var(--ink-muted)]">
-                    Duotone Accent Color
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleHeroSlotUpdate("hero-secondary", "accentColor", "auto")}
-                      className={`px-2 py-0.5 text-[10px] font-mono rounded border transition-colors ${
-                        (photos.find((p) => p.role === "hero-secondary")?.accentColor || "auto") === "auto"
-                          ? "bg-[var(--accent)] text-[var(--accent-ink)] border-[var(--accent)] font-bold"
-                          : "bg-[var(--surface)] text-[var(--ink-muted)] border-[var(--line)] hover:text-[var(--ink)]"
-                      }`}
-                    >
-                      Auto (Theme-Adaptive)
-                    </button>
-                    <input
-                      type="color"
-                      value={
-                        photos.find((p) => p.role === "hero-secondary")?.accentColor &&
-                        photos.find((p) => p.role === "hero-secondary")?.accentColor !== "auto"
-                          ? photos.find((p) => p.role === "hero-secondary")?.accentColor
-                          : "#8AA2FF"
-                      }
-                      onChange={(e) => handleHeroSlotUpdate("hero-secondary", "accentColor", e.target.value)}
-                      className="w-6 h-6 rounded border border-[var(--line)] cursor-pointer bg-transparent"
+                    <CloudinaryUploadField
+                      label="Secondary Photo (Light)"
+                      value={heroSecondary?.light?.publicId || ""}
+                      alt={heroSecondary?.light?.alt || ""}
+                      accept="image/*"
+                      folder="devden/portraits"
+                      placeholderAlt="e.g. Asfakul candid at design workstation"
+                      onAltChange={(newAlt) => handleHeroSlotVariantUpdate("heroSecondary", "light", "alt", newAlt)}
+                      onUploaded={(newId) => handleHeroSlotVariantUpdate("heroSecondary", "light", "publicId", newId)}
+                      onDeleteOld={(oldId) => {
+                        if (!oldId.startsWith("data:")) {
+                          deleteCloudinaryAssetAction(oldId, "image");
+                        }
+                      }}
                     />
-                    <input
-                      type="text"
-                      value={photos.find((p) => p.role === "hero-secondary")?.accentColor || "auto"}
-                      onChange={(e) => handleHeroSlotUpdate("hero-secondary", "accentColor", e.target.value)}
-                      placeholder="auto"
-                      className="w-20 px-1.5 py-0.5 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                      <label className="text-[11px] font-semibold text-[var(--ink-muted)]">
+                        Duotone Accent Color
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          size="xs"
+                          variant={(heroSecondary?.light?.accentColor || "auto") === "auto" ? "primary" : "outline"}
+                          onClick={() => handleHeroSlotVariantUpdate("heroSecondary", "light", "accentColor", "auto")}
+                        >
+                          Auto
+                        </Button>
+                        <input
+                          type="color"
+                          value={
+                            heroSecondary?.light?.accentColor && heroSecondary.light.accentColor !== "auto"
+                              ? heroSecondary.light.accentColor
+                              : "#8AA2FF"
+                          }
+                          onChange={(e) => handleHeroSlotVariantUpdate("heroSecondary", "light", "accentColor", e.target.value)}
+                          className="w-6 h-6 rounded border border-[var(--line)] cursor-pointer bg-transparent"
+                        />
+                        <input
+                          type="text"
+                          value={heroSecondary?.light?.accentColor || "auto"}
+                          onChange={(e) => handleHeroSlotVariantUpdate("heroSecondary", "light", "accentColor", e.target.value)}
+                          placeholder="auto"
+                          className="w-20 px-1.5 py-0.5 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Secondary Dark Variant */}
+                  <div className="p-4 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface-2)] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#8AA2FF]" />
+                        <span className="font-bold text-xs text-[var(--ink)]">Dark Themes</span>
+                      </div>
+                      <Badge variant="outline" size="xs" className="font-bold">
+                        NIGHT CODER, CHARCOAL &amp; BLUEPRINT
+                      </Badge>
+                    </div>
+
+                    <CloudinaryUploadField
+                      label="Secondary Photo (Dark)"
+                      value={heroSecondary?.dark?.publicId || ""}
+                      alt={heroSecondary?.dark?.alt || ""}
+                      accept="image/*"
+                      folder="devden/portraits"
+                      placeholderAlt="e.g. Asfakul candid at night workstation"
+                      onAltChange={(newAlt) => handleHeroSlotVariantUpdate("heroSecondary", "dark", "alt", newAlt)}
+                      onUploaded={(newId) => handleHeroSlotVariantUpdate("heroSecondary", "dark", "publicId", newId)}
+                      onDeleteOld={(oldId) => {
+                        if (!oldId.startsWith("data:")) {
+                          deleteCloudinaryAssetAction(oldId, "image");
+                        }
+                      }}
                     />
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                      <label className="text-[11px] font-semibold text-[var(--ink-muted)]">
+                        Duotone Accent Color
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          size="xs"
+                          variant={(heroSecondary?.dark?.accentColor || "auto") === "auto" ? "primary" : "outline"}
+                          onClick={() => handleHeroSlotVariantUpdate("heroSecondary", "dark", "accentColor", "auto")}
+                        >
+                          Auto
+                        </Button>
+                        <input
+                          type="color"
+                          value={
+                            heroSecondary?.dark?.accentColor && heroSecondary.dark.accentColor !== "auto"
+                              ? heroSecondary.dark.accentColor
+                              : "#8AA2FF"
+                          }
+                          onChange={(e) => handleHeroSlotVariantUpdate("heroSecondary", "dark", "accentColor", e.target.value)}
+                          className="w-6 h-6 rounded border border-[var(--line)] cursor-pointer bg-transparent"
+                        />
+                        <input
+                          type="text"
+                          value={heroSecondary?.dark?.accentColor || "auto"}
+                          onChange={(e) => handleHeroSlotVariantUpdate("heroSecondary", "dark", "accentColor", e.target.value)}
+                          placeholder="auto"
+                          className="w-20 px-1.5 py-0.5 text-xs font-mono bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)]"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -905,9 +1179,9 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                     Upload transparent-background PNG or WebP cutouts (subject only, no background). Providing separate Light and Dark uploads ensures optimal contrast, grading, and crisp silhouettes across both light and dark themes.
                   </p>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold shrink-0">
+                <Badge variant="default" size="xs" className="bg-[var(--accent)] text-[var(--accent-ink)] border-[var(--accent)] font-bold shrink-0">
                   CUTOUT HERO
-                </span>
+                </Badge>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
@@ -920,9 +1194,9 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                         Light Theme Cutout
                       </span>
                     </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                    <Badge variant="outline" size="xs" className="font-bold">
                       DAY SHIFT &amp; MONO
-                    </span>
+                    </Badge>
                   </div>
                   <p className="text-[11px] text-[var(--ink-muted)]">
                     Graded for light background themes. Alpha transparent cutout required.
@@ -986,9 +1260,9 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                         Dark Theme Cutout
                       </span>
                     </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                    <Badge variant="outline" size="xs" className="font-bold">
                       NIGHT CODER &amp; BLUEPRINT
-                    </span>
+                    </Badge>
                   </div>
                   <p className="text-[11px] text-[var(--ink-muted)]">
                     Graded for dark background themes. Alpha transparent cutout required.
@@ -1081,60 +1355,68 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                         Photo #{pIdx + 1}
                       </span>
                       {isPrimary && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--accent)] text-[var(--accent-ink)] font-bold">
+                        <Badge variant="default" size="xs" className="bg-[var(--accent)] text-[var(--accent-ink)] border-[var(--accent)] font-bold">
                           <Check className="w-3 h-3" /> HERO PRIMARY
-                        </span>
+                        </Badge>
                       )}
                       {isSecondary && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-[var(--r-pill)] bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-bold">
+                        <Badge variant="outline" size="xs" className="font-bold">
                           HERO SECONDARY ACCENT
-                        </span>
+                        </Badge>
                       )}
                     </div>
 
                     {/* Role Control Actions */}
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       {!isPrimary && (
-                        <button
+                        <Button
                           type="button"
+                          size="xs"
+                          variant="outline"
                           onClick={() => handleSetHeroRole(pIdx, "hero-primary")}
                           disabled={!photo.publicId}
-                          className="px-2.5 py-1 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--accent)] font-semibold hover:bg-[var(--surface-2)] disabled:opacity-40 cursor-pointer"
+                          className="text-[var(--accent)] font-semibold"
                         >
                           Set as hero photo
-                        </button>
+                        </Button>
                       )}
 
                       {!isSecondary && (
-                        <button
+                        <Button
                           type="button"
+                          size="xs"
+                          variant="outline"
                           onClick={() => handleSetHeroRole(pIdx, "hero-secondary")}
                           disabled={!photo.publicId}
-                          className="px-2.5 py-1 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] font-semibold hover:bg-[var(--surface-2)] disabled:opacity-40 cursor-pointer"
+                          className="text-[var(--ink)] font-semibold"
                         >
                           Set as hero accent
-                        </button>
+                        </Button>
                       )}
 
                       {(isPrimary || isSecondary) && (
-                        <button
+                        <Button
                           type="button"
+                          size="xs"
+                          variant="ghost"
                           onClick={() => handleSetHeroRole(pIdx, "unassigned")}
-                          className="px-2.5 py-1 rounded-[var(--r-sm)] border border-transparent text-[var(--ink-muted)] hover:text-[var(--danger)] cursor-pointer"
+                          className="text-[var(--ink-muted)] hover:text-[var(--danger)]"
                         >
                           Remove from hero
-                        </button>
+                        </Button>
                       )}
 
-                      <button
+                      <Button
                         type="button"
+                        size="xs"
+                        variant="ghost"
                         onClick={() => handleRemovePhoto(pIdx)}
-                        className="p-1.5 text-[var(--ink-muted)] hover:text-[var(--danger)] transition-colors cursor-pointer"
+                        className="px-2 text-[var(--ink-muted)] hover:text-[var(--danger)]"
                         title="Delete photo from library"
                         aria-label={`Delete photo #${pIdx + 1}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -1242,7 +1524,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                         </div>
                       </div>
                       {photo.publicId ? (
-                        <div className="relative w-32 h-40 rounded-bl-xl overflow-hidden border border-[var(--line)] bg-[var(--surface-2)]">
+                        <div className="relative w-32 h-40 rounded-bl-[var(--r-md)] overflow-hidden border border-[var(--line)] bg-[var(--surface-2)]">
                           {photo.publicId.startsWith("data:") ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -1263,7 +1545,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                           )}
                         </div>
                       ) : (
-                        <div className="w-28 h-36 rounded-bl-xl border border-dashed border-[var(--line)] flex items-center justify-center text-[10px] text-[var(--ink-muted)]">
+                        <div className="w-28 h-36 rounded-bl-[var(--r-md)] border border-dashed border-[var(--line)] flex items-center justify-center text-[10px] text-[var(--ink-muted)]">
                           Upload photo
                         </div>
                       )}
@@ -1291,15 +1573,17 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                 Keeps visitors updated on your current projects, learning, and reading.
               </p>
             </div>
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant="secondary"
               onClick={handleSaveNowOnly}
               disabled={isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:bg-[var(--surface)] transition-colors"
+              isLoading={isPending}
             >
-              {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+              {!isPending && <Save className="w-3.5 h-3.5 mr-1" />}
               <span>Save &ldquo;Now&rdquo;</span>
-            </button>
+            </Button>
           </div>
 
           <div>
@@ -1358,14 +1642,15 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                 Organized categories rendered on the /about page.
               </p>
             </div>
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant="secondary"
               onClick={handleToolboxGroupAdd}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:bg-[var(--surface)] transition-colors"
             >
-              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <Plus className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
               <span>Add Group</span>
-            </button>
+            </Button>
           </div>
 
           <div className="space-y-4">
@@ -1387,15 +1672,18 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                     placeholder="Category Name"
                     className="font-semibold text-xs text-[var(--ink)] bg-[var(--bg)] px-2.5 py-1 rounded-[var(--r-sm)] border border-[var(--line)]"
                   />
-                  <button
+                  <Button
                     type="button"
+                    size="xs"
+                    variant="ghost"
                     onClick={() => handleToolboxGroupRemove(gIdx)}
                     disabled={toolbox.length <= 1}
-                    className="p-1 text-[var(--ink-muted)] hover:text-[var(--danger)] transition-colors disabled:opacity-30"
+                    className="p-1 h-auto text-[var(--ink-muted)] hover:text-[var(--danger)]"
                     title="Remove category"
+                    aria-label="Remove category"
                   >
                     <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                  </button>
+                  </Button>
                 </div>
 
                 <div>

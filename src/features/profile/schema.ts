@@ -37,6 +37,31 @@ export const heroCutoutSchema = z.object({
   dark: cutoutVariantSchema.optional(),
 });
 
+export const heroProfileEntrySchema = z.object({
+  publicId: z.string().min(1, "Profile photo public ID or URL is required"),
+  alt: z.string().min(1, "Alt text is required"),
+  accentColor: z.string().optional(),
+});
+
+export const heroProfilesSchema = z.object({
+  dayShift: heroProfileEntrySchema.optional(),
+  charcoal: heroProfileEntrySchema.optional(),
+  nightCoder: heroProfileEntrySchema.optional(),
+  blueprint: heroProfileEntrySchema.optional(),
+  mono: heroProfileEntrySchema.optional(),
+});
+
+export const heroPhotoVariantSchema = z.object({
+  publicId: z.string().min(1, "Photo public ID or URL is required"),
+  alt: z.string().min(1, "Photo alt text is required"),
+  accentColor: z.string().optional(),
+});
+
+export const heroPhotoSlotSchema = z.object({
+  light: heroPhotoVariantSchema.optional(),
+  dark: heroPhotoVariantSchema.optional(),
+});
+
 export const profileSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, "Name is required"),
@@ -59,7 +84,10 @@ export const profileSchema = z.object({
   now: nowSchema,
   toolbox: z.array(toolboxGroupSchema).default([]),
   photos: z.array(photoSchema).default([]),
+  heroPrimary: heroPhotoSlotSchema.optional(),
+  heroSecondary: heroPhotoSlotSchema.optional(),
   heroCutout: heroCutoutSchema.optional(),
+  heroProfiles: heroProfilesSchema.optional(),
   activePhotoId: z.string().optional(),
   updatedAt: z.string().optional(),
 });

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check, Clock, Globe2, ArrowUpRight } from "lucide-react";
 import { staticProfile, ProfileData } from "@/features/profile/data";
+import { Button } from "@/components/ui/Button";
 
 interface DirectContactCardProps {
   profile?: ProfileData;
@@ -35,18 +36,20 @@ export function DirectContactCard({ profile = staticProfile }: DirectContactCard
           <span className="text-sm font-medium text-[var(--ink)] font-mono select-all">
             {contactEmail}
           </span>
-          <button
+          <Button
             type="button"
+            size="xs"
+            variant="ghost"
             onClick={handleCopyEmail}
             aria-label="Copy email address"
-            className="p-1.5 rounded-[var(--r-sm)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]"
+            className="px-2"
           >
             {copied ? (
-              <Check className="w-4 h-4 text-[var(--accent)]" />
+              <Check className="w-3.5 h-3.5 text-[var(--accent)]" />
             ) : (
-              <Copy className="w-4 h-4" />
+              <Copy className="w-3.5 h-3.5" />
             )}
-          </button>
+          </Button>
         </div>
         {copied && <p className="text-xs text-[var(--accent)] font-medium">Copied to clipboard!</p>}
       </div>

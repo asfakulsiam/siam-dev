@@ -3,6 +3,107 @@
    WCAG 2.2 AA Contrast Verified in all themes
    ========================================================================== */
 
+/* ==========================================================================
+   CSS Properties & Values API: Custom Property Registrations
+   Enables smooth mathematical interpolation of theme color tokens across themes
+   ========================================================================== */
+
+@property --bg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f4f6fa;
+}
+
+@property --surface {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
+}
+
+@property --surface-2 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #eaeef5;
+}
+
+@property --ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0b1220;
+}
+
+@property --ink-muted {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4a5468;
+}
+
+@property --line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #d5dbe6;
+}
+
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #2f4bff;
+}
+
+@property --accent-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
+}
+
+@property --focus {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #2f4bff;
+}
+
+@property --header-bg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(244, 246, 250, 0.85);
+}
+
+@property --success {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #059669;
+}
+
+@property --success-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
+}
+
+@property --warning {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #d97706;
+}
+
+@property --warning-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0b1220;
+}
+
+@property --danger {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #dc2626;
+}
+
+@property --danger-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
+}
+
 :root,
 [data-theme="day-shift"] {
   /* Day Shift: Crisp cool paper and cobalt */
@@ -170,3 +271,49 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-power3: cubic-bezier(0.65, 0, 0.35, 1);
 }
+
+/* ==========================================================================
+   Theme Transition: Custom Property & Color Interpolation
+   Smoothly transitions color tokens when user switches themes in ThemeSwitcher
+   ========================================================================== */
+
+html[data-theme-transitioning="true"] {
+  transition:
+    --bg var(--duration-base) var(--ease-out-expo),
+    --surface var(--duration-base) var(--ease-out-expo),
+    --surface-2 var(--duration-base) var(--ease-out-expo),
+    --ink var(--duration-base) var(--ease-out-expo),
+    --ink-muted var(--duration-base) var(--ease-out-expo),
+    --line var(--duration-base) var(--ease-out-expo),
+    --accent var(--duration-base) var(--ease-out-expo),
+    --accent-ink var(--duration-base) var(--ease-out-expo),
+    --focus var(--duration-base) var(--ease-out-expo),
+    --header-bg var(--duration-base) var(--ease-out-expo),
+    --success var(--duration-base) var(--ease-out-expo),
+    --success-ink var(--duration-base) var(--ease-out-expo),
+    --warning var(--duration-base) var(--ease-out-expo),
+    --warning-ink var(--duration-base) var(--ease-out-expo),
+    --danger var(--duration-base) var(--ease-out-expo),
+    --danger-ink var(--duration-base) var(--ease-out-expo),
+    background-color var(--duration-base) var(--ease-out-expo),
+    color var(--duration-base) var(--ease-out-expo);
+}
+
+/* Fallback for elements/properties in browsers without @property support */
+html[data-theme-transitioning="true"] *,
+html[data-theme-transitioning="true"] *::before,
+html[data-theme-transitioning="true"] *::after {
+  transition-duration: var(--duration-base) !important;
+  transition-timing-function: var(--ease-out-expo) !important;
+  transition-property: background-color, border-color, color, fill, stroke, outline-color !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme-transitioning="true"],
+  html[data-theme-transitioning="true"] *,
+  html[data-theme-transitioning="true"] *::before,
+  html[data-theme-transitioning="true"] *::after {
+    transition: none !important;
+  }
+}
+

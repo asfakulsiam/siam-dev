@@ -13,6 +13,7 @@ import {
   PlusCircle,
   MessageSquareQuote,
 } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 
 interface AdminSidebarProps {
   unreadMessagesCount?: number;
@@ -127,9 +128,13 @@ export function AdminSidebar({
                   </div>
 
                   {item.badge !== undefined && (
-                    <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[var(--accent)] text-[var(--accent-ink)] tabular-nums">
+                    <Badge
+                      size="xs"
+                      variant="default"
+                      className="bg-[var(--accent)] text-[var(--accent-ink)] border-transparent font-bold"
+                    >
                       {item.badge}
-                    </span>
+                    </Badge>
                   )}
                 </Link>
               );

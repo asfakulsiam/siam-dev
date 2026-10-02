@@ -312,6 +312,60 @@ This log documents all architectural and technical decisions made for the Dev De
     - Integrated multi-theme preview tabs ("Day | Night | Blue | Mono") on photo cards so admins can preview duotone output across all themes prior to saving.
 - **Rationale**: Guarantees visual harmony across all 5 themes, eliminates color clashes, and elevates the portfolio's craftsmanship proof.
 
+### ADR-032: Split Frame Light/Dark Photo Slot Pairs & Idempotent Migration (Phase U)
+- **Date**: 2026-10-02
+- **Context**: Split Frame mode previously only accepted single photo instances (`primaryPhoto`, `secondaryPhoto`), unlike Cutout mode which supported light/dark photo pairs. Hardcoded defaults in duotone backdrops risked tint discordance if not caller-supplied.
+- **Decision**:
+  - **Schema Extension (`src/features/profile/schema.ts`)**:
+    - Added `heroPhotoVariantSchema` and `heroPhotoSlotSchema` defining `{ light?, dark? }` pairs for `heroPrimary` and `heroSecondary`.
+  - **Idempotent Migration (`scripts/migrate-hero-slots.ts`)**:
+    - Built a non-destructive migration script that populates `heroPrimary.light` and `heroSecondary.light` from legacy `photos[]` role tags.
+    - Verified idempotency: running twice locally produces zero writes on the second execution without modifying any existing admin `dark` variants.
+    - Supported automatic read-time fallback migration in `src/features/profile/queries.ts` for offline/static datasets.
+  - **Dynamic Theme Selection (`src/components/motion/SplitHero.tsx`)**:
+    - Reused `useTheme().isDark` to mirror `CutoutHero`'s fallback chain: dark theme → `slot.dark ?? slot.light`; light theme → `slot.light ?? slot.dark`; nothing → null / text-only layout.
+    - Resolved duotone accents via `getThemeAccent(theme, photo.accentColor)`, preserving grayscale on mono and theme accent on colored themes.
+  - **Admin Dual Uploads (`src/components/admin/ProfileManager.tsx`)**:
+    - Provided side-by-side `CloudinaryUploadField` inputs ("Light Themes" / "Dark Themes") with auto/custom duotone tint pickers for both primary and secondary hero slots.
+  - **Duotone Backdrop Calibration (`src/components/motion/DuotoneBackdrop.tsx`)**:
+    - Removed hardcoded `#2f4bff` fallback in favor of `getThemeAccent(theme, accentColor)`.
+- **Rationale**: Achieves complete symmetry between Cutout and Split Frame hero modes across all themes while preserving all existing photo assets and alt text.
+
+### ADR-033: Two-Component Button & Badge System & Site-Wide Token Sweep (Phase V)
+- **Date**: 2026-10-02
+- **Context**: Several interactive and label elements across the public site (Footer, ProjectCard, ProjectFilter) and admin panel (ProjectsManager, ProfileManager, ExperienceManager, CloudinaryUploadField) contained hand-rolled Tailwind classes with disparate paddings, radii, or inline dimensions.
+- **Decision**:
+  - **Shared Button Component (`src/components/ui/Button.tsx`)**:
+    - Added an `xs` size (`h-6 px-2.5 text-[11px] gap-1`) for compact utility controls (copy actions, close triggers, table row actions).
+    - Exported `buttonVariants()` helper for polymorphic elements (`<Link>`, `<a>`).
+    - Standardized sizes (`xs`, `sm`, `md`, `lg`) and variants (`primary`, `secondary`, `outline`, `ghost`, `danger`) with token-driven radius (`rounded-[var(--r-sm)]`) and focus rings.
+  - **Dedicated Badge Component (`src/components/ui/Badge.tsx`)**:
+    - Created semantic non-interactive label component with `rounded-[var(--r-pill)]`, tabular numerals, and monospace font.
+    - Supported variants (`default`, `outline`, `tag`, `success`, `warning`, `danger`, `text`) and sizes (`sm`, `xs`).
+  - **Site-Wide Migration**:
+    - Migrated all confirmed gaps (Footer copy-email, back-to-top, ProjectCard tags/meta, ProjectFilter buttons/badges, DirectContactCard copy email, ContactForm dismissals, ProjectArchive toggle, Admin tabs, table row actions, photo slot badges).
+    - Replaced all non-token borders and status colors with design system tokens (`--line`, `--success`, `--danger`, `--warning`).
+  - **Zero Hand-Rolled Matches**: Confirmed via codebase sweep that `grep -rn 'rounded-\(full\|\[var\|lg\|md\|sm\)[^"]*px-[0-9]' app src` returns 0 hand-rolled matches.
+- **Rationale**: Enforces absolute consistency across all clickable and label surfaces, preventing style drift and maintaining strict adherence to `AGENTS.md`.
+
+### ADR-034: Smooth Theme Color Transitions via CSS Custom Property Interpolation
+- **Date**: 2026-10-02
+- **Context**: Switching themes previously either relied on `document.startViewTransition` snapshot cross-fades or abrupt color updates without smooth property interpolation across semantic surfaces.
+- **Decision**:
+  - **CSS Properties & Values API (`@property`)**:
+    - Registered 16 semantic color tokens (`--bg`, `--surface`, `--surface-2`, `--ink`, `--ink-muted`, `--line`, `--accent`, `--accent-ink`, `--focus`, `--header-bg`, `--success`, `--warning`, `--danger`) in `src/styles/tokens.css` with `syntax: "<color>"` and `inherits: true`.
+    - Enables the browser compositing engine to perform mathematically continuous color interpolation across all themes.
+  - **Scoped Transition Lifecycle**:
+    - In `ThemeSwitcher.tsx`, activating a theme now temporarily mounts `data-theme-transitioning="true"` to `<html>`.
+    - CSS transitions on `html[data-theme-transitioning="true"]` animate tokens over `var(--duration-base)` (400ms) with `var(--ease-out-expo)`.
+    - Automatic cleanup after 450ms removes the transition attribute, preventing interference with hover states or component animations.
+    - Zero first-paint flash: Initial SSR/hydration sets `data-theme` without `data-theme-transitioning`.
+  - **Reduced Motion Compliance**:
+    - Evaluates `(prefers-reduced-motion: reduce)` in `ThemeSwitcher.tsx` and in CSS `@media (prefers-reduced-motion: reduce)`.
+    - When reduced motion is preferred, transitions are completely bypassed (`transition: none !important`).
+- **Rationale**: Replaces jarring instantaneous cuts and snapshot cross-fades with silky, hardware-accelerated color interpolation while strictly adhering to WCAG 2.2 AA and motion guidelines.
+
+
 
 
 

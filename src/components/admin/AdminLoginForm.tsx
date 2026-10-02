@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, ArrowLeft, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
+import { Lock, ArrowLeft, AlertCircle, ShieldCheck } from "lucide-react";
 import { loginAction } from "@/lib/auth-actions";
+import { Button } from "@/components/ui/Button";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -122,23 +123,17 @@ export function AdminLoginForm() {
             </div>
           </div>
 
-          <button
+          <Button
             type="submit"
+            size="md"
+            variant="primary"
             disabled={isPending}
-            className="w-full mt-2 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-[var(--focus)]"
+            isLoading={isPending}
+            className="w-full mt-2"
           >
-            {isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                <span>Verifying credentials...</span>
-              </>
-            ) : (
-              <>
-                <Lock className="w-4 h-4" aria-hidden="true" />
-                <span>Sign in to Dashboard</span>
-              </>
-            )}
-          </button>
+            <Lock className="w-4 h-4 mr-1.5" aria-hidden="true" />
+            <span>Sign in to Dashboard</span>
+          </Button>
         </form>
 
         {/* Security Note */}

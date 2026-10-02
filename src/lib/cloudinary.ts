@@ -84,17 +84,21 @@ export function getOptimizedCloudinaryUrl(
     blur,
     dpr = "auto",
     duotone,
-    accent = "2f4bff",
+    accent,
   } = options;
 
   const transforms: string[] = [];
 
   if (duotone) {
-    const rawTint = (accent || "2f4bff").replace("#", "").trim().toLowerCase();
-    if (rawTint === "000000" || rawTint === "mono" || rawTint === "grayscale") {
+    if (!accent || accent === "auto") {
       transforms.push("e_grayscale");
     } else {
-      transforms.push("e_grayscale", `e_tint:70:${rawTint}`);
+      const rawTint = accent.replace("#", "").trim().toLowerCase();
+      if (rawTint === "000000" || rawTint === "mono" || rawTint === "grayscale") {
+        transforms.push("e_grayscale");
+      } else {
+        transforms.push("e_grayscale", `e_tint:70:${rawTint}`);
+      }
     }
   }
 
@@ -125,33 +129,41 @@ export function getOptimizedCloudinaryUrl(
  */
 export function getDuotonePhotoUrl(
   publicIdOrUrl?: string,
-  tintHex: string = "2f4bff",
+  tintHex?: string,
   options: CloudinaryTransformOptions = {},
 ): string {
   if (!publicIdOrUrl) return "";
-  const cleanTint = tintHex.replace("#", "");
 
   if (publicIdOrUrl.startsWith("data:")) {
     return publicIdOrUrl;
   }
+
+  const cleanTint = tintHex ? tintHex.replace("#", "").trim().toLowerCase() : "";
+  const isMono =
+    !cleanTint ||
+    cleanTint === "000000" ||
+    cleanTint === "mono" ||
+    cleanTint === "grayscale" ||
+    cleanTint === "auto";
+  const tintTransform = isMono ? "e_grayscale" : `e_grayscale,e_tint:60:${cleanTint}`;
 
   if (isCloudinaryUrl(publicIdOrUrl)) {
     const uploadIndex = publicIdOrUrl.indexOf("/upload/");
     if (uploadIndex !== -1) {
       const before = publicIdOrUrl.substring(0, uploadIndex + "/upload/".length);
       const after = publicIdOrUrl.substring(uploadIndex + "/upload/".length);
-      const transformed = `${before}e_grayscale,e_tint:60:${cleanTint}/${after}`;
+      const transformed = `${before}${tintTransform}/${after}`;
       return getOptimizedCloudinaryUrl(transformed, options);
     }
   }
 
   if (!publicIdOrUrl.startsWith("http://") && !publicIdOrUrl.startsWith("https://")) {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "devden";
-    const duotoneUrl = `https://res.cloudinary.com/${cloudName}/image/upload/e_grayscale,e_tint:60:${cleanTint}/${publicIdOrUrl}`;
+    const duotoneUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${tintTransform}/${publicIdOrUrl}`;
     return getOptimizedCloudinaryUrl(duotoneUrl, options);
   }
 
-  return cldUrl(publicIdOrUrl, options);
+  return cldUrl(publicIdOrUrl, { ...options, duotone: true, accent: tintHex });
 }
 
 /**

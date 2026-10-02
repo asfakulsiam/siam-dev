@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { useTheme } from "@/hooks/useTheme";
+import { getDefaultCutoutPhotoSVG } from "@/features/profile/data";
 
 export interface CutoutHeroProps {
   name: string;
@@ -13,6 +14,13 @@ export interface CutoutHeroProps {
   bio?: string;
   metaRow: React.ReactNode;
   actions: React.ReactNode;
+  heroProfiles?: {
+    dayShift?: { publicId: string; alt: string; accentColor?: string };
+    charcoal?: { publicId: string; alt: string; accentColor?: string };
+    nightCoder?: { publicId: string; alt: string; accentColor?: string };
+    blueprint?: { publicId: string; alt: string; accentColor?: string };
+    mono?: { publicId: string; alt: string; accentColor?: string };
+  } | null;
   cutout?: {
     light?: { publicId: string; alt: string };
     dark?: { publicId: string; alt: string };
@@ -27,6 +35,7 @@ export function CutoutHero({
   bio,
   metaRow,
   actions,
+  heroProfiles,
   cutout,
   cutoutPhoto,
 }: CutoutHeroProps) {
@@ -36,22 +45,53 @@ export function CutoutHero({
   const actionsRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
 
-  const { isDark } = useTheme();
+  const { theme, isDark } = useTheme();
 
-  // Dynamic theme-aware cutout selection
-  // In dark themes, prioritize dark-tuned cutout; in light themes, prioritize light-tuned cutout
-  const activePhoto = isDark
-    ? cutout?.dark?.publicId
-      ? cutout.dark
-      : cutout?.light?.publicId
-        ? cutout.light
-        : cutoutPhoto
-    : cutout?.light?.publicId
-      ? cutout.light
-      : cutout?.dark?.publicId
-        ? cutout.dark
-        : cutoutPhoto;
+  // Dynamic 5-theme deterministic cutout photo resolution
+  // 1. Theme-specific entry from heroProfiles
+  // 2. Fallback to cutout.light / cutout.dark
+  // 3. Fallback to cutoutPhoto / default SVG for the current theme
+  const getActiveCutoutPhoto = () => {
+    if (theme === "day-shift") {
+      if (heroProfiles?.dayShift?.publicId) return heroProfiles.dayShift;
+      if (cutout?.light?.publicId) return cutout.light;
+    } else if (theme === "charcoal") {
+      if (heroProfiles?.charcoal?.publicId) return heroProfiles.charcoal;
+      if (cutout?.dark?.publicId) return cutout.dark;
+      if (cutout?.light?.publicId) return cutout.light;
+    } else if (theme === "night-coder") {
+      if (heroProfiles?.nightCoder?.publicId) return heroProfiles.nightCoder;
+      if (cutout?.dark?.publicId) return cutout.dark;
+      if (cutout?.light?.publicId) return cutout.light;
+    } else if (theme === "blueprint") {
+      if (heroProfiles?.blueprint?.publicId) return heroProfiles.blueprint;
+      if (cutout?.dark?.publicId) return cutout.dark;
+      if (cutout?.light?.publicId) return cutout.light;
+    } else if (theme === "mono") {
+      if (heroProfiles?.mono?.publicId) return heroProfiles.mono;
+      if (cutout?.light?.publicId) return cutout.light;
+      if (cutout?.dark?.publicId) return cutout.dark;
+    }
 
+    // Secondary fallback based on dark/light
+    if (isDark) {
+      if (cutout?.dark?.publicId) return cutout.dark;
+      if (cutout?.light?.publicId) return cutout.light;
+    } else {
+      if (cutout?.light?.publicId) return cutout.light;
+      if (cutout?.dark?.publicId) return cutout.dark;
+    }
+
+    if (cutoutPhoto?.publicId) return cutoutPhoto;
+
+    // Guaranteed theme-specific default fallback so hero is never broken
+    return {
+      publicId: getDefaultCutoutPhotoSVG(theme),
+      alt: `${name} portrait (${theme.replace("-", " ")})`,
+    };
+  };
+
+  const activePhoto = getActiveCutoutPhoto();
   const hasPhoto = Boolean(activePhoto?.publicId);
 
   // Motion Orchestration with GSAP
@@ -61,14 +101,14 @@ export function CutoutHero({
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         // 1. Variable font load animation (M3)
-        const fontProxy = { wght: 300, wdth: 80, opacity: 0, y: 16 };
+        const fontProxy = { wght: 300, wdth: 80, opacity: 0, y: 12 };
 
         gsap.to(fontProxy, {
           wght: 800,
           wdth: 100,
           opacity: 1,
           y: 0,
-          duration: 0.9,
+          duration: 0.8,
           ease: "expo.out",
           onUpdate: () => {
             if (headlineRef.current) {
@@ -83,38 +123,36 @@ export function CutoutHero({
         if (subheadRef.current) {
           gsap.fromTo(
             subheadRef.current,
-            { opacity: 0, y: 12 },
-            { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "expo.out" },
+            { opacity: 0, y: 10 },
+            { opacity: 1, y: 0, duration: 0.6, delay: 0.15, ease: "expo.out" },
           );
         }
 
-        // 3. Cutout Photo scale-fade settle (1.03 -> 1.0)
+        // 3. Cutout Photo subtle settle (safe initial opacity remains 1; enhance scale/pos)
         if (photoRef.current) {
           gsap.fromTo(
             photoRef.current,
-            { opacity: 0, scale: 1.03, y: 20 },
+            { scale: 1.02, y: 14 },
             {
-              opacity: 1,
               scale: 1.0,
               y: 0,
-              duration: 0.85,
-              delay: 0.15,
+              duration: 0.8,
+              delay: 0.1,
               ease: "expo.out",
             },
           );
         }
 
-        // 4. Parallax scroll compression
+        // 4. Subtle Parallax scroll compression (does NOT fade photo away)
         if (containerRef.current && photoRef.current) {
           gsap.to(photoRef.current, {
             scrollTrigger: {
               trigger: containerRef.current,
               start: "top top",
               end: "bottom top",
-              scrub: 0.6,
+              scrub: 0.5,
             },
-            yPercent: -10,
-            opacity: 0.4,
+            yPercent: -6,
             ease: "none",
           });
         }
@@ -143,20 +181,20 @@ export function CutoutHero({
   return (
     <div
       ref={containerRef}
-      className="w-full relative min-h-[calc(100svh-8rem)] flex flex-col justify-between pt-6 pb-2"
+      className="w-full relative flex flex-col justify-between pt-2 sm:pt-4 pb-2"
     >
       {/* 1. Metadata Top Row */}
-      <div className="relative z-20 mb-6">{metaRow}</div>
+      <div className="relative z-20 mb-3 sm:mb-4">{metaRow}</div>
 
-      {/* 2. Full-bleed Cutout Portrait Layer (Behind / Center-Right) */}
+      {/* 2. Full-bleed Cutout Portrait Layer (Behind typography on mobile, Center-Right anchor on desktop) */}
       {hasPhoto && activePhoto && (
-        <div className="absolute inset-0 pointer-events-none select-none flex items-end justify-center lg:justify-end lg:pr-8 xl:pr-20 z-10 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none select-none flex items-end justify-center lg:justify-end lg:pr-6 xl:pr-14 z-10 overflow-hidden">
           <div
             ref={photoRef}
-            className="relative w-full max-w-[520px] sm:max-w-[620px] lg:max-w-[700px] xl:max-w-[800px] h-[65vh] sm:h-[75vh] lg:h-[85vh] xl:h-[90vh] -mb-8 lg:-mb-14"
+            className="relative w-full max-w-[440px] sm:max-w-[560px] md:max-w-[640px] lg:max-w-[740px] xl:max-w-[840px] h-[55vh] sm:h-[65vh] lg:h-[78vh] xl:h-[84vh] -mb-4 sm:-mb-6 lg:-mb-10 opacity-90 lg:opacity-100 transition-opacity duration-300"
             style={{
-              maskImage: "linear-gradient(to bottom, black 65%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to bottom, black 65%, transparent 100%)",
+              maskImage: "linear-gradient(to bottom, black 72%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, black 72%, transparent 100%)",
             }}
           >
             {activePhoto.publicId.startsWith("data:") ? (
@@ -182,14 +220,14 @@ export function CutoutHero({
       )}
 
       {/* 3. Foreground Narrative Content Grid */}
-      <div className="relative z-20 mt-auto pt-16 lg:pt-28 pb-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end">
-          {/* Headline (Lower-Left overlaid over lower portion of cutout) */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-4">
+      <div className="relative z-20 mt-auto pt-6 sm:pt-10 lg:pt-16 pb-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-end">
+          {/* Headline (Dominant personal text anchor) */}
+          <div className="lg:col-span-7 xl:col-span-8 space-y-3">
             <h1
               ref={headlineRef}
               aria-label={`${name} — ${headline}`}
-              className="text-[clamp(2.75rem,5.2vw,4.5rem)] font-extrabold tracking-[-0.02em] text-[var(--ink)] leading-[1.04] text-balance transition-colors duration-[var(--duration-base)] drop-shadow-xs"
+              className="text-[clamp(2.5rem,5vw,4.25rem)] font-extrabold tracking-[-0.02em] text-[var(--ink)] leading-[1.04] text-balance transition-colors duration-[var(--duration-base)] drop-shadow-xs"
               style={
                 {
                   fontVariationSettings: "'wght' 800, 'wdth' 100",
@@ -202,19 +240,19 @@ export function CutoutHero({
             </h1>
           </div>
 
-          {/* Subheadline Narrative & Action CTAs (Right-aligned / Lower Right) */}
-          <div className="lg:col-span-5 xl:col-span-4 flex flex-col justify-end space-y-6 lg:pb-2">
+          {/* Subheadline Narrative & Action CTAs */}
+          <div className="lg:col-span-5 xl:col-span-4 flex flex-col justify-end space-y-4 lg:pb-1">
             {(subheadline || bio) && (
               <p
                 ref={subheadRef}
-                className="text-[1.125rem] text-[var(--ink-muted)] text-pretty leading-[1.5] font-normal backdrop-blur-[2px] rounded-[var(--r-sm)] p-1 -m-1"
-                style={{ lineHeight: "1.5" }}
+                className="text-[1.0625rem] text-[var(--ink-muted)] text-pretty leading-[1.45] font-normal backdrop-blur-[2px] rounded-[var(--r-sm)] p-1 -m-1"
+                style={{ lineHeight: "1.45" }}
               >
                 {subheadline} {bio}
               </p>
             )}
 
-            <div ref={actionsRef} className="pt-1">
+            <div ref={actionsRef} className="pt-0.5">
               {actions}
             </div>
           </div>

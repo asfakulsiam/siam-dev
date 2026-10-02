@@ -44,9 +44,24 @@ export interface ProfileData {
   };
   toolbox: ToolboxGroup[];
   photos: ProfilePhoto[];
+  heroPrimary?: {
+    light?: { publicId: string; alt: string; accentColor?: string };
+    dark?: { publicId: string; alt: string; accentColor?: string };
+  };
+  heroSecondary?: {
+    light?: { publicId: string; alt: string; accentColor?: string };
+    dark?: { publicId: string; alt: string; accentColor?: string };
+  };
   heroCutout?: {
     light?: { publicId: string; alt: string };
     dark?: { publicId: string; alt: string };
+  };
+  heroProfiles?: {
+    dayShift?: { publicId: string; alt: string; accentColor?: string };
+    charcoal?: { publicId: string; alt: string; accentColor?: string };
+    nightCoder?: { publicId: string; alt: string; accentColor?: string };
+    blueprint?: { publicId: string; alt: string; accentColor?: string };
+    mono?: { publicId: string; alt: string; accentColor?: string };
   };
   activePhotoId?: string;
 }
@@ -54,58 +69,142 @@ export interface ProfileData {
 export const defaultCutoutLightSVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100" width="800" height="1100">
   <defs>
-    <radialGradient id="cutoutLightFace" cx="50%" cy="40%" r="50%">
-      <stop offset="0%" stop-color="#334155"/>
-      <stop offset="60%" stop-color="#1e293b"/>
-      <stop offset="100%" stop-color="#0f172a"/>
+    <radialGradient id="cutoutDayFace" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="60%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
     </radialGradient>
-    <linearGradient id="cutoutLightCoat" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="cutoutDayCoat" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#1e293b"/>
       <stop offset="100%" stop-color="#090d16"/>
     </linearGradient>
   </defs>
-  <!-- Transparent Background Cutout (Light Background Tuning) -->
-  <path d="M 120 1100 C 120 740 220 660 400 660 C 580 660 680 740 680 1100 Z" fill="url(#cutoutLightCoat)"/>
-  <!-- Lapel & Shirt collar -->
-  <polygon points="400,740 370,660 430,660" fill="#f8fafc"/>
-  <rect x="350" y="520" width="100" height="160" rx="18" fill="url(#cutoutLightFace)"/>
-  <ellipse cx="400" cy="400" rx="140" ry="180" fill="url(#cutoutLightFace)"/>
-  <!-- Glasses -->
-  <rect x="290" y="360" width="90" height="60" rx="8" fill="none" stroke="#2563eb" stroke-width="7"/>
-  <rect x="420" y="360" width="90" height="60" rx="8" fill="none" stroke="#2563eb" stroke-width="7"/>
-  <line x1="380" y1="390" x2="420" y2="390" stroke="#2563eb" stroke-width="7"/>
-  <!-- Hair Silhouette -->
+  <!-- Day Shift Cutout: Natural editorial daylight appearance with clean blue accents -->
+  <path d="M 120 1100 C 120 740 220 660 400 660 C 580 660 680 740 680 1100 Z" fill="url(#cutoutDayCoat)"/>
+  <polygon points="400,740 370,660 430,660" fill="#ffffff"/>
+  <rect x="350" y="520" width="100" height="160" rx="18" fill="url(#cutoutDayFace)"/>
+  <ellipse cx="400" cy="400" rx="140" ry="180" fill="url(#cutoutDayFace)"/>
+  <rect x="290" y="360" width="90" height="60" rx="8" fill="none" stroke="#2f4bff" stroke-width="7"/>
+  <rect x="420" y="360" width="90" height="60" rx="8" fill="none" stroke="#2f4bff" stroke-width="7"/>
+  <line x1="380" y1="390" x2="420" y2="390" stroke="#2f4bff" stroke-width="7"/>
   <path d="M 260 360 C 260 220 320 200 400 200 C 480 200 540 220 540 360 C 510 260 460 240 400 240 C 340 240 290 260 260 360 Z" fill="#020617"/>
+</svg>
+`)}`;
+
+export const defaultCutoutCharcoalSVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100" width="800" height="1100">
+  <defs>
+    <radialGradient id="cutoutCharcoalFace" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#cbd5e1"/>
+      <stop offset="60%" stop-color="#94a3b8"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </radialGradient>
+    <linearGradient id="cutoutCharcoalCoat" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#232326"/>
+      <stop offset="100%" stop-color="#151517"/>
+    </linearGradient>
+  </defs>
+  <!-- Charcoal: Restrained neutral dark studio portrait with periwinkle collar line -->
+  <path d="M 120 1100 C 120 740 220 660 400 660 C 580 660 680 740 680 1100 Z" fill="url(#cutoutCharcoalCoat)"/>
+  <polygon points="400,740 370,660 430,660" fill="#8aa2ff" opacity="0.8"/>
+  <rect x="350" y="520" width="100" height="160" rx="18" fill="url(#cutoutCharcoalFace)"/>
+  <ellipse cx="400" cy="400" rx="140" ry="180" fill="url(#cutoutCharcoalFace)"/>
+  <rect x="290" y="360" width="90" height="60" rx="8" fill="none" stroke="#ecebe9" stroke-width="7"/>
+  <rect x="420" y="360" width="90" height="60" rx="8" fill="none" stroke="#ecebe9" stroke-width="7"/>
+  <line x1="380" y1="390" x2="420" y2="390" stroke="#ecebe9" stroke-width="7"/>
+  <path d="M 260 360 C 260 220 320 200 400 200 C 480 200 540 220 540 360 C 510 260 460 240 400 240 C 340 240 290 260 260 360 Z" fill="#1c1c1f"/>
 </svg>
 `)}`;
 
 export const defaultCutoutDarkSVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100" width="800" height="1100">
   <defs>
-    <radialGradient id="cutoutDarkFace" cx="50%" cy="40%" r="50%">
+    <radialGradient id="cutoutNightFace" cx="50%" cy="40%" r="50%">
       <stop offset="0%" stop-color="#cbd5e1"/>
       <stop offset="60%" stop-color="#94a3b8"/>
       <stop offset="100%" stop-color="#64748b"/>
     </radialGradient>
-    <linearGradient id="cutoutDarkCoat" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="cutoutNightCoat" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#1e293b"/>
-      <stop offset="100%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#0a0f1a"/>
     </linearGradient>
   </defs>
-  <!-- Transparent Background Cutout (Dark Background Tuning) -->
-  <path d="M 120 1100 C 120 740 220 660 400 660 C 580 660 680 740 680 1100 Z" fill="url(#cutoutDarkCoat)"/>
-  <!-- Lapel & Accent Collar -->
-  <polygon points="400,740 370,660 430,660" fill="#38bdf8" opacity="0.9"/>
-  <rect x="350" y="520" width="100" height="160" rx="18" fill="url(#cutoutDarkFace)"/>
-  <ellipse cx="400" cy="400" rx="140" ry="180" fill="url(#cutoutDarkFace)"/>
-  <!-- Glasses -->
+  <!-- Night Coder: Cool navy dark studio portrait with subtle luminous periwinkle highlights -->
+  <path d="M 120 1100 C 120 740 220 660 400 660 C 580 660 680 740 680 1100 Z" fill="url(#cutoutNightCoat)"/>
+  <polygon points="400,740 370,660 430,660" fill="#8aa2ff" opacity="0.95"/>
+  <rect x="350" y="520" width="100" height="160" rx="18" fill="url(#cutoutNightFace)"/>
+  <ellipse cx="400" cy="400" rx="140" ry="180" fill="url(#cutoutNightFace)"/>
   <rect x="290" y="360" width="90" height="60" rx="8" fill="none" stroke="#f8fafc" stroke-width="7"/>
   <rect x="420" y="360" width="90" height="60" rx="8" fill="none" stroke="#f8fafc" stroke-width="7"/>
   <line x1="380" y1="390" x2="420" y2="390" stroke="#f8fafc" stroke-width="7"/>
-  <!-- Hair Silhouette -->
   <path d="M 260 360 C 260 220 320 200 400 200 C 480 200 540 220 540 360 C 510 260 460 240 400 240 C 340 240 290 260 260 360 Z" fill="#090d16"/>
 </svg>
 `)}`;
+
+export const defaultCutoutBlueprintSVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100" width="800" height="1100">
+  <defs>
+    <radialGradient id="cutoutBpFace" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#e0e7ff"/>
+      <stop offset="100%" stop-color="#a5b4fc"/>
+    </radialGradient>
+    <linearGradient id="cutoutBpCoat" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1829c4"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <!-- Blueprint: Strongest graphic/technical treatment with crisp yellow highlights on cobalt body -->
+  <path d="M 120 1100 C 120 740 220 660 400 660 C 580 660 680 740 680 1100 Z" fill="url(#cutoutBpCoat)"/>
+  <polygon points="400,740 370,660 430,660" fill="#ffe14d"/>
+  <rect x="350" y="520" width="100" height="160" rx="18" fill="url(#cutoutBpFace)"/>
+  <ellipse cx="400" cy="400" rx="140" ry="180" fill="url(#cutoutBpFace)"/>
+  <rect x="290" y="360" width="90" height="60" rx="8" fill="none" stroke="#ffe14d" stroke-width="7"/>
+  <rect x="420" y="360" width="90" height="60" rx="8" fill="none" stroke="#ffe14d" stroke-width="7"/>
+  <line x1="380" y1="390" x2="420" y2="390" stroke="#ffe14d" stroke-width="7"/>
+  <path d="M 260 360 C 260 220 320 200 400 200 C 480 200 540 220 540 360 C 510 260 460 240 400 240 C 340 240 290 260 260 360 Z" fill="#0f172a"/>
+</svg>
+`)}`;
+
+export const defaultCutoutMonoSVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100" width="800" height="1100">
+  <defs>
+    <radialGradient id="cutoutMonoFace" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#d4d4d8"/>
+      <stop offset="100%" stop-color="#71717a"/>
+    </radialGradient>
+  </defs>
+  <!-- Mono: Stark high-contrast black/white editorial portrait -->
+  <path d="M 120 1100 C 120 740 220 660 400 660 C 580 660 680 740 680 1100 Z" fill="#000000"/>
+  <polygon points="400,740 370,660 430,660" fill="#ffffff"/>
+  <rect x="350" y="520" width="100" height="160" rx="18" fill="url(#cutoutMonoFace)"/>
+  <ellipse cx="400" cy="400" rx="140" ry="180" fill="url(#cutoutMonoFace)"/>
+  <rect x="290" y="360" width="90" height="60" rx="8" fill="none" stroke="#000000" stroke-width="8"/>
+  <rect x="420" y="360" width="90" height="60" rx="8" fill="none" stroke="#000000" stroke-width="8"/>
+  <line x1="380" y1="390" x2="420" y2="390" stroke="#000000" stroke-width="8"/>
+  <path d="M 260 360 C 260 220 320 200 400 200 C 480 200 540 220 540 360 C 510 260 460 240 400 240 C 340 240 290 260 260 360 Z" fill="#000000"/>
+</svg>
+`)}`;
+
+/**
+ * Returns a dedicated theme-specific cutout profile SVG for each theme.
+ */
+export function getDefaultCutoutPhotoSVG(theme: string = "day-shift"): string {
+  if (theme === "charcoal" || theme === "night-coder-charcoal" || theme === "charcoal-dark") {
+    return defaultCutoutCharcoalSVG;
+  }
+  if (theme === "night-coder") {
+    return defaultCutoutDarkSVG;
+  }
+  if (theme === "blueprint") {
+    return defaultCutoutBlueprintSVG;
+  }
+  if (theme === "mono") {
+    return defaultCutoutMonoSVG;
+  }
+  return defaultCutoutLightSVG;
+}
 
 export function getDefaultIdentityPhotoSVG(theme: string = "day-shift"): string {
   let bg1 = "#0b1220";
@@ -272,6 +371,30 @@ export const staticProfile: ProfileData = {
       role: "hero-secondary",
     },
   ],
+  heroPrimary: {
+    light: {
+      publicId: defaultIdentityPhotoSVG,
+      alt: "Asfakul in studio lighting with high-contrast architectural silhouette",
+      accentColor: "auto",
+    },
+    dark: {
+      publicId: defaultIdentityPhotoSVG,
+      alt: "Asfakul in studio lighting with high-contrast architectural silhouette (dark)",
+      accentColor: "auto",
+    },
+  },
+  heroSecondary: {
+    light: {
+      publicId: defaultSecondaryPhotoSVG,
+      alt: "Asfakul candid at design workstation",
+      accentColor: "auto",
+    },
+    dark: {
+      publicId: defaultSecondaryPhotoSVG,
+      alt: "Asfakul candid at design workstation (dark)",
+      accentColor: "auto",
+    },
+  },
   heroCutout: {
     light: {
       publicId: defaultCutoutLightSVG,
@@ -280,6 +403,33 @@ export const staticProfile: ProfileData = {
     dark: {
       publicId: defaultCutoutDarkSVG,
       alt: "Asfakul architectural silhouette portrait (dark)",
+    },
+  },
+  heroProfiles: {
+    dayShift: {
+      publicId: defaultCutoutLightSVG,
+      alt: "Asfakul editorial daylight portrait",
+      accentColor: "#2F4BFF",
+    },
+    charcoal: {
+      publicId: defaultCutoutCharcoalSVG,
+      alt: "Asfakul neutral dark studio portrait",
+      accentColor: "#8AA2FF",
+    },
+    nightCoder: {
+      publicId: defaultCutoutDarkSVG,
+      alt: "Asfakul cool navy technical studio portrait",
+      accentColor: "#8AA2FF",
+    },
+    blueprint: {
+      publicId: defaultCutoutBlueprintSVG,
+      alt: "Asfakul graphic technical blueprint portrait",
+      accentColor: "#FFE14D",
+    },
+    mono: {
+      publicId: defaultCutoutMonoSVG,
+      alt: "Asfakul high-contrast monochrome editorial portrait",
+      accentColor: "#000000",
     },
   },
   activePhotoId: defaultIdentityPhotoSVG,

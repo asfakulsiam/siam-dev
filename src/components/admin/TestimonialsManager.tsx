@@ -26,6 +26,8 @@ import {
   reorderTestimonialsAction,
 } from "@/features/testimonials/actions";
 import { cldUrl } from "@/lib/cloudinary";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 interface TestimonialsManagerProps {
   initialTestimonials: Testimonial[];
@@ -269,14 +271,15 @@ export function TestimonialsManager({
         </div>
 
         {!isFormOpen && (
-          <button
+          <Button
             type="button"
+            size="sm"
+            variant="primary"
             onClick={openCreateForm}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-[var(--r-sm)] text-xs font-semibold bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 transition-opacity"
           >
-            <Plus className="w-4 h-4" aria-hidden="true" />
+            <Plus className="w-4 h-4 mr-1.5" aria-hidden="true" />
             <span>Add Testimonial</span>
-          </button>
+          </Button>
         )}
       </div>
 
@@ -287,7 +290,7 @@ export function TestimonialsManager({
           aria-live="polite"
           className={`p-4 rounded-[var(--r-sm)] border text-xs flex items-center justify-between gap-3 ${
             statusMessage.type === "success"
-              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+              ? "bg-[var(--success)]/10 border-[var(--success)]/20 text-[var(--success)]"
               : "bg-[var(--danger)]/10 border-[var(--danger)]/20 text-[var(--danger)]"
           }`}
         >
@@ -299,13 +302,14 @@ export function TestimonialsManager({
             )}
             <span>{statusMessage.text}</span>
           </div>
-          <button
+          <Button
             type="button"
+            size="xs"
+            variant="ghost"
             onClick={() => setStatusMessage(null)}
-            className="text-[10px] underline hover:opacity-75"
           >
             Dismiss
-          </button>
+          </Button>
         </div>
       )}
 
@@ -316,13 +320,14 @@ export function TestimonialsManager({
             <h2 className="text-base font-bold text-[var(--ink)]">
               {editingId ? "Edit Endorsement" : "Add Endorsement"}
             </h2>
-            <button
+            <Button
               type="button"
+              size="xs"
+              variant="ghost"
               onClick={resetForm}
-              className="text-xs text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
             >
               Cancel
-            </button>
+            </Button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -509,22 +514,24 @@ export function TestimonialsManager({
 
             {/* Actions */}
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--line)]">
-              <button
+              <Button
                 type="button"
+                size="sm"
+                variant="outline"
                 onClick={resetForm}
                 disabled={isPending}
-                className="px-4 py-2 text-xs font-semibold rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                size="sm"
+                variant="primary"
                 disabled={isPending}
-                className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold rounded-[var(--r-sm)] bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 transition-opacity disabled:opacity-50"
+                isLoading={isPending}
               >
-                {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />}
                 <span>{editingId ? "Save Changes" : "Create Testimonial"}</span>
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -544,14 +551,15 @@ export function TestimonialsManager({
             </p>
           </div>
           {!isFormOpen && (
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant="primary"
               onClick={openCreateForm}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-[var(--r-sm)] text-xs font-semibold bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90 transition-opacity"
             >
-              <Plus className="w-4 h-4" aria-hidden="true" />
+              <Plus className="w-4 h-4 mr-1.5" aria-hidden="true" />
               <span>Add First Testimonial</span>
-            </button>
+            </Button>
           )}
         </div>
       ) : (
@@ -631,41 +639,47 @@ export function TestimonialsManager({
                 </div>
 
                 {/* Publish Toggle */}
-                <button
+                <Button
                   type="button"
+                  size="xs"
+                  variant="outline"
                   onClick={() => handleTogglePublish(item.id, item.published)}
                   disabled={isPending}
                   title={item.published ? "Unpublish" : "Publish"}
-                  className="p-2 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:text-[var(--accent)] transition-colors"
+                  className="px-2"
                 >
                   {item.published ? (
                     <EyeOff className="w-3.5 h-3.5" aria-hidden="true" />
                   ) : (
                     <Eye className="w-3.5 h-3.5" aria-hidden="true" />
                   )}
-                </button>
+                </Button>
 
                 {/* Edit */}
-                <button
+                <Button
                   type="button"
+                  size="xs"
+                  variant="outline"
                   onClick={() => openEditForm(item)}
                   disabled={isPending}
                   title="Edit testimonial"
-                  className="p-2 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:text-[var(--accent)] transition-colors"
+                  className="px-2"
                 >
                   <Edit2 className="w-3.5 h-3.5" aria-hidden="true" />
-                </button>
+                </Button>
 
                 {/* Delete */}
-                <button
+                <Button
                   type="button"
+                  size="xs"
+                  variant="outline"
                   onClick={() => handleDelete(item.id, item.authorName)}
                   disabled={isPending}
                   title="Delete testimonial"
-                  className="p-2 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)] hover:text-[var(--danger)] transition-colors"
+                  className="px-2 text-[var(--ink-muted)] hover:text-[var(--danger)] hover:border-[var(--danger)]/40"
                 >
                   <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                </button>
+                </Button>
               </div>
             </div>
           ))}

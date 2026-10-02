@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { getDuotonePhotoUrl } from "@/lib/cloudinary";
+import { useTheme, getThemeAccent } from "@/hooks/useTheme";
 
 interface DuotoneBackdropProps {
   photoUrl?: string;
@@ -22,7 +23,9 @@ export function DuotoneBackdrop({
   const scrollLayerRef = useRef<HTMLDivElement>(null);
   const cursorLayerRef = useRef<HTMLDivElement>(null);
 
-  const cleanHex = accentColor ? accentColor.replace("#", "") : "2f4bff";
+  const { theme } = useTheme();
+  const effectiveAccent = getThemeAccent(theme, accentColor);
+  const cleanHex = effectiveAccent.replace("#", "");
   const resolvedUrl =
     photoUrl && photoUrl !== "default-avatar"
       ? getDuotonePhotoUrl(photoUrl, cleanHex)
@@ -100,8 +103,6 @@ export function DuotoneBackdrop({
     },
     { scope: containerRef, dependencies: [cursorReactive] },
   );
-
-  const effectiveAccent = accentColor || "var(--accent)";
 
   return (
     <div

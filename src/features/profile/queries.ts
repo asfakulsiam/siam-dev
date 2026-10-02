@@ -14,6 +14,33 @@ async function fetchProfileData(): Promise<ProfileData> {
     if (doc) {
       const sanitized = sanitizeDocument<ProfileDocument>(doc);
       if (sanitized) {
+        // Phase U: Read-time fallback migration for heroPrimary and heroSecondary
+        const legacyPrimary = sanitized.photos?.find((p) => p.role === "hero-primary");
+        const resolvedHeroPrimary =
+          sanitized.heroPrimary ||
+          (legacyPrimary?.publicId
+            ? {
+                light: {
+                  publicId: legacyPrimary.publicId,
+                  alt: legacyPrimary.alt,
+                  accentColor: legacyPrimary.accentColor || "auto",
+                },
+              }
+            : staticProfile.heroPrimary);
+
+        const legacySecondary = sanitized.photos?.find((p) => p.role === "hero-secondary");
+        const resolvedHeroSecondary =
+          sanitized.heroSecondary ||
+          (legacySecondary?.publicId
+            ? {
+                light: {
+                  publicId: legacySecondary.publicId,
+                  alt: legacySecondary.alt,
+                  accentColor: legacySecondary.accentColor || "auto",
+                },
+              }
+            : staticProfile.heroSecondary);
+
         return {
           name: sanitized.name,
           headline: sanitized.headline,
@@ -32,7 +59,10 @@ async function fetchProfileData(): Promise<ProfileData> {
             ...p,
             role: (p.role as "hero-primary" | "hero-secondary" | "unassigned") || "unassigned",
           })),
+          heroPrimary: resolvedHeroPrimary,
+          heroSecondary: resolvedHeroSecondary,
           heroCutout: sanitized.heroCutout || staticProfile.heroCutout,
+          heroProfiles: sanitized.heroProfiles || staticProfile.heroProfiles,
           activePhotoId:
             sanitized.activePhotoId !== undefined
               ? sanitized.activePhotoId

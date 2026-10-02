@@ -15,7 +15,7 @@
 
 Dev Den is designed around the premise that **the portfolio is the ultimate proof of craft**. Every interaction, spacing choice, typographic scale, and animation reflects obsessive attention to detail, accessibility, and architectural rigor.
 
-- **Zero-Pill, Anti-Slop Design System**: 4 contrast-audited themes (*Day Shift*, *Night Coder*, *Blueprint*, *Mono*) built with strict semantic CSS tokens, 12-column responsive grid, and fluid typography.
+- **Zero-Pill, Anti-Slop Design System**: 5 contrast-audited themes (*Day Shift*, *Charcoal*, *Night Coder*, *Blueprint*, *Mono*) built with strict semantic CSS tokens, 12-column responsive grid, and fluid typography.
 - **Bespoke Motion Inventory**: Bricolage Grotesque variable font axis animation on hero load, pinned card stacks on desktop, word-by-word scrubbed philosophy statement, and smooth scroll synchronization via Lenis + GSAP ticker.
 - **Full-Featured Admin CMS**: Password-authenticated administrative dashboard (`/admin`) for managing case studies, profile bio, "Now" focus pillars, experience timeline, and inbound message inquiries.
 - **Zero-Downtime Database Resilience**: MongoDB Atlas integration with automatic fallback to static datasets during maintenance or local testing.
@@ -95,7 +95,7 @@ Dev Den is designed around the premise that **the portfolio is the ultimate proo
 │   │   ├── jsonld.ts                 # Schema.org structured data generators
 │   │   └── env.ts                    # Strict Zod environment variable parser
 │   └── styles/
-│       └── tokens.css                # 4-theme CSS custom properties & spacing scales
+│       └── tokens.css                # 5-theme CSS custom properties & spacing scales
 ├── docs/                             # Engineering documentation
 │   ├── DESIGN.md                     # Design system tokens, contrast audits & motion specs
 │   ├── DECISIONS.md                  # Architectural decision records (ADRs)
@@ -118,10 +118,11 @@ The interface uses semantic CSS variables mapped to `data-theme` attributes on `
 
 | Theme | Identifier | Background | Accent | Primary Use Case |
 |---|---|---|---|---|
-| **Day Shift** | `day-shift` | Light Linen (`#F6F5F2`) | International Klein Blue (`#0038FF`) | Crisp editorial daytime reading |
-| **Night Coder** | `night-coder` | Deep Zinc (`#0A0A0C`) | Electric Indigo (`#6366F1`) | Low-strain dark environment |
-| **Blueprint** | `blueprint` | Technical Navy (`#0B1528`) | Cyber Cyan (`#00E5FF`) | Precision architectural grid |
-| **Mono** | `mono` | Pure White (`#FFFFFF`) | Pitch Black (`#000000`) | High-contrast brutalist clarity |
+| **Day Shift** | `day-shift` | Cool Paper (`#F4F6FA`) | Cobalt (`#2F4BFF`) | Crisp editorial daytime reading |
+| **Charcoal** | `charcoal` | Dark Charcoal (`#151517`) | Soft Periwinkle (`#8AA2FF`) | Restrained neutral dark environment |
+| **Night Coder** | `night-coder` | Deep Ink-Navy (`#0A0F1A`) | Soft Periwinkle (`#8AA2FF`) | Low-strain technical navy environment |
+| **Blueprint** | `blueprint` | Cadet Indigo (`#1F33E6`) | Crisp Yellow (`#FFE14D`) | Precision architectural blueprint |
+| **Mono** | `mono` | Pure White (`#FFFFFF`) | Deep Cobalt (`#0033FF`) | High-contrast brutalist clarity |
 
 - **Contrast Checked**: All text combinations meet or exceed WCAG 2.2 AA (≥ 4.5:1 for body copy, ≥ 3:1 for large display titles and interactive controls).
 - **Zero Flash**: Injected inline `<head>` script initializes the active theme from `localStorage` or `prefers-color-scheme` before the first paint.

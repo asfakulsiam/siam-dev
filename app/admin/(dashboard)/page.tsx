@@ -18,6 +18,7 @@ import { getContactMessages } from "@/features/contact/queries";
 import { getProfile } from "@/features/profile/queries";
 import { getExperience } from "@/features/experience/queries";
 import { SyncAllProjectsButton } from "@/components/admin/SyncAllProjectsButton";
+import { Badge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic";
 
@@ -57,13 +58,13 @@ export default async function AdminOverviewPage() {
   return (
     <div className="space-y-8">
       {/* Top Banner / Welcome */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[var(--border)] pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[var(--line)] pb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <Badge variant="default" className="bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20">
+              <ShieldCheck className="w-3.5 h-3.5 mr-1" />
               Authenticated Session
-            </span>
+            </Badge>
             <span className="text-xs text-[var(--muted)] font-mono">{currentDate}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--ink)]">

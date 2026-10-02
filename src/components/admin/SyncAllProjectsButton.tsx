@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Github, CheckCircle2, AlertCircle, X, ChevronDown, ChevronUp } from "lucide-react";
 import { syncAllProjectsFromGitHubAction, BatchSyncResult } from "@/features/projects/actions";
+import { Button } from "@/components/ui/Button";
 
 interface SyncAllProjectsButtonProps {
   totalActiveProjects?: number;
@@ -41,18 +42,20 @@ export function SyncAllProjectsButton({ totalActiveProjects = 0 }: SyncAllProjec
 
   return (
     <div className="relative">
-      <button
+      <Button
         type="button"
+        size="sm"
+        variant="outline"
         onClick={handleSyncAll}
         disabled={isPending}
-        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-[var(--radius-sm)] text-xs sm:text-sm font-medium border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] text-[var(--ink)] transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
+        isLoading={isPending}
         title="Fetches latest README and metadata from GitHub repositories for all active projects and synthesizes updates"
         aria-busy={isPending}
       >
-        <RefreshCw className={`w-4 h-4 text-[var(--accent)] ${isPending ? "animate-spin" : ""}`} aria-hidden="true" />
+        <RefreshCw className={`w-3.5 h-3.5 text-[var(--accent)] ${isPending ? "animate-spin" : ""}`} aria-hidden="true" />
         <Github className="w-3.5 h-3.5 opacity-70" aria-hidden="true" />
         <span>{isPending ? "Syncing Repositories..." : "Sync with GitHub"}</span>
-      </button>
+      </Button>
 
       {/* Sync Status / Result Popover Notification */}
       {(syncResult || errorMessage) && (
@@ -72,17 +75,19 @@ export function SyncAllProjectsButton({ totalActiveProjects = 0 }: SyncAllProjec
                 {errorMessage ? "Sync Incomplete" : "GitHub Sync Completed"}
               </h4>
             </div>
-            <button
+            <Button
               type="button"
+              size="xs"
+              variant="ghost"
               onClick={() => {
                 setSyncResult(null);
                 setErrorMessage(null);
               }}
-              className="p-1 rounded-[var(--r-sm)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
+              className="p-1 h-auto"
               aria-label="Dismiss sync status"
             >
               <X className="w-3.5 h-3.5" aria-hidden="true" />
-            </button>
+            </Button>
           </div>
 
           {errorMessage && (

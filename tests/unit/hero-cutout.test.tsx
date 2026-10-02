@@ -57,21 +57,49 @@ describe("Phase S: Full-Bleed Cutout Hero Mode", () => {
     expect(img.getAttribute("src")).toContain("cutout-dark");
   });
 
-  it("renders clean text-only layout when zero cutout photos are assigned", () => {
-    const { container } = render(
+  it("renders theme-specific visual from heroProfiles for each theme", () => {
+    const multiThemeCutoutProps = {
+      ...mockProps,
+      heroProfiles: {
+        dayShift: { publicId: "day-shift-portrait-url", alt: "Day Shift Portrait" },
+        charcoal: { publicId: "charcoal-portrait-url", alt: "Charcoal Portrait" },
+        nightCoder: { publicId: "night-coder-portrait-url", alt: "Night Coder Portrait" },
+        blueprint: { publicId: "blueprint-portrait-url", alt: "Blueprint Portrait" },
+        mono: { publicId: "mono-portrait-url", alt: "Mono Portrait" },
+      },
+    };
+
+    document.documentElement.setAttribute("data-theme", "blueprint");
+    const { rerender } = render(<CutoutHero {...multiThemeCutoutProps} />);
+    expect(screen.getByAltText("Blueprint Portrait")).toBeDefined();
+
+    document.documentElement.setAttribute("data-theme", "charcoal");
+    rerender(<CutoutHero {...multiThemeCutoutProps} />);
+    expect(screen.getByAltText("Charcoal Portrait")).toBeDefined();
+
+    document.documentElement.setAttribute("data-theme", "mono");
+    rerender(<CutoutHero {...multiThemeCutoutProps} />);
+    expect(screen.getByAltText("Mono Portrait")).toBeDefined();
+  });
+
+  it("falls back gracefully to theme default SVG when profile photo is empty", () => {
+    document.documentElement.setAttribute("data-theme", "blueprint");
+    render(
       <CutoutHero
         name="Asfakul"
         headline="I design and build digital products that feel considered."
         subheadline="Web designer and full-stack developer."
         metaRow={<span data-testid="meta">Available</span>}
         actions={<button type="button">Explore</button>}
+        heroProfiles={null}
         cutout={null}
         cutoutPhoto={null}
       />,
     );
 
-    expect(screen.getByRole("heading")).toBeDefined();
-    expect(container.querySelectorAll("img").length).toBe(0);
+    const img = screen.getByRole("img");
+    expect(img).toBeDefined();
+    expect(img.getAttribute("src")).toContain("data:image/svg+xml");
   });
 
   it("validates heroCutout schema with both light and dark variants", () => {

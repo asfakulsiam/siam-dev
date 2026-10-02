@@ -114,6 +114,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   try {
     var stored = localStorage.getItem('devden-theme');
     var theme = stored;
+    if (theme === 'night-coder-charcoal' || theme === 'charcoal-dark') {
+      theme = 'charcoal';
+      try { localStorage.setItem('devden-theme', 'charcoal'); } catch(e) {}
+    }
     if (!theme) {
       theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night-coder' : '${fallbackTheme}';
     }

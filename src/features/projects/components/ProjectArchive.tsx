@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight, ChevronDown, ChevronUp, Archive } from "lucide-react";
 import type { Project } from "../types";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Heading";
 
 interface ProjectArchiveProps {
@@ -43,20 +44,22 @@ export function ProjectArchive({
           </Text>
         </div>
 
-        <button
+        <Button
           type="button"
+          size="md"
+          variant="outline"
           onClick={() => setIsOpen((prev) => !prev)}
           aria-expanded={isOpen}
           aria-controls="project-archive-content"
-          className="inline-flex items-center gap-2 self-start sm:self-center px-4 py-2 text-sm font-medium rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--focus)] cursor-pointer select-none"
+          className="self-start sm:self-center"
         >
           <span>{isOpen ? "Collapse Archive" : "Expand Archive"}</span>
           {isOpen ? (
-            <ChevronUp className="w-4 h-4 text-[var(--ink-muted)]" aria-hidden="true" />
+            <ChevronUp className="w-4 h-4 text-[var(--ink-muted)] ml-1" aria-hidden="true" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-[var(--ink-muted)]" aria-hidden="true" />
+            <ChevronDown className="w-4 h-4 text-[var(--ink-muted)] ml-1" aria-hidden="true" />
           )}
-        </button>
+        </Button>
       </div>
 
       {isOpen && (
