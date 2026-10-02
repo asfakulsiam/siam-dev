@@ -416,6 +416,7 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       heroPrimary: Object.keys(cleanHeroPrimary).length > 0 ? cleanHeroPrimary : undefined,
       heroSecondary: Object.keys(cleanHeroSecondary).length > 0 ? cleanHeroSecondary : undefined,
       heroCutout: Object.keys(cleanHeroCutout).length > 0 ? cleanHeroCutout : undefined,
+      heroProfiles: initialProfile.heroProfiles,
       activePhotoId: activePhotoId || (photos.length > 0 ? photos[0]?.publicId : DEFAULT_AVATAR_PUBLIC_ID),
     };
 
