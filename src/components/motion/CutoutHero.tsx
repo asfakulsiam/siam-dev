@@ -6,6 +6,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { useTheme } from "@/hooks/useTheme";
 import { getDefaultCutoutPhotoSVG } from "@/features/profile/data";
+import { FloatingSkillBadges } from "@/components/motion/FloatingSkillBadges";
 
 export interface CutoutHeroProps {
   name: string;
@@ -14,6 +15,7 @@ export interface CutoutHeroProps {
   bio?: string;
   metaRow: React.ReactNode;
   actions: React.ReactNode;
+  skillBadges?: Array<{ label: string; icon?: string; order?: number }>;
   heroProfiles?: {
     dayShift?: { publicId: string; alt: string; accentColor?: string };
     charcoal?: { publicId: string; alt: string; accentColor?: string };
@@ -35,6 +37,7 @@ export function CutoutHero({
   bio,
   metaRow,
   actions,
+  skillBadges,
   heroProfiles,
   cutout,
   cutoutPhoto,
@@ -215,15 +218,16 @@ export function CutoutHero({
                 referrerPolicy="no-referrer"
               />
             )}
+            <FloatingSkillBadges badges={skillBadges} />
           </div>
         </div>
       )}
 
       {/* 3. Foreground Narrative Content Grid */}
-      <div className="relative z-20 mt-auto pt-6 sm:pt-10 lg:pt-16 pb-2">
+      <div className="relative z-20 mt-auto pt-4 sm:pt-8 lg:pt-12 pb-2">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-end">
           {/* Headline (Dominant personal text anchor) */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-3">
+          <div className="lg:col-span-7 xl:col-span-8">
             <h1
               ref={headlineRef}
               aria-label={`${name} — ${headline}`}

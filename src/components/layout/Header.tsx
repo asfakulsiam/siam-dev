@@ -128,20 +128,16 @@ export function Header({ profile }: HeaderProps) {
               <ThemeSwitcher />
             </div>
 
-            {/* Resume Button */}
+            {/* Resume Link — Plain text style (Phase Y: eliminates 3rd pill button in first viewport) */}
             <a
               href={profile?.resume?.url || "https://drive.google.com"}
               target="_blank"
               rel="noopener noreferrer"
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: "hidden sm:inline-flex gap-1.5",
-              })}
+              className="hidden sm:inline-flex items-center gap-1 text-xs font-mono font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors px-2 py-1.5 rounded-[var(--r-sm)] focus-visible:outline-2 focus-visible:outline-[var(--focus)]"
               data-cursor-text="Resume"
             >
               <span>Resume</span>
-              <ArrowUpRight className="w-3 h-3 opacity-60" aria-hidden="true" />
+              <ArrowUpRight className="w-3.5 h-3.5 opacity-60" aria-hidden="true" />
             </a>
 
             {/* Mobile Menu Trigger */}

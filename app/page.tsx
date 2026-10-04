@@ -64,17 +64,23 @@ export default async function HomePage() {
   );
 
   const heroActions = (
-    <div className="flex flex-wrap items-center gap-3.5 pt-1">
+    <div className="flex flex-wrap items-center gap-4 pt-1">
       <Link href="/work">
         <Button size="lg" variant="primary" data-cursor-text="View">
           <span>Explore Work</span>
           <ArrowUpRight className="w-4 h-4 ml-1 opacity-70" aria-hidden="true" />
         </Button>
       </Link>
-      <Link href="/contact">
-        <Button size="lg" variant="outline" data-cursor-text="Say Hi">
-          Get in Touch
-        </Button>
+      <Link
+        href="/contact"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors px-2 py-2 focus-visible:outline-2 focus-visible:outline-[var(--focus)] rounded-[var(--r-sm)] group"
+        data-cursor-text="Say Hi"
+      >
+        <span>Get in Touch</span>
+        <ArrowUpRight
+          className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+          aria-hidden="true"
+        />
       </Link>
     </div>
   );
@@ -90,6 +96,7 @@ export default async function HomePage() {
               headline={profile.headline}
               subheadline={profile.subheadline}
               bio={profile.bio}
+              skillBadges={profile.heroSkillBadges}
               heroProfiles={profile.heroProfiles}
               cutout={profile.heroCutout}
               cutoutPhoto={profile.heroCutout?.light ?? null}
@@ -102,6 +109,8 @@ export default async function HomePage() {
               headline={profile.headline}
               subheadline={profile.subheadline}
               bio={profile.bio}
+              skillBadges={profile.heroSkillBadges}
+              heroProfiles={profile.heroProfiles}
               heroPrimary={profile.heroPrimary}
               heroSecondary={profile.heroSecondary}
               primaryPhoto={primaryPhoto}

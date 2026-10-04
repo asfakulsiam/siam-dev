@@ -62,6 +62,12 @@ export const heroPhotoSlotSchema = z.object({
   dark: heroPhotoVariantSchema.optional(),
 });
 
+export const skillBadgeSchema = z.object({
+  label: z.string().min(1, "Skill badge label is required").max(24, "Max 24 characters"),
+  icon: z.string().optional(),
+  order: z.number().int().optional(),
+});
+
 export const profileSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, "Name is required"),
@@ -88,6 +94,7 @@ export const profileSchema = z.object({
   heroSecondary: heroPhotoSlotSchema.optional(),
   heroCutout: heroCutoutSchema.optional(),
   heroProfiles: heroProfilesSchema.optional(),
+  heroSkillBadges: z.array(skillBadgeSchema).max(5).optional(),
   activePhotoId: z.string().optional(),
   updatedAt: z.string().optional(),
 });
@@ -98,5 +105,6 @@ export const profileInputSchema = profileSchema.omit({
 });
 
 export type Photo = z.infer<typeof photoSchema>;
+export type SkillBadge = z.infer<typeof skillBadgeSchema>;
 export type ProfileDocument = z.infer<typeof profileSchema>;
 export type ProfileInput = z.infer<typeof profileInputSchema>;

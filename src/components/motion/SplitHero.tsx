@@ -11,6 +11,7 @@ import {
   getDefaultIdentityPhotoSVG,
   getDefaultSecondaryPhotoSVG,
 } from "@/features/profile/data";
+import { FloatingSkillBadges } from "@/components/motion/FloatingSkillBadges";
 
 export interface SplitHeroProps {
   name: string;
@@ -18,6 +19,14 @@ export interface SplitHeroProps {
   overlapWord?: string;
   subheadline?: string;
   bio?: string;
+  skillBadges?: Array<{ label: string; icon?: string; order?: number }>;
+  heroProfiles?: {
+    dayShift?: { publicId: string; alt: string; accentColor?: string };
+    charcoal?: { publicId: string; alt: string; accentColor?: string };
+    nightCoder?: { publicId: string; alt: string; accentColor?: string };
+    blueprint?: { publicId: string; alt: string; accentColor?: string };
+    mono?: { publicId: string; alt: string; accentColor?: string };
+  } | null;
   heroPrimary?: {
     light?: { publicId: string; alt: string; accentColor?: string };
     dark?: { publicId: string; alt: string; accentColor?: string };
@@ -38,6 +47,8 @@ export function SplitHero({
   overlapWord,
   subheadline,
   bio,
+  skillBadges,
+  heroProfiles,
   heroPrimary,
   heroSecondary,
   primaryPhoto,
@@ -54,22 +65,68 @@ export function SplitHero({
   const primaryImgRef = useRef<HTMLDivElement>(null);
   const secondaryImgRef = useRef<HTMLDivElement>(null);
 
-  // Phase U: Theme-Aware Photo Resolution using useTheme().isDark
-  // Mirror CutoutHero's exact fallback order:
-  // Dark theme → slot.dark ?? slot.light; Light theme → slot.light ?? slot.dark
+  // Phase X: 5-Theme Deterministic Photo Resolution
+  // 1. Theme-specific entry from heroProfiles (per-theme overrides)
+  // 2. Fallback to heroPrimary light / dark slots
+  // 3. Fallback to primaryPhoto prop
+  // 4. Default identity SVG for current theme
   const { theme, isDark } = useTheme();
 
-  const resolvedPrimary = isDark
-    ? heroPrimary?.dark?.publicId
-      ? heroPrimary.dark
-      : heroPrimary?.light?.publicId
-        ? heroPrimary.light
-        : primaryPhoto
-    : heroPrimary?.light?.publicId
-      ? heroPrimary.light
-      : heroPrimary?.dark?.publicId
-        ? heroPrimary.dark
-        : primaryPhoto;
+  const resolvePrimaryPhoto = () => {
+    const hasAssignedPhoto = Boolean(
+      heroProfiles?.dayShift?.publicId ||
+      heroProfiles?.charcoal?.publicId ||
+      heroProfiles?.nightCoder?.publicId ||
+      heroProfiles?.blueprint?.publicId ||
+      heroProfiles?.mono?.publicId ||
+      heroPrimary?.light?.publicId ||
+      heroPrimary?.dark?.publicId ||
+      primaryPhoto?.publicId
+    );
+
+    if (!hasAssignedPhoto) {
+      return null;
+    }
+
+    if (theme === "day-shift") {
+      if (heroProfiles?.dayShift?.publicId) return heroProfiles.dayShift;
+      if (heroPrimary?.light?.publicId) return heroPrimary.light;
+    } else if (theme === "charcoal") {
+      if (heroProfiles?.charcoal?.publicId) return heroProfiles.charcoal;
+      if (heroPrimary?.dark?.publicId) return heroPrimary.dark;
+      if (heroPrimary?.light?.publicId) return heroPrimary.light;
+    } else if (theme === "night-coder") {
+      if (heroProfiles?.nightCoder?.publicId) return heroProfiles.nightCoder;
+      if (heroPrimary?.dark?.publicId) return heroPrimary.dark;
+      if (heroPrimary?.light?.publicId) return heroPrimary.light;
+    } else if (theme === "blueprint") {
+      if (heroProfiles?.blueprint?.publicId) return heroProfiles.blueprint;
+      if (heroPrimary?.dark?.publicId) return heroPrimary.dark;
+      if (heroPrimary?.light?.publicId) return heroPrimary.light;
+    } else if (theme === "mono") {
+      if (heroProfiles?.mono?.publicId) return heroProfiles.mono;
+      if (heroPrimary?.light?.publicId) return heroPrimary.light;
+      if (heroPrimary?.dark?.publicId) return heroPrimary.dark;
+    }
+
+    if (isDark) {
+      if (heroPrimary?.dark?.publicId) return heroPrimary.dark;
+      if (heroPrimary?.light?.publicId) return heroPrimary.light;
+    } else {
+      if (heroPrimary?.light?.publicId) return heroPrimary.light;
+      if (heroPrimary?.dark?.publicId) return heroPrimary.dark;
+    }
+
+    if (primaryPhoto?.publicId) return primaryPhoto;
+
+    return {
+      publicId: getDefaultIdentityPhotoSVG(theme),
+      alt: `${name} portrait (${theme.replace("-", " ")})`,
+      accentColor: "auto",
+    };
+  };
+
+  const resolvedPrimary = resolvePrimaryPhoto();
 
   const resolvedSecondary = isDark
     ? heroSecondary?.dark?.publicId
@@ -86,10 +143,12 @@ export function SplitHero({
   const primaryAccent = getThemeAccent(theme, resolvedPrimary?.accentColor);
   const secondaryAccent = getThemeAccent(theme, resolvedSecondary?.accentColor);
 
+  const hasPhoto = Boolean(resolvedPrimary?.publicId);
+
   // Extract main phrase and target overlap word from headline
   const { mainPhrase, targetOverlapWord } = useMemo(() => {
     const trimmed = (headline || "").trim();
-    if (!resolvedPrimary?.publicId) {
+    if (!hasPhoto) {
       return { mainPhrase: trimmed, targetOverlapWord: "" };
     }
 
@@ -110,7 +169,7 @@ export function SplitHero({
     }
 
     return { mainPhrase: trimmed, targetOverlapWord: "" };
-  }, [headline, overlapWord, resolvedPrimary]);
+  }, [headline, overlapWord, hasPhoto]);
 
   // Measured position for signature overlap word (Phase R)
   const overlapPos = useOverlapPosition(containerRef, headlineRef, primaryImgRef);
@@ -149,16 +208,16 @@ export function SplitHero({
           );
         }
 
-        // 3. Primary Photo scale-fade entrance
+        // 3. Primary Photo subtle settle (safe initial opacity 1)
         if (primaryImgRef.current) {
           gsap.fromTo(
             primaryImgRef.current,
-            { opacity: 0, scale: 1.03 },
+            { scale: 1.02, y: 10 },
             {
-              opacity: 1,
               scale: 1.0,
+              y: 0,
               duration: 0.75,
-              delay: 0.18,
+              delay: 0.15,
               ease: "expo.out",
             },
           );
@@ -180,22 +239,18 @@ export function SplitHero({
           );
         }
 
-        // 5. ScrollTrigger unified hero parallax compress
-        if (containerRef.current) {
-          const targets = [headlineRef.current, photoContainerRef.current].filter(Boolean);
-          if (targets.length > 0) {
-            gsap.to(targets, {
-              scrollTrigger: {
-                trigger: containerRef.current,
-                start: "top top",
-                end: "bottom top",
-                scrub: 0.6,
-              },
-              opacity: 0.3,
-              yPercent: -8,
-              ease: "none",
-            });
-          }
+        // 5. ScrollTrigger subtle parallax compression (does NOT fade photo away)
+        if (containerRef.current && photoContainerRef.current) {
+          gsap.to(photoContainerRef.current, {
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: 0.6,
+            },
+            yPercent: -6,
+            ease: "none",
+          });
         }
       });
 
@@ -223,8 +278,6 @@ export function SplitHero({
     { scope: containerRef },
   );
 
-  const hasPhoto = Boolean(resolvedPrimary?.publicId);
-
   return (
     <div ref={containerRef} className="w-full relative">
       {/* 
@@ -243,49 +296,48 @@ export function SplitHero({
         {/* Left Column: Metadata, Headline, Subheadline, CTAs */}
         <div
           ref={leftColRef}
-          className="relative z-20 flex flex-col justify-end lg:pr-6 xl:pr-10 space-y-7"
+          className="relative z-20 flex flex-col justify-end lg:pr-6 xl:pr-10"
         >
           {/* Metadata Row */}
-          <div>{metaRow}</div>
+          <div className="mb-2 sm:mb-3">{metaRow}</div>
 
-          {/* Headline & Narrative Block */}
-          <div className="space-y-[28px]">
-            <h1
-              ref={headlineRef}
-              aria-label={`${name} — ${headline}`}
-              className="text-[clamp(2.5rem,4.8vw,4rem)] font-extrabold tracking-[-0.02em] text-[var(--ink)] leading-[1.04] text-balance transition-colors duration-[var(--duration-base)]"
-              style={
-                {
-                  fontVariationSettings: "'wght' 800, 'wdth' 100",
-                  lineHeight: "1.04",
-                  willChange: "transform, opacity",
-                } as React.CSSProperties
-              }
-            >
-              {/* On desktop lg+ with photo, render mainPhrase. On mobile, render full headline. */}
-              {hasPhoto && targetOverlapWord ? (
-                <>
-                  <span className="hidden lg:inline">{mainPhrase}</span>
-                  <span className="lg:hidden">{headline}</span>
-                </>
-              ) : (
-                headline
-              )}
-            </h1>
-
-            {(subheadline || bio) && (
-              <p
-                ref={subheadRef}
-                className="text-[1.125rem] text-[var(--ink-muted)] max-w-[560px] text-pretty leading-[1.5] font-normal"
-                style={{ lineHeight: "1.5" }}
-              >
-                {subheadline} {bio}
-              </p>
+          {/* Headline */}
+          <h1
+            ref={headlineRef}
+            aria-label={`${name} — ${headline}`}
+            className="mb-4 sm:mb-6 text-[clamp(2.5rem,4.8vw,4rem)] font-extrabold tracking-[-0.02em] text-[var(--ink)] leading-[1.04] text-balance transition-colors duration-[var(--duration-base)]"
+            style={
+              {
+                fontVariationSettings: "'wght' 800, 'wdth' 100",
+                lineHeight: "1.04",
+                willChange: "transform, opacity",
+              } as React.CSSProperties
+            }
+          >
+            {/* On desktop lg+ with photo, render mainPhrase. On mobile, render full headline. */}
+            {hasPhoto && targetOverlapWord ? (
+              <>
+                <span className="hidden lg:inline">{mainPhrase}</span>
+                <span className="lg:hidden">{headline}</span>
+              </>
+            ) : (
+              headline
             )}
-          </div>
+          </h1>
+
+          {/* Subheadline Narrative */}
+          {(subheadline || bio) && (
+            <p
+              ref={subheadRef}
+              className="mb-6 sm:mb-8 text-[1.125rem] text-[var(--ink-muted)] max-w-[560px] text-pretty leading-[1.5] font-normal"
+              style={{ lineHeight: "1.5" }}
+            >
+              {subheadline} {bio}
+            </p>
+          )}
 
           {/* Action CTAs Row */}
-          <div ref={actionsRef} className="pt-2">
+          <div ref={actionsRef} className="pt-1">
             {actions}
           </div>
         </div>
@@ -308,7 +360,7 @@ export function SplitHero({
                 <img
                   src={getDefaultIdentityPhotoSVG(theme)}
                   alt={resolvedPrimary.alt}
-                  className="w-full h-full object-cover object-center"
+                  className="w-full h-full object-cover object-[50%_25%]"
                 />
               ) : (
                 <Image
@@ -320,10 +372,11 @@ export function SplitHero({
                   fill
                   priority
                   sizes="(max-width: 1024px) 100vw, 47vw"
-                  className="object-cover object-center"
+                  className="object-cover object-[50%_25%]"
                   referrerPolicy="no-referrer"
                 />
               )}
+              <FloatingSkillBadges badges={skillBadges} />
             </div>
 
             {/* 

@@ -63,6 +63,7 @@ export interface ProfileData {
     blueprint?: { publicId: string; alt: string; accentColor?: string };
     mono?: { publicId: string; alt: string; accentColor?: string };
   };
+  heroSkillBadges?: Array<{ label: string; icon?: string; order?: number }>;
   activePhotoId?: string;
 }
 
@@ -432,6 +433,7 @@ export const staticProfile: ProfileData = {
       accentColor: "#000000",
     },
   },
+  heroSkillBadges: [],
   activePhotoId: defaultIdentityPhotoSVG,
   toolbox: [
     {

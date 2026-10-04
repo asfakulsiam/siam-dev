@@ -63,6 +63,7 @@ async function fetchProfileData(): Promise<ProfileData> {
           heroSecondary: resolvedHeroSecondary,
           heroCutout: sanitized.heroCutout || staticProfile.heroCutout,
           heroProfiles: sanitized.heroProfiles || staticProfile.heroProfiles,
+          heroSkillBadges: sanitized.heroSkillBadges || staticProfile.heroSkillBadges || [],
           activePhotoId:
             sanitized.activePhotoId !== undefined
               ? sanitized.activePhotoId

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { ProfileDocument, Photo } from "@/features/profile/schema";
 import {
+  ProfileData,
   defaultIdentityPhotoSVG,
   getDefaultIdentityPhotoSVG,
   getDefaultSecondaryPhotoSVG,
@@ -44,7 +45,7 @@ const PRESET_ACCENTS = [
 ];
 
 interface ProfileManagerProps {
-  initialProfile: ProfileDocument;
+  initialProfile: ProfileDocument | ProfileData;
 }
 
 export function ProfileManager({ initialProfile }: ProfileManagerProps) {
@@ -163,6 +164,50 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       }
     );
   });
+
+  // 5-Theme Hero Profile Overrides (Phase X.3)
+  const [heroProfiles, setHeroProfiles] = useState<{
+    dayShift?: { publicId: string; alt: string; accentColor?: string };
+    charcoal?: { publicId: string; alt: string; accentColor?: string };
+    nightCoder?: { publicId: string; alt: string; accentColor?: string };
+    blueprint?: { publicId: string; alt: string; accentColor?: string };
+    mono?: { publicId: string; alt: string; accentColor?: string };
+  }>(initialProfile.heroProfiles || {});
+
+  const handleHeroProfileUpdate = (
+    themeKey: "dayShift" | "charcoal" | "nightCoder" | "blueprint" | "mono",
+    field: "publicId" | "alt" | "accentColor",
+    val: string,
+  ) => {
+    setHeroProfiles((prev) => ({
+      ...prev,
+      [themeKey]: {
+        publicId: field === "publicId" ? val : prev?.[themeKey]?.publicId || "",
+        alt: field === "alt" ? val : prev?.[themeKey]?.alt || "",
+        accentColor: field === "accentColor" ? val : prev?.[themeKey]?.accentColor || "auto",
+      },
+    }));
+  };
+
+  // Hero Skill Badges (Phase AA.1 - Max 5)
+  const [heroSkillBadges, setHeroSkillBadges] = useState<Array<{ label: string; icon?: string; order?: number }>>(
+    initialProfile.heroSkillBadges || [],
+  );
+
+  const handleAddSkillBadge = () => {
+    if (heroSkillBadges.length >= 5) return;
+    setHeroSkillBadges((prev) => [...prev, { label: "", order: prev.length }]);
+  };
+
+  const handleUpdateSkillBadge = (index: number, label: string) => {
+    setHeroSkillBadges((prev) =>
+      prev.map((badge, i) => (i === index ? { ...badge, label } : badge)),
+    );
+  };
+
+  const handleRemoveSkillBadge = (index: number) => {
+    setHeroSkillBadges((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleHeroSlotVariantUpdate = (
     slot: "heroPrimary" | "heroSecondary",
@@ -389,6 +434,59 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
         : {}),
     };
 
+    const cleanHeroProfiles = {
+      ...(heroProfiles?.dayShift?.publicId?.trim()
+        ? {
+            dayShift: {
+              publicId: heroProfiles.dayShift.publicId.trim(),
+              alt: heroProfiles.dayShift.alt?.trim() || "Day Shift theme portrait",
+              accentColor: heroProfiles.dayShift.accentColor?.trim() || "auto",
+            },
+          }
+        : {}),
+      ...(heroProfiles?.charcoal?.publicId?.trim()
+        ? {
+            charcoal: {
+              publicId: heroProfiles.charcoal.publicId.trim(),
+              alt: heroProfiles.charcoal.alt?.trim() || "Charcoal theme portrait",
+              accentColor: heroProfiles.charcoal.accentColor?.trim() || "auto",
+            },
+          }
+        : {}),
+      ...(heroProfiles?.nightCoder?.publicId?.trim()
+        ? {
+            nightCoder: {
+              publicId: heroProfiles.nightCoder.publicId.trim(),
+              alt: heroProfiles.nightCoder.alt?.trim() || "Night Coder theme portrait",
+              accentColor: heroProfiles.nightCoder.accentColor?.trim() || "auto",
+            },
+          }
+        : {}),
+      ...(heroProfiles?.blueprint?.publicId?.trim()
+        ? {
+            blueprint: {
+              publicId: heroProfiles.blueprint.publicId.trim(),
+              alt: heroProfiles.blueprint.alt?.trim() || "Blueprint theme portrait",
+              accentColor: heroProfiles.blueprint.accentColor?.trim() || "auto",
+            },
+          }
+        : {}),
+      ...(heroProfiles?.mono?.publicId?.trim()
+        ? {
+            mono: {
+              publicId: heroProfiles.mono.publicId.trim(),
+              alt: heroProfiles.mono.alt?.trim() || "Mono theme portrait",
+              accentColor: heroProfiles.mono.accentColor?.trim() || "auto",
+            },
+          }
+        : {}),
+    };
+
+    const cleanSkillBadges = heroSkillBadges
+      .map((b, i) => ({ label: b.label.trim(), icon: b.icon?.trim(), order: i }))
+      .filter((b) => b.label.length > 0)
+      .slice(0, 5);
+
     const payload = {
       name: name.trim(),
       headline: headline.trim(),
@@ -416,7 +514,8 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
       heroPrimary: Object.keys(cleanHeroPrimary).length > 0 ? cleanHeroPrimary : undefined,
       heroSecondary: Object.keys(cleanHeroSecondary).length > 0 ? cleanHeroSecondary : undefined,
       heroCutout: Object.keys(cleanHeroCutout).length > 0 ? cleanHeroCutout : undefined,
-      heroProfiles: initialProfile.heroProfiles,
+      heroProfiles: Object.keys(cleanHeroProfiles).length > 0 ? cleanHeroProfiles : undefined,
+      heroSkillBadges: cleanSkillBadges,
       activePhotoId: activePhotoId || (photos.length > 0 ? photos[0]?.publicId : DEFAULT_AVATAR_PUBLIC_ID),
     };
 
@@ -1318,6 +1417,201 @@ export function ProfileManager({ initialProfile }: ProfileManagerProps) {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* 5-Theme Photo Overrides (Optional Refinement — Phase X.3) */}
+            <div className="p-5 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--line)] pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-[var(--accent)]" />
+                    <h3 className="text-sm font-bold text-[var(--ink)]">
+                      Per-Theme Portrait Overrides (Optional Refinement)
+                    </h3>
+                  </div>
+                  <p className="text-xs text-[var(--ink-muted)] mt-1">
+                    Quick setup uses the Light/Dark pair above. If you want specific custom visuals for individual themes, provide them here. Empty slots automatically inherit the Light/Dark fallback.
+                  </p>
+                </div>
+                <Badge variant="outline" size="xs" className="font-bold shrink-0">
+                  5 THEMES
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+                {/* Day Shift */}
+                <div className="p-3.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-[var(--ink)]">Day Shift</span>
+                    <span className="text-[10px] font-mono text-[var(--ink-muted)]">Light Editorial</span>
+                  </div>
+                  <CloudinaryUploadField
+                    label="Day Shift Photo"
+                    value={heroProfiles?.dayShift?.publicId || ""}
+                    alt={heroProfiles?.dayShift?.alt || ""}
+                    accept="image/*"
+                    folder="devden/portraits"
+                    placeholderAlt="Asfakul editorial daylight portrait"
+                    onAltChange={(newAlt) => handleHeroProfileUpdate("dayShift", "alt", newAlt)}
+                    onUploaded={(newId) => handleHeroProfileUpdate("dayShift", "publicId", newId)}
+                    onDeleteOld={(oldId) => {
+                      if (!oldId.startsWith("data:")) deleteCloudinaryAssetAction(oldId, "image");
+                    }}
+                  />
+                </div>
+
+                {/* Charcoal */}
+                <div className="p-3.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-[var(--ink)]">Charcoal</span>
+                    <span className="text-[10px] font-mono text-[var(--ink-muted)]">Dark Neutral</span>
+                  </div>
+                  <CloudinaryUploadField
+                    label="Charcoal Photo"
+                    value={heroProfiles?.charcoal?.publicId || ""}
+                    alt={heroProfiles?.charcoal?.alt || ""}
+                    accept="image/*"
+                    folder="devden/portraits"
+                    placeholderAlt="Asfakul neutral dark studio portrait"
+                    onAltChange={(newAlt) => handleHeroProfileUpdate("charcoal", "alt", newAlt)}
+                    onUploaded={(newId) => handleHeroProfileUpdate("charcoal", "publicId", newId)}
+                    onDeleteOld={(oldId) => {
+                      if (!oldId.startsWith("data:")) deleteCloudinaryAssetAction(oldId, "image");
+                    }}
+                  />
+                </div>
+
+                {/* Night Coder */}
+                <div className="p-3.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-[var(--ink)]">Night Coder</span>
+                    <span className="text-[10px] font-mono text-[var(--ink-muted)]">Cool Navy</span>
+                  </div>
+                  <CloudinaryUploadField
+                    label="Night Coder Photo"
+                    value={heroProfiles?.nightCoder?.publicId || ""}
+                    alt={heroProfiles?.nightCoder?.alt || ""}
+                    accept="image/*"
+                    folder="devden/portraits"
+                    placeholderAlt="Asfakul cool navy technical studio portrait"
+                    onAltChange={(newAlt) => handleHeroProfileUpdate("nightCoder", "alt", newAlt)}
+                    onUploaded={(newId) => handleHeroProfileUpdate("nightCoder", "publicId", newId)}
+                    onDeleteOld={(oldId) => {
+                      if (!oldId.startsWith("data:")) deleteCloudinaryAssetAction(oldId, "image");
+                    }}
+                  />
+                </div>
+
+                {/* Blueprint */}
+                <div className="p-3.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-[var(--ink)]">Blueprint</span>
+                    <span className="text-[10px] font-mono text-[var(--ink-muted)]">Graphic Blue</span>
+                  </div>
+                  <CloudinaryUploadField
+                    label="Blueprint Photo"
+                    value={heroProfiles?.blueprint?.publicId || ""}
+                    alt={heroProfiles?.blueprint?.alt || ""}
+                    accept="image/*"
+                    folder="devden/portraits"
+                    placeholderAlt="Asfakul graphic blueprint portrait"
+                    onAltChange={(newAlt) => handleHeroProfileUpdate("blueprint", "alt", newAlt)}
+                    onUploaded={(newId) => handleHeroProfileUpdate("blueprint", "publicId", newId)}
+                    onDeleteOld={(oldId) => {
+                      if (!oldId.startsWith("data:")) deleteCloudinaryAssetAction(oldId, "image");
+                    }}
+                  />
+                </div>
+
+                {/* Mono */}
+                <div className="p-3.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-[var(--ink)]">Mono</span>
+                    <span className="text-[10px] font-mono text-[var(--ink-muted)]">B&amp;W Contrast</span>
+                  </div>
+                  <CloudinaryUploadField
+                    label="Mono Photo"
+                    value={heroProfiles?.mono?.publicId || ""}
+                    alt={heroProfiles?.mono?.alt || ""}
+                    accept="image/*"
+                    folder="devden/portraits"
+                    placeholderAlt="Asfakul monochrome high-contrast portrait"
+                    onAltChange={(newAlt) => handleHeroProfileUpdate("mono", "alt", newAlt)}
+                    onUploaded={(newId) => handleHeroProfileUpdate("mono", "publicId", newId)}
+                    onDeleteOld={(oldId) => {
+                      if (!oldId.startsWith("data:")) deleteCloudinaryAssetAction(oldId, "image");
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Floating Hero Skill Badges (Phase AA.1) */}
+            <div className="p-5 rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface)] space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--line)] pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[var(--accent)]" />
+                    <h3 className="text-sm font-bold text-[var(--ink)]">
+                      Hero Floating Skill Badges (Max 5)
+                    </h3>
+                  </div>
+                  <p className="text-xs text-[var(--ink-muted)] mt-1">
+                    Small floating labels around the portrait with subtle, independent drift. Capped at 5 badges to maintain clean editorial hierarchy.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="xs"
+                  variant="outline"
+                  onClick={handleAddSkillBadge}
+                  disabled={heroSkillBadges.length >= 5}
+                  className="shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  <span>Add Badge ({heroSkillBadges.length}/5)</span>
+                </Button>
+              </div>
+
+              {heroSkillBadges.length === 0 ? (
+                <div className="p-6 text-center rounded-[var(--r-sm)] border border-dashed border-[var(--line)] space-y-1">
+                  <p className="text-xs font-semibold text-[var(--ink)]">No hero skill badges configured</p>
+                  <p className="text-[11px] text-[var(--ink-muted)]">
+                    Badges are optional. Click &ldquo;Add Badge&rdquo; to showcase your core traits (e.g. &ldquo;TypeScript&rdquo;, &ldquo;Design Systems&rdquo;, &ldquo;Next.js&rdquo;).
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {heroSkillBadges.map((badge, bIdx) => (
+                    <div
+                      key={bIdx}
+                      className="flex items-center gap-3 p-2.5 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface-2)]"
+                    >
+                      <span className="text-[11px] font-mono text-[var(--ink-muted)] w-5 text-center">
+                        #{bIdx + 1}
+                      </span>
+                      <input
+                        type="text"
+                        value={badge.label}
+                        maxLength={24}
+                        onChange={(e) => handleUpdateSkillBadge(bIdx, e.target.value)}
+                        placeholder="e.g. TypeScript or Design Systems (max 24 chars)"
+                        className="flex-1 px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--line)] rounded-[var(--r-sm)] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
+                      />
+                      <Button
+                        type="button"
+                        size="xs"
+                        variant="outline"
+                        onClick={() => handleRemoveSkillBadge(bIdx)}
+                        className="text-[var(--danger)] hover:bg-[var(--danger)]/10"
+                        aria-label={`Remove badge #${bIdx + 1}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
